@@ -2204,34 +2204,6 @@
           "libelle": "Fonds propres"
         },
         {
-          "valeur": "plan-de-developpement-des-competences",
-          "libelle": "Plan de développement des compétences\\*"
-        },
-        {
-          "valeur": "prise-en-charge-opco",
-          "libelle": "Prise en charge OPCO\\*"
-        },
-        {
-          "valeur": "cpf",
-          "libelle": "CPF\\*"
-        },
-        {
-          "valeur": "fne-formation",
-          "libelle": "FNE-Formation\\*"
-        },
-        {
-          "valeur": "pro-a",
-          "libelle": "Pro-A\\*"
-        },
-        {
-          "valeur": "france-travail-aif",
-          "libelle": "France Travail (AIF\\*)"
-        },
-        {
-          "valeur": "region",
-          "libelle": "Région"
-        },
-        {
           "valeur": "autre",
           "libelle": "Autre"
         },
@@ -2243,14 +2215,7 @@
       "obligatoire": true,
       "rempli_par": "C",
       "condition": "-",
-      "glossaire": [
-        "plan-developpement-competences",
-        "opco",
-        "cpf",
-        "fne-formation",
-        "pro-a",
-        "aif"
-      ],
+      "glossaire": [],
       "nsp_autorise": true
     },
     {

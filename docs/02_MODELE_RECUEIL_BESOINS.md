@@ -184,7 +184,7 @@
 
 | ID | Question | Type | Options | Obl. | Par | Condition | Glossaire |
 |---|---|---|---|---|---|---|---|
-| TC-10.01 | Mode de financement envisagé | choix_multiple | Fonds propres ; Plan de développement des compétences\* ; Prise en charge OPCO\* ; CPF\* ; FNE-Formation\* ; Pro-A\* ; France Travail (AIF\*) ; Région ; Autre ; Je ne sais pas | O | C | - | plan-developpement-competences ; opco ; cpf ; fne-formation ; pro-a ; aif |
+| TC-10.01 | Mode de financement envisagé | choix_multiple | Fonds propres ; Autre ; Je ne sais pas | O | C | - | - |
 | TC-10.02 | Enveloppe budgétaire envisagée (HT) | choix_unique | Moins de 1 500 € ; 1 500 à 5 000 € ; 5 000 à 15 000 € ; 15 000 à 50 000 € ; Plus de 50 000 € ; Non définie | O | C | - | - |
 | TC-10.03 | Une demande de prise en charge\* est-elle déjà en cours ? | oui_non | - | O | C | - | prise-en-charge |
 | TC-10.04 | Date limite de dépôt du dossier de financement | date | - | N | C | TC-10.03 = oui | - |

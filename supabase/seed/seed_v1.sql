@@ -1,7 +1,7 @@
 -- Généré par scripts/build-seed.mjs -- ne pas modifier à la main.
 
 insert into questionnaires (id, statut, source_hash, publie_le) values
-  ('v1', 'publie', '906c9478899b2f45e03851908355a79ed870a9a71e7f0006b96645b274a293cd', now());
+  ('v1', 'publie', 'c10c634d5861c99a60d43cbad3febf955d6fec1f0cb22ee39a9138e9d332b0dd', now());
 
 insert into sections (questionnaire_id, id, partie, titre, ordre, condition, visible_client) values
   ('v1', 'TC-0', 1, 'Cadrage de la demande', 1, '-', true),
@@ -117,7 +117,7 @@ insert into questions (questionnaire_id, id, section_id, ordre, libelle, type, o
   ('v1', 'TC-9.03', 'TC-9', 3, 'Qui observera l''application des acquis au poste de travail ?', 'texte', '[]'::jsonb, false, 'C/F', 'TC-9.01 contient Mesure du transfert', ARRAY['transfert']::text[], true),
   ('v1', 'TC-9.04', 'TC-9', 4, 'Délai souhaité pour l''évaluation à froid\*', 'choix_unique', '[{"valeur":"1-mois","libelle":"1 mois"},{"valeur":"3-mois","libelle":"3 mois"},{"valeur":"6-mois","libelle":"6 mois"}]'::jsonb, false, 'C/F', 'TC-9.01 contient Évaluation à froid', ARRAY['evaluation-froid']::text[], true),
   ('v1', 'TC-9.05', 'TC-9', 5, 'Documents de bilan attendus', 'choix_multiple', '[{"valeur":"bilan-pedagogique-collectif","libelle":"Bilan pédagogique collectif"},{"valeur":"synthese-individuelle","libelle":"Synthèse individuelle"},{"valeur":"tableau-de-bord","libelle":"Tableau de bord"},{"valeur":"aucun","libelle":"Aucun"}]'::jsonb, false, 'C', '-', '{}'::text[], true),
-  ('v1', 'TC-10.01', 'TC-10', 1, 'Mode de financement envisagé', 'choix_multiple', '[{"valeur":"fonds-propres","libelle":"Fonds propres"},{"valeur":"plan-de-developpement-des-competences","libelle":"Plan de développement des compétences\\*"},{"valeur":"prise-en-charge-opco","libelle":"Prise en charge OPCO\\*"},{"valeur":"cpf","libelle":"CPF\\*"},{"valeur":"fne-formation","libelle":"FNE-Formation\\*"},{"valeur":"pro-a","libelle":"Pro-A\\*"},{"valeur":"france-travail-aif","libelle":"France Travail (AIF\\*)"},{"valeur":"region","libelle":"Région"},{"valeur":"autre","libelle":"Autre"},{"valeur":"je-ne-sais-pas","libelle":"Je ne sais pas"}]'::jsonb, true, 'C', '-', ARRAY['plan-developpement-competences', 'opco', 'cpf', 'fne-formation', 'pro-a', 'aif']::text[], true),
+  ('v1', 'TC-10.01', 'TC-10', 1, 'Mode de financement envisagé', 'choix_multiple', '[{"valeur":"fonds-propres","libelle":"Fonds propres"},{"valeur":"autre","libelle":"Autre"},{"valeur":"je-ne-sais-pas","libelle":"Je ne sais pas"}]'::jsonb, true, 'C', '-', '{}'::text[], true),
   ('v1', 'TC-10.02', 'TC-10', 2, 'Enveloppe budgétaire envisagée (HT)', 'choix_unique', '[{"valeur":"moins-de-1-500","libelle":"Moins de 1 500 €"},{"valeur":"1-500-a-5-000","libelle":"1 500 à 5 000 €"},{"valeur":"5-000-a-15-000","libelle":"5 000 à 15 000 €"},{"valeur":"15-000-a-50-000","libelle":"15 000 à 50 000 €"},{"valeur":"plus-de-50-000","libelle":"Plus de 50 000 €"},{"valeur":"non-definie","libelle":"Non définie"}]'::jsonb, true, 'C', '-', '{}'::text[], true),
   ('v1', 'TC-10.03', 'TC-10', 3, 'Une demande de prise en charge\* est-elle déjà en cours ?', 'oui_non', '[]'::jsonb, true, 'C', '-', ARRAY['prise-en-charge']::text[], false),
   ('v1', 'TC-10.04', 'TC-10', 4, 'Date limite de dépôt du dossier de financement', 'date', '[]'::jsonb, false, 'C', 'TC-10.03 = oui', '{}'::text[], true),
