@@ -3,6 +3,10 @@ import { obtenirSession, obtenirProfil, surChangementAuth } from './auth.js';
 import { getProfil, setProfil } from './store.js';
 import { vueConnexion } from './views/client/connexion.js';
 import { vueMesDemandes } from './views/client/mes-demandes.js';
+import { vueAccueilDemande } from './views/client/accueil.js';
+import { vueSection } from './views/client/section.js';
+import { vueRecap } from './views/client/recap.js';
+import { vueGlossaire } from './views/client/glossaire.js';
 import { vueTableauDeBord } from './views/consultant/tableau-de-bord.js';
 
 async function garantirProfil() {
@@ -30,6 +34,42 @@ route('/mes-demandes', async () => {
     return;
   }
   vueMesDemandes();
+});
+
+route('/d/:ref', async ({ ref }) => {
+  const profil = await garantirProfil();
+  if (!profil) {
+    navigate('/connexion');
+    return;
+  }
+  vueAccueilDemande(ref);
+});
+
+route('/d/:ref/s/:section', async ({ ref, section }) => {
+  const profil = await garantirProfil();
+  if (!profil) {
+    navigate('/connexion');
+    return;
+  }
+  vueSection(ref, section);
+});
+
+route('/d/:ref/recap', async ({ ref }) => {
+  const profil = await garantirProfil();
+  if (!profil) {
+    navigate('/connexion');
+    return;
+  }
+  vueRecap(ref);
+});
+
+route('/glossaire', async () => {
+  const profil = await garantirProfil();
+  if (!profil) {
+    navigate('/connexion');
+    return;
+  }
+  vueGlossaire();
 });
 
 route('/tableau-de-bord', async () => {

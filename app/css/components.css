@@ -1,4 +1,4 @@
-/* Composants génériques. Les composants de champ (17 types) arrivent au Lot 2. */
+/* Composants génériques. */
 
 .btn {
   display: inline-flex;
@@ -111,3 +111,165 @@
 }
 .toast--succes { background: var(--succes); }
 .toast--erreur { background: var(--erreur); }
+
+/* Champs du moteur de formulaire (Lot 2) - 01_ARCHITECTURE.md section 6.2 */
+
+.champ-question {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--bordure);
+}
+.champ-question__libelle {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.champ-question__obligatoire {
+  color: var(--rd-orange);
+}
+.champ-question__nsp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--texte-doux);
+}
+.champ-question__voir-aussi {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--texte-doux);
+}
+.champ-question__erreur {
+  margin-top: 8px;
+  color: var(--erreur);
+  font-size: 13px;
+}
+
+.champ-saisie {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  font-family: var(--police-texte);
+  font-size: 15px;
+  color: var(--texte);
+}
+.champ-saisie--zone { min-height: 96px; padding: 10px 12px; resize: vertical; }
+.champ-saisie--code { font-family: var(--police-code); letter-spacing: .05em; }
+
+.champ-montant { display: flex; align-items: center; gap: 8px; }
+.champ-montant__suffixe { color: var(--texte-doux); font-size: 14px; }
+
+.champ-periode { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.champ-periode span { color: var(--texte-doux); font-size: 14px; }
+
+.champ-radios, .champ-cases, .champ-oui-non {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.champ-radios__option, .champ-cases__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.champ-oui-non { flex-direction: row; gap: 24px; }
+.champ-oui-non label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+
+.champ-classement { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.champ-classement__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--surface);
+}
+.champ-classement__item button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--surface);
+}
+
+.champ-tableau { overflow-x: auto; }
+.champ-tableau table { width: 100%; border-collapse: collapse; }
+.champ-tableau th, .champ-tableau td { padding: 6px; text-align: left; }
+.champ-tableau input { min-height: 40px; width: 100%; }
+.champ-tableau button { margin-top: 8px; }
+
+.champ-contact, .champ-adresse { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+.champ-contact__champ, .champ-adresse__champ { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.champ-tableau-contacts__bloc { margin-bottom: 12px; }
+
+.champ-fichier__liste { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.champ-fichier__liste li { display: flex; justify-content: space-between; gap: 8px; }
+
+/* Progression - section 6.6 / 12.2 */
+.progression__barre {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bordure);
+  overflow: hidden;
+}
+.progression__remplissage { height: 100%; background: var(--rd-turquoise); transition: width .2s ease; }
+.progression__texte { margin: 6px 0 0; font-size: 13px; }
+.progression__pastilles { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.progression__pastille {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--fond);
+  border: 1px solid var(--bordure);
+  font-size: 12px;
+}
+.progression__pastille--complete { background: var(--rd-turquoise); border-color: var(--rd-turquoise); color: #fff; }
+
+/* Infobulle glossaire - section 9 */
+.gl-popover {
+  position: absolute;
+  z-index: 1100;
+  max-width: 320px;
+  background: var(--texte);
+  color: #fff;
+  padding: 14px 16px;
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  font-size: 13px;
+}
+.gl-popover strong { display: block; margin-bottom: 6px; font-family: var(--police-titre); }
+.gl-popover p { margin: 0 0 8px; }
+.gl-popover__exemple { font-style: italic; color: #c9cedb; }
+.gl-popover a { color: #9fd8ff; }
+
+/* Accueil de la demande, récapitulatif, glossaire */
+
+.accueil-demande__actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+
+.recap-section { margin-bottom: 16px; }
+.recap-section dl { margin: 0; }
+.recap-section dt { font-weight: 600; margin-top: 12px; }
+.recap-section dd { margin: 2px 0 0; color: var(--texte-doux); }
+.recap-section__manquant { color: var(--erreur); font-style: italic; }
+
+.recap-manquantes {
+  border-color: var(--rd-orange);
+  margin-bottom: 16px;
+}
+.recap-manquantes h2 { color: var(--rd-orange); }
+.recap-manquantes ul { margin: 8px 0 0; padding-left: 20px; }
+
+.glossaire-barre { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.glossaire-barre input { flex: 1 1 220px; }
+.glossaire-liste { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.glossaire-terme h2 { font-size: 17px; margin-bottom: 4px; }
+.glossaire-terme__exemple { font-style: italic; color: var(--texte-doux); }
+
+@media (max-width: 480px) {
+  .champ-contact, .champ-adresse { grid-template-columns: 1fr; }
+}
