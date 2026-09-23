@@ -1,5 +1,6 @@
-/* Export PDF de la note de cadrage - 01_ARCHITECTURE.md section 10.3.
-   Utilise window.print() sur l'aperçu rendu (.editeur-note__apercu). */
+/* Export PDF - 01_ARCHITECTURE.md section 10.3. Utilise window.print() sur
+   le contenu marqué .imprimable (note de cadrage : .editeur-note__apercu ;
+   dossier de preuves : .imprimable, Lot 5). */
 
 @page {
   size: A4;
@@ -11,11 +12,14 @@ body * {
 }
 
 .editeur-note__apercu,
-.editeur-note__apercu * {
+.editeur-note__apercu *,
+.imprimable,
+.imprimable * {
   visibility: visible;
 }
 
-.editeur-note__apercu {
+.editeur-note__apercu,
+.imprimable {
   position: absolute;
   top: 0;
   left: 0;
@@ -38,16 +42,19 @@ a[href^="#"] {
   display: none !important;
 }
 
-.editeur-note__apercu h2 {
+.editeur-note__apercu h2,
+.imprimable h2 {
   break-before: page;
   page-break-before: always;
 }
-.editeur-note__apercu h1 {
+.editeur-note__apercu h1,
+.imprimable h1 {
   break-before: avoid;
   page-break-before: avoid;
 }
 
-.editeur-note__apercu table {
+.editeur-note__apercu table,
+.imprimable table {
   break-inside: avoid;
   page-break-inside: avoid;
 }

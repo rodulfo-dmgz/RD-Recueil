@@ -14,6 +14,7 @@ import { vueCreationDemande } from './views/consultant/creation.js';
 import { vueVue360 } from './views/consultant/vue-360.js';
 import { vueEntretien } from './views/consultant/entretien.js';
 import { vueEditeurNote } from './views/consultant/editeur-note.js';
+import { vuePreuves } from './views/consultant/preuves.js';
 
 async function garantirProfil() {
   if (getProfil()) return getProfil();
@@ -114,6 +115,11 @@ route('/demandes/:ref/entretien', async ({ ref }) => {
 route('/demandes/:ref/cadrage', async ({ ref }) => {
   if (!(await garantirStaff())) return;
   vueEditeurNote(ref);
+});
+
+route('/demandes/:ref/preuves', async ({ ref }) => {
+  if (!(await garantirStaff())) return;
+  vuePreuves(ref);
 });
 
 route('/demandes/:ref', async ({ ref }) => {

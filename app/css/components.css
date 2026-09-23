@@ -329,6 +329,8 @@
 .cadrage-actions { display: flex; flex-direction: column; gap: 12px; }
 .cadrage-actions form { display: flex; flex-direction: column; gap: 8px; }
 
+.relance-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
 @media (max-width: 768px) {
   .editeur-note__grille { grid-template-columns: 1fr; }
 }

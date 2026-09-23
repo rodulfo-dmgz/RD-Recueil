@@ -1,4 +1,4 @@
-import { listerDemandes } from '../../services/demandes.js';
+import { listerDemandes, listerDemandesInactives } from '../../services/demandes.js';
 import { afficherToast } from '../../components/toast.js';
 
 const LIBELLES_STATUT = {
@@ -24,8 +24,9 @@ export async function vueTableauDeBord() {
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
 
   let demandes;
+  let inactives;
   try {
-    demandes = await listerDemandes();
+    [demandes, inactives] = await Promise.all([listerDemandes(), listerDemandesInactives()]);
   } catch (err) {
     afficherToast(err.message, { type: 'erreur' });
     app.innerHTML = '<main class="conteneur"><h1>Impossible de charger le tableau de bord</h1></main>';
@@ -76,6 +77,26 @@ export async function vueTableauDeBord() {
     }
     alerte.appendChild(liste);
     main.appendChild(alerte);
+  }
+
+  // Demandes sans réponse depuis plus de 7 jours (section 4.2).
+  if (inactives.length > 0) {
+    const alerteInactives = document.createElement('div');
+    alerteInactives.className = 'carte recap-manquantes';
+    const h2 = document.createElement('h2');
+    h2.textContent = `${inactives.length} demande(s) sans réponse depuis plus de 7 jours`;
+    alerteInactives.appendChild(h2);
+    const liste = document.createElement('ul');
+    for (const d of inactives) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = `#/demandes/${d.reference}`;
+      a.textContent = `${d.reference} — ${d.clients?.raison_sociale ?? 'Sans nom'}`;
+      li.appendChild(a);
+      liste.appendChild(li);
+    }
+    alerteInactives.appendChild(liste);
+    main.appendChild(alerteInactives);
   }
 
   if (demandes.length === 0) {

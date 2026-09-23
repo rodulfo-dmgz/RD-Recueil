@@ -1,14 +1,15 @@
-import { obtenirDemandeParReference, changerStatut, inviterClient } from '../../services/demandes.js';
+import { obtenirDemandeParReference, changerStatut, inviterClient, relancerClient } from '../../services/demandes.js';
 import { chargerQuestionnaire, chargerGlossaire } from '../../services/questionnaire.js';
 import { chargerReponsesStaff } from '../../services/reponses.js';
 import { listerFichiers } from '../../services/fichiers.js';
 import { chargerCommentaires, posterCommentaire } from '../../services/commentaires.js';
 import { chargerJournal } from '../../services/evenements.js';
+import { obtenirAcces } from '../../services/demande-acces.js';
 import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
-import { formaterReponse } from '../../engine/formatage.js';
 import { afficherToast } from '../../components/toast.js';
 import { initGlossaryTooltip } from '../../components/glossary-tooltip.js';
+import { rendreReponsesParSection, rendreJournal } from '../../components/lecture-demande.js';
 
 const TRANSITIONS = {
   soumise: [
@@ -37,27 +38,28 @@ export async function vueVue360(reference) {
       return;
     }
 
-    const [questionnaire, glossaireTermes, reponses, fichiers, commentaires, journal] = await Promise.all([
+    const [questionnaire, glossaireTermes, reponses, fichiers, commentaires, journal, acces] = await Promise.all([
       chargerQuestionnaire(demande.questionnaire_id),
       chargerGlossaire(demande.questionnaire_id),
       chargerReponsesStaff(demande.id),
       listerFichiers(demande.id),
       chargerCommentaires(demande.id),
       chargerJournal(demande.id),
+      obtenirAcces(demande.id),
     ]);
 
     const glossaireIndex = indexerGlossaire(glossaireTermes);
     initGlossaryTooltip(glossaireIndex);
     const visibilite = calculerVisibilite(questionnaire, reponses);
 
-    rendre({ demande, questionnaire, reponses, fichiers, commentaires, journal, visibilite });
+    rendre({ demande, questionnaire, reponses, fichiers, commentaires, journal, visibilite, acces });
   } catch (err) {
     afficherToast(err.message, { type: 'erreur' });
     app.innerHTML = '<main class="conteneur"><h1>Impossible de charger la demande</h1></main>';
   }
 }
 
-function rendre({ demande, questionnaire, reponses, fichiers, commentaires, journal, visibilite }) {
+function rendre({ demande, questionnaire, reponses, fichiers, commentaires, journal, visibilite, acces }) {
   const app = document.getElementById('app');
   app.innerHTML = '';
   const main = document.createElement('main');
@@ -76,6 +78,8 @@ function rendre({ demande, questionnaire, reponses, fichiers, commentaires, jour
 
   if (demande.statut === 'brouillon') {
     main.appendChild(rendreInvitation(demande));
+  } else if (['envoyee', 'en_saisie'].includes(demande.statut) && acces.length > 0) {
+    main.appendChild(rendreRelance(demande, acces));
   }
 
   const nsp = reponses.filter((r) => r.nsp && visibilite.questionsVisibles.has(r.question_id));
@@ -119,6 +123,12 @@ function rendreActions(demande) {
     lienNote.textContent = 'Note de cadrage';
     actions.appendChild(lienNote);
   }
+
+  const lienPreuves = document.createElement('a');
+  lienPreuves.className = 'btn btn--secondaire';
+  lienPreuves.href = `#/demandes/${demande.reference}/preuves`;
+  lienPreuves.textContent = 'Dossier de preuves';
+  actions.appendChild(lienPreuves);
 
   if (!STATUTS_FINAUX.has(demande.statut)) {
     const abandonner = document.createElement('button');
@@ -166,6 +176,42 @@ function rendreInvitation(demande) {
   return form;
 }
 
+function rendreRelance(demande, acces) {
+  const bloc = document.createElement('div');
+  bloc.className = 'carte';
+  const h2 = document.createElement('h2');
+  h2.textContent = 'Relancer le client';
+  bloc.appendChild(h2);
+
+  const liste = document.createElement('ul');
+  liste.className = 'liste-demandes';
+  for (const a of acces) {
+    const li = document.createElement('li');
+    li.className = 'relance-ligne';
+    const email = document.createElement('span');
+    email.textContent = a.email;
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'btn btn--secondaire';
+    bouton.textContent = 'Relancer';
+    bouton.addEventListener('click', async () => {
+      bouton.disabled = true;
+      try {
+        await relancerClient(demande.id, a.email);
+        afficherToast(`Relance envoyée à ${a.email}.`, { type: 'succes' });
+      } catch (err) {
+        afficherToast(err.message, { type: 'erreur' });
+      } finally {
+        bouton.disabled = false;
+      }
+    });
+    li.append(email, bouton);
+    liste.appendChild(li);
+  }
+  bloc.appendChild(liste);
+  return bloc;
+}
+
 function rendreListeAlerte(titreTexte, reponsesAlerte, questionnaire) {
   const bloc = document.createElement('div');
   bloc.className = 'carte recap-manquantes';
@@ -181,40 +227,6 @@ function rendreListeAlerte(titreTexte, reponsesAlerte, questionnaire) {
   }
   bloc.appendChild(liste);
   return bloc;
-}
-
-function rendreReponsesParSection(questionnaire, reponses, visibilite) {
-  const conteneur = document.createElement('div');
-  const reponseParId = new Map(reponses.map((r) => [r.question_id, r]));
-  const sections = questionnaire.sections
-    .filter((s) => visibilite.sectionsVisibles.has(s.id))
-    .sort((a, b) => a.ordre - b.ordre);
-
-  for (const section of sections) {
-    const questions = questionnaire.questions
-      .filter((q) => q.section === section.id && visibilite.questionsVisibles.has(q.id))
-      .sort((a, b) => a.ordre - b.ordre);
-    if (questions.length === 0) continue;
-
-    const blocSection = document.createElement('section');
-    blocSection.className = 'carte recap-section';
-    const h2 = document.createElement('h2');
-    h2.textContent = section.titre;
-    blocSection.appendChild(h2);
-
-    const dl = document.createElement('dl');
-    for (const q of questions) {
-      const dt = document.createElement('dt');
-      dt.textContent = q.libelle.replace(/\\\*/g, '');
-      const dd = document.createElement('dd');
-      dd.textContent = formaterReponse(q, reponseParId.get(q.id));
-      dl.append(dt, dd);
-    }
-    blocSection.appendChild(dl);
-    conteneur.appendChild(blocSection);
-  }
-
-  return conteneur;
 }
 
 function rendreFichiers(fichiers) {
@@ -283,26 +295,6 @@ function rendreCommentaires(demande, commentaires) {
   });
 
   bloc.appendChild(form);
-  return bloc;
-}
-
-function rendreJournal(journal) {
-  const bloc = document.createElement('section');
-  bloc.className = 'carte';
-  const h2 = document.createElement('h2');
-  h2.textContent = 'Journal';
-  bloc.appendChild(h2);
-  const liste = document.createElement('ul');
-  if (journal.length === 0) {
-    liste.innerHTML = '<li class="texte-doux">Aucun événement.</li>';
-  }
-  for (const e of journal) {
-    const li = document.createElement('li');
-    const date = new Date(e.created_at).toLocaleString('fr-FR');
-    li.textContent = `${date} — ${e.de ?? '∅'} → ${e.vers ?? e.type}`;
-    liste.appendChild(li);
-  }
-  bloc.appendChild(liste);
   return bloc;
 }
 

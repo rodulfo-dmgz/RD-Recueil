@@ -1,5 +1,25 @@
 import { listerDemandes } from '../../services/demandes.js';
+import { genererCsv } from '../../engine/csv.js';
 import { afficherToast } from '../../components/toast.js';
+
+const COLONNES_CSV = [
+  { libelle: 'Référence', valeur: (d) => d.reference },
+  { libelle: 'Client', valeur: (d) => d.clients?.raison_sociale ?? '' },
+  { libelle: 'Statut', valeur: (d) => d.statut },
+  { libelle: 'Types', valeur: (d) => (d.types || []).join(', ') },
+  { libelle: 'Date limite', valeur: (d) => d.date_limite ?? '' },
+  { libelle: 'Créée le', valeur: (d) => (d.created_at ? d.created_at.slice(0, 10) : '') },
+];
+
+function telechargerCsv(nomFichier, contenu) {
+  const blob = new Blob(['﻿' + contenu], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement('a');
+  lien.href = url;
+  lien.download = nomFichier;
+  lien.click();
+  URL.revokeObjectURL(url);
+}
 
 const STATUTS = [
   'brouillon', 'envoyee', 'en_saisie', 'soumise', 'entretien_planifie', 'en_analyse',
@@ -39,12 +59,27 @@ export function vueListeDemandes() {
     '<option value="">Tous types</option>' +
     TYPES.map((t) => `<option value="${t.valeur}">${t.libelle}</option>`).join('');
 
-  filtres.append(selectStatut, selectType);
+  const boutonExporter = document.createElement('button');
+  boutonExporter.type = 'button';
+  boutonExporter.className = 'btn btn--secondaire';
+  boutonExporter.textContent = 'Exporter en CSV';
+  filtres.append(selectStatut, selectType, boutonExporter);
   main.appendChild(filtres);
 
   const liste = document.createElement('ul');
   liste.className = 'liste-demandes';
   main.appendChild(liste);
+
+  let dernieresDemandes = [];
+
+  boutonExporter.addEventListener('click', () => {
+    if (dernieresDemandes.length === 0) {
+      afficherToast('Aucune demande à exporter.', { type: 'erreur' });
+      return;
+    }
+    const csv = genererCsv(dernieresDemandes, COLONNES_CSV);
+    telechargerCsv(`demandes-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+  });
 
   async function rafraichir() {
     liste.innerHTML = '<li>Chargement…</li>';
@@ -53,6 +88,7 @@ export function vueListeDemandes() {
         statut: selectStatut.value || undefined,
         type: selectType.value || undefined,
       });
+      dernieresDemandes = demandes;
       liste.innerHTML = '';
       if (demandes.length === 0) {
         liste.innerHTML = '<li>Aucune demande.</li>';

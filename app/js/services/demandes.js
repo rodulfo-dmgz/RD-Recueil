@@ -1,6 +1,7 @@
 import { supabase } from '../supabase.js';
 import { creerClient } from './clients.js';
 import { obtenirVersionPublieeCourante } from './questionnaire.js';
+import { posterCommentaire } from './commentaires.js';
 
 export async function obtenirDemandeParReference(reference) {
   const { data, error } = await supabase.from('demandes').select('*').eq('reference', reference).maybeSingle();
@@ -72,4 +73,45 @@ export async function inviterClient(demandeId, email, droit = 'editeur') {
   if (erreurOtp) throw erreurOtp;
 
   await changerStatut(demandeId, 'envoyee', `Invitation envoyée à ${email}`);
+}
+
+// Relance manuelle (pas d'automatisation planifiée - RM-05 est marquée V2
+// dans 01_ARCHITECTURE.md) : renvoie le lien magique et journalise l'action
+// en commentaire interne.
+export async function relancerClient(demandeId, email) {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin + window.location.pathname },
+  });
+  if (error) throw error;
+
+  await posterCommentaire(demandeId, { cible: 'general', texte: `Relance envoyée à ${email}.`, interne: true });
+}
+
+// Demandes envoyee/en_saisie sans réponse depuis plus de 7 jours - tableau
+// de bord consultant (01_ARCHITECTURE.md section 4.2).
+export async function listerDemandesInactives() {
+  const seuil = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: demandes, error } = await supabase
+    .from('demandes')
+    .select('id, reference, statut, created_at, clients(raison_sociale)')
+    .in('statut', ['envoyee', 'en_saisie']);
+  if (error) throw error;
+  if (demandes.length === 0) return [];
+
+  const ids = demandes.map((d) => d.id);
+  const { data: reponses, error: erreurReponses } = await supabase
+    .from('reponses')
+    .select('demande_id, updated_at')
+    .in('demande_id', ids);
+  if (erreurReponses) throw erreurReponses;
+
+  const derniereActivite = new Map();
+  for (const r of reponses) {
+    const actuel = derniereActivite.get(r.demande_id);
+    if (!actuel || r.updated_at > actuel) derniereActivite.set(r.demande_id, r.updated_at);
+  }
+
+  return demandes.filter((d) => (derniereActivite.get(d.id) || d.created_at) < seuil);
 }
