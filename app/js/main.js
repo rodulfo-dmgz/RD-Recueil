@@ -162,11 +162,13 @@ notFound(() => {
   document.getElementById('app').innerHTML = '<main class="conteneur"><h1>Page introuvable</h1></main>';
 });
 
+// Ne pas naviguer sur SIGNED_IN ici : Supabase émet SIGNED_IN et
+// PASSWORD_RECOVERY presque simultanément pour un lien "mot de passe
+// oublié", et les deux navigations entreraient en course. La redirection
+// après une connexion classique est gérée par connexion.js lui-même ;
+// PASSWORD_RECOVERY reste le seul événement qui déclenche une navigation ici.
 surChangementAuth((evenement, session) => {
-  if (evenement === 'SIGNED_IN') {
-    setProfil(null);
-    navigate('/');
-  } else if (evenement === 'PASSWORD_RECOVERY') {
+  if (evenement === 'PASSWORD_RECOVERY') {
     // Lien "mot de passe oublié" cliqué : location.hash contient encore le
     // jeton de récupération, on le remplace par une route propre.
     setProfil(null);

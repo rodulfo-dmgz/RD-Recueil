@@ -1,5 +1,6 @@
 import { connecter, demanderReinitialisationMotDePasse } from '../../auth.js';
 import { afficherToast } from '../../components/toast.js';
+import { navigate } from '../../router.js';
 
 export function vueConnexion() {
   const app = document.getElementById('app');
@@ -32,6 +33,7 @@ export function vueConnexion() {
     bouton.disabled = true;
     try {
       await connecter(donnees.get('email'), donnees.get('motDePasse'));
+      navigate('/');
     } catch (err) {
       afficherToast(err.message, { type: 'erreur' });
     } finally {
