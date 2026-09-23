@@ -1,0 +1,113 @@
+/* Composants génériques. Les composants de champ (17 types) arrivent au Lot 2. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--rayon);
+  border: 1px solid transparent;
+  font-family: var(--police-texte);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity .15s ease;
+}
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.btn--primaire { background: var(--rd-bleu); color: #fff; }
+.btn--secondaire { background: var(--surface); color: var(--rd-bleu); border: 1px solid var(--bordure); }
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.champ input,
+.champ select,
+.champ textarea {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  font-family: var(--police-texte);
+  font-size: 15px;
+  color: var(--texte);
+}
+
+.carte {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  padding: 24px;
+}
+
+.ecran-connexion {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.carte-connexion {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  padding: 32px 24px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.liste-demandes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.liste-demandes li {
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  padding: 12px 16px;
+}
+
+/* Déclencheur d'infobulle glossaire - 01_ARCHITECTURE.md section 9 */
+.gl-term {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline dotted var(--rd-turquoise);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.toasts {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+.toast {
+  background: var(--texte);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  font-size: 14px;
+  max-width: 320px;
+}
+.toast--succes { background: var(--succes); }
+.toast--erreur { background: var(--erreur); }

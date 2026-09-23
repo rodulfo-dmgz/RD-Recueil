@@ -1,0 +1,20 @@
+/* Charte RD Formation - 01_ARCHITECTURE.md section 12.1 */
+
+:root {
+  --rd-bleu: #1F4590;
+  --rd-turquoise: #1CA098;
+  --rd-orange: #FF570A;
+  --fond: #F7F8FA;
+  --surface: #FFFFFF;
+  --texte: #1A1F2B;
+  --texte-doux: #5B6475;
+  --bordure: #E2E6ED;
+  --succes: #1CA098;
+  --alerte: #FF570A;
+  --erreur: #C62828;
+  --police-titre: 'Space Grotesk', system-ui, sans-serif;
+  --police-texte: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --police-code: 'JetBrains Mono', ui-monospace, monospace;
+  --rayon: 10px;
+  --ombre: 0 2px 8px rgba(31, 69, 144, .08);
+}

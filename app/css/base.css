@@ -1,0 +1,43 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--police-texte);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--police-titre);
+  color: var(--texte);
+  line-height: 1.2;
+  margin: 0 0 .5em;
+}
+
+a {
+  color: var(--rd-bleu);
+}
+
+p {
+  margin: 0 0 1em;
+}
+
+.texte-doux {
+  color: var(--texte-doux);
+}
+
+:focus-visible {
+  outline: 2px solid var(--rd-turquoise);
+  outline-offset: 2px;
+}
+
+.conteneur {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
