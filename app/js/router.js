@@ -26,6 +26,10 @@ function cheminActuel() {
 
 async function resoudre() {
   const chemin = cheminActuel();
+  // Supabase dépose access_token/refresh_token dans location.hash après un lien
+  // magique (#access_token=…). Ce n'est pas une route : on laisse auth.js gérer
+  // la connexion, qui renaviguera vers une route propre une fois la session prête.
+  if (!chemin.startsWith('/')) return;
   for (const r of routes) {
     const match = chemin.match(r.regex);
     if (match) {

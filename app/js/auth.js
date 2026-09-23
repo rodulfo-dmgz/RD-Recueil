@@ -35,5 +35,5 @@ export async function obtenirProfil() {
 }
 
 export function surChangementAuth(callback) {
-  supabase.auth.onAuthStateChange((_evenement, session) => callback(session));
+  supabase.auth.onAuthStateChange((evenement, session) => callback(evenement, session));
 }

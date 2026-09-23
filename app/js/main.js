@@ -50,8 +50,15 @@ notFound(() => {
   document.getElementById('app').innerHTML = '<main class="conteneur"><h1>Page introuvable</h1></main>';
 });
 
-surChangementAuth((session) => {
-  if (!session) setProfil(null);
+surChangementAuth((evenement, session) => {
+  if (evenement === 'SIGNED_IN') {
+    // Termine le retour de lien magique : location.hash contient encore
+    // access_token/refresh_token, on le remplace par une route propre.
+    setProfil(null);
+    navigate('/');
+  } else if (!session) {
+    setProfil(null);
+  }
 });
 
 if (window.lucide) window.lucide.createIcons();
