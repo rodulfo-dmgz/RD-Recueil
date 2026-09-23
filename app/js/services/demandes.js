@@ -2,6 +2,7 @@ import { supabase } from '../supabase.js';
 import { creerClient } from './clients.js';
 import { obtenirVersionPublieeCourante } from './questionnaire.js';
 import { posterCommentaire } from './commentaires.js';
+import { creerCompte } from './comptes.js';
 
 export async function obtenirDemandeParReference(reference) {
   const { data, error } = await supabase.from('demandes').select('*').eq('reference', reference).maybeSingle();
@@ -58,34 +59,25 @@ export async function soumettre(demandeId) {
   if (error) throw error;
 }
 
-// Crée l'accès client (demande_acces) et envoie le lien magique - fait passer
-// la demande de brouillon à envoyee.
+// Crée l'accès client (demande_acces) et le compte (e-mail + mot de passe
+// temporaire via l'Edge Function creer-compte) - fait passer la demande de
+// brouillon à envoyee (01_ARCHITECTURE.md section 8.1).
 export async function inviterClient(demandeId, email, droit = 'editeur') {
-  const { error: erreurAcces } = await supabase
-    .from('demande_acces')
-    .upsert({ demande_id: demandeId, email, droit }, { onConflict: 'demande_id,email' });
-  if (erreurAcces) throw erreurAcces;
-
-  const { error: erreurOtp } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin + window.location.pathname },
-  });
-  if (erreurOtp) throw erreurOtp;
-
-  await changerStatut(demandeId, 'envoyee', `Invitation envoyée à ${email}`);
+  const resultat = await creerCompte({ email, role: 'client', demandeId, droit });
+  await changerStatut(
+    demandeId,
+    'envoyee',
+    resultat.compteExistant ? `Accès donné à ${email} (compte existant)` : `Compte créé pour ${email}`
+  );
+  return resultat; // { email, motDePasseTemporaire, compteExistant, userId }
 }
 
 // Relance manuelle (pas d'automatisation planifiée - RM-05 est marquée V2
-// dans 01_ARCHITECTURE.md) : renvoie le lien magique et journalise l'action
-// en commentaire interne.
+// dans 01_ARCHITECTURE.md) : aucun envoi automatique, journalise simplement
+// un rappel en commentaire interne. Le consultant recontacte le client par
+// le canal de son choix.
 export async function relancerClient(demandeId, email) {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin + window.location.pathname },
-  });
-  if (error) throw error;
-
-  await posterCommentaire(demandeId, { cible: 'general', texte: `Relance envoyée à ${email}.`, interne: true });
+  await posterCommentaire(demandeId, { cible: 'general', texte: `Relance à faire auprès de ${email}.`, interne: true });
 }
 
 // Demandes envoyee/en_saisie sans réponse depuis plus de 7 jours - tableau

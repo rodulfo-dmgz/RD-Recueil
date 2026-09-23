@@ -79,7 +79,8 @@ Le consultant peut **réouvrir** la saisie client depuis `soumise` ou `cadrage_a
 
 | Route | Écran | Contenu |
 |---|---|---|
-| `#/connexion` | Connexion | Lien magique par e-mail. |
+| `#/connexion` | Connexion | E-mail + mot de passe. |
+| `#/changer-mot-de-passe` | Changement de mot de passe | Imposé à la première connexion si `doit_changer_mot_de_passe`. |
 | `#/mes-demandes` | Mes demandes | Liste des demandes accessibles, statut, progression. |
 | `#/d/:ref` | Accueil de la demande | Présentation, barre de progression par section, bouton reprendre. |
 | `#/d/:ref/s/:section` | Saisie d'une section | Questions visibles, sauvegarde automatique, infobulles glossaire. |
@@ -120,7 +121,7 @@ Le consultant peut **réouvrir** la saisie client depuis `soumise` ou `cadrage_a
 |---|---|---|
 | Front | HTML, CSS, JavaScript natif en modules ES, sans framework ni build | Cohérence avec les autres applications RD, maintenance simple |
 | Routage | SPA à routage par hash (`#/…`) | Compatible GitHub Pages sans configuration serveur |
-| Back | Supabase : Postgres, Auth (lien magique), Storage, RLS | Déjà maîtrisé, sécurité au niveau des lignes |
+| Back | Supabase : Postgres, Auth (e-mail + mot de passe), Storage, RLS, Edge Functions | Déjà maîtrisé, sécurité au niveau des lignes |
 | Hébergement | GitHub Pages | Gratuit, déploiement par push |
 | Icônes | Lucide (CDN) | Charte RD |
 | Rendu Markdown | `marked` + `DOMPurify` (CDN) | Note de cadrage et glossaire |
@@ -484,9 +485,12 @@ create table evenements (
 
 ### 8.1 Authentification
 
-- Lien magique Supabase (OTP par e-mail), aucun mot de passe.
-- L'invitation d'un client crée une ligne `demande_acces` ; à la première connexion, un trigger rattache `user_id` et crée le profil `client`.
-- Les comptes `consultant` et `admin` sont créés par l'admin uniquement ; l'inscription libre est désactivée.
+- E-mail + mot de passe (Supabase Auth). Aucun mot de passe choisi librement par le titulaire à la création : un mot de passe temporaire est généré par une Edge Function (`creer-compte`, exécutée côté serveur avec la clé `service_role`, jamais exposée au navigateur) et communiqué par le consultant ou l'admin au titulaire du compte. Le compte est marqué `doit_changer_mot_de_passe = true` ; la première connexion redirige obligatoirement vers un écran de changement de mot de passe avant d'accéder au reste de l'application.
+- L'invitation d'un client crée une ligne `demande_acces` ; la création du compte (Edge Function) rattache `user_id` et crée le profil `client`.
+- Les comptes `consultant` et `admin` sont créés par l'admin uniquement, via la même Edge Function ; l'inscription libre est désactivée.
+- Protection Supabase Auth contre les mots de passe compromis (vérification HaveIBeenPwned) activée au niveau du projet.
+
+> Choix initial (V1.0) : lien magique par e-mail. Abandonné en cours de développement au profit d'un mot de passe temporaire généré par le consultant, la fiabilité de livraison des e-mails transactionnels s'étant révélée un point de friction récurrent en usage réel.
 
 ### 8.2 Politiques RLS (`0003_rls.sql`)
 
@@ -627,7 +631,7 @@ Export « Dossier de preuves » (V2) : un PDF par demande regroupant réponses, 
 | Lot | Contenu | Critères d'acceptation |
 |---|---|---|
 | **0 · Référentiel** | Scripts de parsing, `check-coherence`, JSON, seed SQL | 187 questions et 134 termes parsés ; zéro erreur de cohérence ; tests `parse` verts |
-| **1 · Socle** | Migrations, RLS, Auth lien magique, routeur, charte, layout | Un client ne peut lire aucune demande hors `demande_acces` (test manuel avec deux comptes) |
+| **1 · Socle** | Migrations, RLS, Auth (e-mail + mot de passe), routeur, charte, layout | Un client ne peut lire aucune demande hors `demande_acces` (test manuel avec deux comptes) |
 | **2 · Moteur de formulaire** | 17 types de champs, conditions, validation, NSP, progression, autosave | Tests `conditions` et `validation` verts ; saisie complète d'une demande multi-volets sur mobile |
 | **3 · Espace consultant** | Tableau de bord, liste, création, invitation, vue 360, mode entretien, statuts | Parcours `brouillon` → `en_analyse` complet, journal alimenté |
 | **4 · Note de cadrage** | Moteur de gabarit, éditeur, envoi, validation client, versions, PDF | Note générée sans variable brute restante ; PDF A4 conforme |

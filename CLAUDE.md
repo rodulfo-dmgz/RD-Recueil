@@ -25,7 +25,8 @@ Ne jamais modifier une question ou un terme ailleurs que dans ces `.md`. Toute m
 
 - HTML, CSS, JavaScript natif en **modules ES**. Aucun framework, aucun bundler, aucune étape de build pour `app/`.
 - Routage SPA par hash (`#/…`), déploiement GitHub Pages depuis `app/`.
-- Supabase (Postgres, Auth lien magique, Storage, RLS) via `@supabase/supabase-js@2` en CDN.
+- Supabase (Postgres, Auth e-mail + mot de passe, Storage, RLS, Edge Functions) via `@supabase/supabase-js@2` en CDN.
+- Comptes créés uniquement via l'Edge Function `creer-compte` (mot de passe temporaire, changement obligatoire à la première connexion). Aucune inscription libre.
 - Icônes : Lucide uniquement. Polices : Space Grotesk (titres), Plus Jakarta Sans (texte), JetBrains Mono (code).
 - Couleurs : `#1F4590` bleu, `#1CA098` turquoise, `#FF570A` orange, via `app/css/tokens.css` uniquement.
 - Scripts et tests : Node 20+, `node:test`, aucune dépendance npm sauf nécessité justifiée.
@@ -37,7 +38,7 @@ Ne jamais modifier une question ou un terme ailleurs que dans ces `.md`. Toute m
 - `app/js/services/` est le seul endroit qui appelle Supabase.
 - Un composant par type de champ dans `app/js/components/fields/`, avec la même interface : `render(question, valeur, { onChange, lectureSeule })`.
 - Les changements de statut passent **toujours** par `rpc_changer_statut`, jamais par un `update` direct.
-- Aucune clé `service_role` dans le dépôt. Seule la clé publique figure dans `app/js/config.js`.
+- Aucune clé `service_role` dans le dépôt. Seule la clé publique figure dans `app/js/config.js`. La clé `service_role` n'existe que comme secret de l'Edge Function `creer-compte`, jamais côté client.
 
 ## Règles de rédaction de l'interface
 

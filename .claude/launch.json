@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rd-recueil-app",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "app", "-l", "4173"],
+      "port": 4173
+    }
+  ]
+}

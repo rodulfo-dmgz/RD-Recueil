@@ -160,20 +160,36 @@ function rendreInvitation(demande) {
   bouton.textContent = 'Envoyer l’invitation';
   form.append(h2, inputEmail, bouton);
 
+  const resultat = document.createElement('div');
+  resultat.className = 'carte creation-compte__resultat';
+  resultat.hidden = true;
+
   form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
     bouton.disabled = true;
     try {
-      await inviterClient(demande.id, inputEmail.value);
-      afficherToast('Invitation envoyée.', { type: 'succes' });
-      vueVue360(demande.reference);
+      const { email, motDePasseTemporaire, compteExistant } = await inviterClient(demande.id, inputEmail.value);
+      resultat.hidden = false;
+      resultat.innerHTML = compteExistant
+        ? `<p>${email} a déjà un compte : accès à cette demande accordé, aucun nouveau mot de passe à communiquer.</p>`
+        : `
+          <p>Communiquez ces identifiants au client par un canal sûr :</p>
+          <p><strong>E-mail :</strong> ${email}</p>
+          <p><strong>Mot de passe temporaire :</strong> <code>${motDePasseTemporaire}</code></p>
+          <p class="texte-doux">Un changement de mot de passe sera exigé à la première connexion.</p>
+        `;
+      afficherToast('Accès créé.', { type: 'succes' });
+      form.reset();
+      bouton.disabled = false;
     } catch (err) {
       afficherToast(err.message, { type: 'erreur' });
       bouton.disabled = false;
     }
   });
 
-  return form;
+  const conteneur = document.createElement('div');
+  conteneur.append(form, resultat);
+  return conteneur;
 }
 
 function rendreRelance(demande, acces) {
@@ -193,12 +209,12 @@ function rendreRelance(demande, acces) {
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'btn btn--secondaire';
-    bouton.textContent = 'Relancer';
+    bouton.textContent = 'Noter une relance';
     bouton.addEventListener('click', async () => {
       bouton.disabled = true;
       try {
         await relancerClient(demande.id, a.email);
-        afficherToast(`Relance envoyée à ${a.email}.`, { type: 'succes' });
+        afficherToast(`Relance journalisée pour ${a.email}.`, { type: 'succes' });
       } catch (err) {
         afficherToast(err.message, { type: 'erreur' });
       } finally {

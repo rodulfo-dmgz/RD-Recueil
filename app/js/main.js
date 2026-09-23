@@ -2,6 +2,7 @@ import { route, notFound, navigate, startRouter } from './router.js';
 import { obtenirSession, obtenirProfil, surChangementAuth } from './auth.js';
 import { getProfil, setProfil } from './store.js';
 import { vueConnexion } from './views/client/connexion.js';
+import { vueChangerMotDePasse } from './views/client/changer-mot-de-passe.js';
 import { vueMesDemandes } from './views/client/mes-demandes.js';
 import { vueAccueilDemande } from './views/client/accueil.js';
 import { vueSection } from './views/client/section.js';
@@ -15,6 +16,7 @@ import { vueVue360 } from './views/consultant/vue-360.js';
 import { vueEntretien } from './views/consultant/entretien.js';
 import { vueEditeurNote } from './views/consultant/editeur-note.js';
 import { vuePreuves } from './views/consultant/preuves.js';
+import { vueCreationCompte } from './views/consultant/creation-compte.js';
 
 async function garantirProfil() {
   if (getProfil()) return getProfil();
@@ -25,8 +27,24 @@ async function garantirProfil() {
   return profil;
 }
 
-async function garantirStaff() {
+// À utiliser par toutes les routes protégées (sauf /connexion et
+// /changer-mot-de-passe elles-mêmes) : redirige vers le changement de mot de
+// passe obligatoire avant d'accéder au reste de l'application.
+async function garantirProfilActif() {
   const profil = await garantirProfil();
+  if (!profil) {
+    navigate('/connexion');
+    return null;
+  }
+  if (profil.doit_changer_mot_de_passe) {
+    navigate('/changer-mot-de-passe');
+    return null;
+  }
+  return profil;
+}
+
+async function garantirStaff() {
+  const profil = await garantirProfilActif();
   if (!profil || profil.role === 'client') {
     navigate('/connexion');
     return null;
@@ -37,63 +55,48 @@ async function garantirStaff() {
 route('/connexion', async () => {
   const profil = await garantirProfil();
   if (profil) {
-    navigate(profil.role === 'client' ? '/mes-demandes' : '/tableau-de-bord');
+    navigate(profil.doit_changer_mot_de_passe ? '/changer-mot-de-passe' : '/');
     return;
   }
   vueConnexion();
 });
 
-route('/mes-demandes', async () => {
+route('/changer-mot-de-passe', async () => {
   const profil = await garantirProfil();
   if (!profil) {
     navigate('/connexion');
     return;
   }
+  vueChangerMotDePasse({ oblige: profil.doit_changer_mot_de_passe });
+});
+
+route('/mes-demandes', async () => {
+  if (!(await garantirProfilActif())) return;
   vueMesDemandes();
 });
 
 route('/d/:ref', async ({ ref }) => {
-  const profil = await garantirProfil();
-  if (!profil) {
-    navigate('/connexion');
-    return;
-  }
+  if (!(await garantirProfilActif())) return;
   vueAccueilDemande(ref);
 });
 
 route('/d/:ref/s/:section', async ({ ref, section }) => {
-  const profil = await garantirProfil();
-  if (!profil) {
-    navigate('/connexion');
-    return;
-  }
+  if (!(await garantirProfilActif())) return;
   vueSection(ref, section);
 });
 
 route('/d/:ref/recap', async ({ ref }) => {
-  const profil = await garantirProfil();
-  if (!profil) {
-    navigate('/connexion');
-    return;
-  }
+  if (!(await garantirProfilActif())) return;
   vueRecap(ref);
 });
 
 route('/d/:ref/cadrage', async ({ ref }) => {
-  const profil = await garantirProfil();
-  if (!profil) {
-    navigate('/connexion');
-    return;
-  }
+  if (!(await garantirProfilActif())) return;
   vueCadrageClient(ref);
 });
 
 route('/glossaire', async () => {
-  const profil = await garantirProfil();
-  if (!profil) {
-    navigate('/connexion');
-    return;
-  }
+  if (!(await garantirProfilActif())) return;
   vueGlossaire();
 });
 
@@ -132,9 +135,27 @@ route('/demandes', async () => {
   vueListeDemandes();
 });
 
+route('/comptes/nouveau', async () => {
+  const profil = await garantirStaff();
+  if (!profil) return;
+  if (profil.role !== 'admin') {
+    navigate('/tableau-de-bord');
+    return;
+  }
+  vueCreationCompte();
+});
+
 route('/', async () => {
   const profil = await garantirProfil();
-  navigate(profil ? (profil.role === 'client' ? '/mes-demandes' : '/tableau-de-bord') : '/connexion');
+  if (!profil) {
+    navigate('/connexion');
+    return;
+  }
+  if (profil.doit_changer_mot_de_passe) {
+    navigate('/changer-mot-de-passe');
+    return;
+  }
+  navigate(profil.role === 'client' ? '/mes-demandes' : '/tableau-de-bord');
 });
 
 notFound(() => {
@@ -143,10 +164,13 @@ notFound(() => {
 
 surChangementAuth((evenement, session) => {
   if (evenement === 'SIGNED_IN') {
-    // Termine le retour de lien magique : location.hash contient encore
-    // access_token/refresh_token, on le remplace par une route propre.
     setProfil(null);
     navigate('/');
+  } else if (evenement === 'PASSWORD_RECOVERY') {
+    // Lien "mot de passe oublié" cliqué : location.hash contient encore le
+    // jeton de récupération, on le remplace par une route propre.
+    setProfil(null);
+    navigate('/changer-mot-de-passe');
   } else if (!session) {
     setProfil(null);
   }
