@@ -1,5 +1,71 @@
 /* Composants génériques. */
 
+.entete {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--bordure);
+}
+.entete__conteneur {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.entete__logo {
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--rd-bleu);
+  text-decoration: none;
+  margin-right: auto;
+}
+.entete__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.entete__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--rayon);
+  color: var(--texte);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+.entete__lien:hover,
+.entete__lien:focus-visible { background: var(--fond); }
+.entete__lien svg { width: 18px; height: 18px; stroke: var(--rd-bleu); }
+.entete__compte {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.entete__nom {
+  font-size: 14px;
+  color: var(--texte-doux);
+  white-space: nowrap;
+}
+.entete__deconnexion { min-height: 40px; padding: 0 14px; }
+.entete__deconnexion svg { width: 16px; height: 16px; }
+
+@media (max-width: 640px) {
+  .entete__nom { display: none; }
+  .entete__nav { flex: 1; justify-content: space-around; }
+  .entete__lien span,
+  .entete__deconnexion span { display: none; }
+  .entete__lien { padding: 0 8px; }
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

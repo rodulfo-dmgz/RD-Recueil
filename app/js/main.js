@@ -1,6 +1,7 @@
 import { route, notFound, navigate, startRouter } from './router.js';
 import { obtenirSession, obtenirProfil, surChangementAuth } from './auth.js';
 import { getProfil, setProfil } from './store.js';
+import { rendreEntete, viderEntete } from './components/entete.js';
 import { vueConnexion } from './views/client/connexion.js';
 import { vueChangerMotDePasse } from './views/client/changer-mot-de-passe.js';
 import { vueMesDemandes } from './views/client/mes-demandes.js';
@@ -33,13 +34,16 @@ async function garantirProfil() {
 async function garantirProfilActif() {
   const profil = await garantirProfil();
   if (!profil) {
+    viderEntete();
     navigate('/connexion');
     return null;
   }
   if (profil.doit_changer_mot_de_passe) {
+    viderEntete();
     navigate('/changer-mot-de-passe');
     return null;
   }
+  rendreEntete(profil);
   return profil;
 }
 
@@ -58,6 +62,7 @@ route('/connexion', async () => {
     navigate(profil.doit_changer_mot_de_passe ? '/changer-mot-de-passe' : '/');
     return;
   }
+  viderEntete();
   vueConnexion();
 });
 
@@ -67,6 +72,7 @@ route('/changer-mot-de-passe', async () => {
     navigate('/connexion');
     return;
   }
+  viderEntete();
   vueChangerMotDePasse({ oblige: profil.doit_changer_mot_de_passe });
 });
 
@@ -177,7 +183,5 @@ surChangementAuth((evenement, session) => {
     setProfil(null);
   }
 });
-
-if (window.lucide) window.lucide.createIcons();
 
 startRouter();
