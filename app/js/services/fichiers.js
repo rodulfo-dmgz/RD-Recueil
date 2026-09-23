@@ -29,3 +29,13 @@ export async function televerserFichier({ demandeId, reference, questionId, fich
 
   return chemin;
 }
+
+export async function listerFichiers(demandeId) {
+  const { data, error } = await supabase
+    .from('fichiers')
+    .select('*')
+    .eq('demande_id', demandeId)
+    .order('created_at');
+  if (error) throw error;
+  return data;
+}

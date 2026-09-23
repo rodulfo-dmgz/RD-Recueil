@@ -273,3 +273,28 @@
 @media (max-width: 480px) {
   .champ-contact, .champ-adresse { grid-template-columns: 1fr; }
 }
+
+/* Espace consultant (Lot 3) */
+
+.tableau-de-bord__entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.tableau-de-bord__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.tableau-de-bord__groupe { margin-bottom: 16px; }
+
+.liste-demandes__filtres { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.liste-demandes__filtres select { min-width: 180px; }
+
+.vue360__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+
+.entretien-question {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bordure);
+}
+.entretien-question:last-child { border-bottom: none; }
+.entretien-question .texte-doux { margin: 4px 0 8px; }

@@ -1,5 +1,6 @@
 import { getEtatDemande } from '../../store.js';
 import { soumettre } from '../../services/demandes.js';
+import { formaterReponse as formaterValeur } from '../../engine/formatage.js';
 import { afficherToast } from '../../components/toast.js';
 import { navigate } from '../../router.js';
 
@@ -7,27 +8,6 @@ function estVide(reponse) {
   if (!reponse || reponse.nsp) return false;
   const v = reponse.valeur;
   return v == null || v === '' || (Array.isArray(v) && v.length === 0);
-}
-
-function formaterValeur(question, reponse) {
-  if (!reponse) return '—';
-  if (reponse.nsp) return 'Je ne sais pas / à définir ensemble';
-  const v = reponse.valeur;
-  if (v == null || v === '') return '—';
-
-  if (Array.isArray(v)) {
-    if (v.length === 0) return '—';
-    if (typeof v[0] === 'object') return `${v.length} ligne(s)`;
-    const libelles = v.map(
-      (val) => question.options?.find((o) => o.valeur === val)?.libelle?.replace(/\\\*/g, '') ?? val
-    );
-    return libelles.join(', ');
-  }
-  if (typeof v === 'object') return Object.values(v).filter(Boolean).join(', ');
-  if (question.type === 'choix_unique') {
-    return question.options?.find((o) => o.valeur === v)?.libelle?.replace(/\\\*/g, '') ?? v;
-  }
-  return String(v);
 }
 
 export function vueRecap(reference) {

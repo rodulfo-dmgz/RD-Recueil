@@ -8,6 +8,10 @@ import { vueSection } from './views/client/section.js';
 import { vueRecap } from './views/client/recap.js';
 import { vueGlossaire } from './views/client/glossaire.js';
 import { vueTableauDeBord } from './views/consultant/tableau-de-bord.js';
+import { vueListeDemandes } from './views/consultant/liste.js';
+import { vueCreationDemande } from './views/consultant/creation.js';
+import { vueVue360 } from './views/consultant/vue-360.js';
+import { vueEntretien } from './views/consultant/entretien.js';
 
 async function garantirProfil() {
   if (getProfil()) return getProfil();
@@ -15,6 +19,15 @@ async function garantirProfil() {
   if (!session) return null;
   const profil = await obtenirProfil();
   setProfil(profil);
+  return profil;
+}
+
+async function garantirStaff() {
+  const profil = await garantirProfil();
+  if (!profil || profil.role === 'client') {
+    navigate('/connexion');
+    return null;
+  }
   return profil;
 }
 
@@ -73,12 +86,28 @@ route('/glossaire', async () => {
 });
 
 route('/tableau-de-bord', async () => {
-  const profil = await garantirProfil();
-  if (!profil || profil.role === 'client') {
-    navigate('/connexion');
-    return;
-  }
+  if (!(await garantirStaff())) return;
   vueTableauDeBord();
+});
+
+route('/demandes/nouvelle', async () => {
+  if (!(await garantirStaff())) return;
+  vueCreationDemande();
+});
+
+route('/demandes/:ref/entretien', async ({ ref }) => {
+  if (!(await garantirStaff())) return;
+  vueEntretien(ref);
+});
+
+route('/demandes/:ref', async ({ ref }) => {
+  if (!(await garantirStaff())) return;
+  vueVue360(ref);
+});
+
+route('/demandes', async () => {
+  if (!(await garantirStaff())) return;
+  vueListeDemandes();
 });
 
 route('/', async () => {
