@@ -1,0 +1,942 @@
+{
+  "termes": [
+    {
+      "id": "3c",
+      "libelle": "3C (méthode des)",
+      "categorie": "Objectifs",
+      "definition": "Méthode de rédaction des objectifs pédagogiques en trois composantes : Comportement observable (verbe d'action de Bloom), Conditions de réalisation (contexte, ressources, contraintes), Critères de réussite (mesurables).",
+      "exemple": "« Établir (C) la déclaration de TVA mensuelle à partir de 20 factures et du logiciel comptable (C), sans erreur de taux et en moins de 30 minutes (C) »."
+    },
+    {
+      "id": "accessibilite-numerique",
+      "libelle": "Accessibilité numérique",
+      "categorie": "Accessibilité",
+      "definition": "Capacité d'un contenu numérique à être utilisé par toute personne, y compris en situation de handicap (visuel, auditif, moteur, cognitif), avec ou sans aide technique.",
+      "exemple": "Une vidéo sous-titrée, des images décrites par un texte alternatif et une navigation possible au clavier seul."
+    },
+    {
+      "id": "accord-confidentialite",
+      "libelle": "Accord de confidentialité",
+      "categorie": "Juridique",
+      "definition": "Contrat par lequel le prestataire s'engage à ne pas divulguer les informations sensibles transmises par le client pendant et après la mission.",
+      "exemple": "Un cabinet comptable exige un accord avant de fournir de vrais dossiers clients servant de cas pratiques."
+    },
+    {
+      "id": "afest",
+      "libelle": "AFEST",
+      "categorie": "Modalités",
+      "definition": "Action de formation en situation de travail. Elle alterne des mises en situation réelles au poste et des phases réflexives, hors production, animées par un accompagnateur, pour analyser ce qui a été fait.",
+      "exemple": "Une assistante comptable réalise un rapprochement bancaire réel, puis analyse avec son tuteur les écarts rencontrés et la méthode suivie."
+    },
+    {
+      "id": "aif",
+      "libelle": "AIF (Aide individuelle à la formation)",
+      "categorie": "Financement",
+      "definition": "Aide de France Travail qui finance tout ou partie d'une formation pour un demandeur d'emploi lorsque les autres dispositifs ne suffisent pas.",
+      "exemple": "Un demandeur d'emploi obtient une AIF pour suivre un module de paie qui conditionne son embauche."
+    },
+    {
+      "id": "allegement",
+      "libelle": "Allègement de parcours",
+      "categorie": "Ingénierie",
+      "definition": "Réduction de la durée ou du contenu d'un parcours pour un apprenant qui maîtrise déjà une partie des compétences, constatée par un positionnement.",
+      "exemple": "Un stagiaire qui a déjà validé le bloc « comptabilité courante » ne suit que les modules de fiscalité."
+    },
+    {
+      "id": "alternance",
+      "libelle": "Alternance",
+      "categorie": "Modalités",
+      "definition": "Organisation qui combine des périodes en centre de formation et des périodes en entreprise, sous contrat d'apprentissage, de professionnalisation ou dans le cadre de Pro-A.",
+      "exemple": "Un rythme de deux jours en formation et trois jours en entreprise pendant douze mois."
+    },
+    {
+      "id": "alternant",
+      "libelle": "Alternant",
+      "categorie": "Modalités",
+      "definition": "Personne en contrat d'apprentissage ou de professionnalisation qui partage son temps entre l'entreprise et l'organisme de formation.",
+      "exemple": "Une apprentie en BTS Gestion de la PME, présente en cabinet trois jours par semaine."
+    },
+    {
+      "id": "andragogie",
+      "libelle": "Andragogie",
+      "categorie": "Pédagogie",
+      "definition": "Science et art d'aider les adultes à apprendre. Elle s'appuie sur leur expérience, leur besoin de comprendre l'utilité de ce qu'ils apprennent et leur autonomie (Malcolm Knowles).",
+      "exemple": "Partir d'un problème réel rencontré par les participants plutôt que d'un cours théorique."
+    },
+    {
+      "id": "appel-offres",
+      "libelle": "Appel d'offres",
+      "categorie": "Administratif",
+      "definition": "Procédure par laquelle un acheteur, public ou privé, met en concurrence plusieurs prestataires sur la base d'un cahier des charges formalisé et de critères de sélection.",
+      "exemple": "Une collectivité publie une consultation pour former ses agents à la bureautique, avec une date limite de réponse."
+    },
+    {
+      "id": "asynchrone",
+      "libelle": "Asynchrone",
+      "categorie": "Modalités",
+      "definition": "Modalité où l'apprenant se forme à son rythme, sans interaction en temps réel avec le formateur.",
+      "exemple": "Un parcours de vidéos et de quiz à suivre sur deux semaines."
+    },
+    {
+      "id": "attestation-fin-formation",
+      "libelle": "Attestation de fin de formation",
+      "categorie": "Administratif",
+      "definition": "Document remis au stagiaire à l'issue de la formation. Il précise les objectifs, la nature, la durée de l'action et les résultats de l'évaluation des acquis.",
+      "exemple": "« Madame X a suivi 21 heures de formation Excel et atteint 4 objectifs sur 5 »."
+    },
+    {
+      "id": "audit",
+      "libelle": "Audit",
+      "categorie": "Prestations",
+      "definition": "Examen méthodique d'une organisation, d'un processus ou d'un dispositif au regard d'un référentiel, qui aboutit à des constats et des recommandations.",
+      "exemple": "Audit du dispositif de formation interne d'une PME au regard de ses obligations légales."
+    },
+    {
+      "id": "audit-blanc",
+      "libelle": "Audit blanc",
+      "categorie": "Prestations",
+      "definition": "Simulation d'un audit officiel, réalisée dans les mêmes conditions, pour repérer les non-conformités avant le passage de l'auditeur certificateur.",
+      "exemple": "Un audit blanc Qualiopi un mois avant l'audit de surveillance, avec rapport des preuves manquantes par indicateur."
+    },
+    {
+      "id": "banque-questions",
+      "libelle": "Banque de questions",
+      "categorie": "Conception",
+      "definition": "Ensemble structuré de questions classées par compétence et par niveau, dans lequel une plateforme pioche pour générer des évaluations variées.",
+      "exemple": "120 questions Excel classées en trois niveaux ; chaque test tire 5 questions par niveau au hasard."
+    },
+    {
+      "id": "besoin-formation",
+      "libelle": "Besoin de formation",
+      "categorie": "Besoin",
+      "definition": "Écart de compétences entre la situation actuelle et la situation attendue, qu'une formation peut combler. Un écart dû à l'organisation, aux outils ou au management n'est pas un besoin de formation.",
+      "exemple": "Des erreurs de TVA dues à une méconnaissance des règles relèvent de la formation ; des erreurs dues à un logiciel mal paramétré n'en relèvent pas."
+    },
+    {
+      "id": "blended-learning",
+      "libelle": "Blended learning",
+      "categorie": "Modalités",
+      "definition": "Formation hybride qui combine présentiel et distanciel (synchrone ou asynchrone) dans un même parcours conçu comme un tout.",
+      "exemple": "Des modules e-learning le matin, une classe virtuelle par semaine et deux journées en présentiel pour les mises en situation."
+    },
+    {
+      "id": "bloc-competences",
+      "libelle": "Bloc de compétences",
+      "categorie": "Certification",
+      "definition": "Ensemble homogène et cohérent de compétences d'une certification RNCP, qui peut être évalué et validé séparément.",
+      "exemple": "Le bloc « Assurer les travaux courants de comptabilité » d'un titre professionnel, validable seul."
+    },
+    {
+      "id": "bloom",
+      "libelle": "Bloom (taxonomie de)",
+      "categorie": "Objectifs",
+      "definition": "Classification des niveaux d'apprentissage, du plus simple au plus complexe : se souvenir, comprendre, appliquer, analyser, évaluer, créer. Elle fournit les verbes d'action des objectifs pédagogiques.",
+      "exemple": "« Calculer » relève du niveau appliquer ; « justifier un choix d'amortissement » relève du niveau évaluer."
+    },
+    {
+      "id": "cartographie-competences",
+      "libelle": "Cartographie des compétences",
+      "categorie": "Ingénierie",
+      "definition": "Représentation visuelle des compétences d'un métier ou d'un parcours, organisées par domaines et niveaux, qui sert de base à la conception.",
+      "exemple": "Un schéma qui relie les 4 domaines d'un poste de gestionnaire de paie à leurs 18 compétences."
+    },
+    {
+      "id": "catalogue",
+      "libelle": "Catalogue (formation)",
+      "categorie": "Modalités",
+      "definition": "Formation standard, au programme déjà établi, proposée telle quelle à plusieurs clients.",
+      "exemple": "« Excel intermédiaire, 14 heures », au même programme pour toutes les entreprises."
+    },
+    {
+      "id": "ccn",
+      "libelle": "CCN (Convention collective nationale)",
+      "categorie": "Administratif",
+      "definition": "Accord négocié entre partenaires sociaux d'une branche, qui fixe des règles applicables aux salariés du secteur, y compris en matière de formation.",
+      "exemple": "La convention collective des organismes de formation, identifiée par son numéro IDCC 1516."
+    },
+    {
+      "id": "certificat-realisation",
+      "libelle": "Certificat de réalisation",
+      "categorie": "Administratif",
+      "definition": "Document signé par l'organisme de formation qui atteste que l'action a bien été réalisée. Il est exigé par les financeurs pour déclencher le paiement.",
+      "exemple": "Le certificat transmis à l'OPCO avec la facture pour obtenir le remboursement."
+    },
+    {
+      "id": "certificateur",
+      "libelle": "Certificateur",
+      "categorie": "Certification",
+      "definition": "Organisme propriétaire d'une certification enregistrée au RNCP ou au RS. Il en définit le référentiel et les modalités d'évaluation, et délivre le diplôme ou le titre.",
+      "exemple": "Le ministère du Travail est le certificateur des titres professionnels."
+    },
+    {
+      "id": "cession-droits",
+      "libelle": "Cession de droits",
+      "categorie": "Juridique",
+      "definition": "Transfert, par contrat, de tout ou partie des droits d'auteur sur une œuvre (supports, vidéos, modules) au client, pour des usages, une durée et un territoire précisés.",
+      "exemple": "Le client achète les droits d'exploitation d'un module e-learning pour le diffuser librement à ses salariés pendant cinq ans."
+    },
+    {
+      "id": "charte-graphique",
+      "libelle": "Charte graphique",
+      "categorie": "Juridique",
+      "definition": "Document qui fixe l'identité visuelle d'une structure : logos, couleurs, typographies, règles de mise en page.",
+      "exemple": "Les supports doivent utiliser le bleu, la police et le logo du client, placés selon ses règles."
+    },
+    {
+      "id": "classe-inversee",
+      "libelle": "Classe inversée",
+      "categorie": "Pédagogie",
+      "definition": "Méthode dans laquelle l'apprenant découvre les notions en autonomie avant la séance, qui est consacrée à la pratique et aux échanges.",
+      "exemple": "Les stagiaires regardent une vidéo sur le bilan la veille ; la séance est entièrement dédiée à un cas pratique."
+    },
+    {
+      "id": "classe-virtuelle",
+      "libelle": "Classe virtuelle",
+      "categorie": "Conception",
+      "definition": "Séance de formation à distance, en direct, animée par un formateur via un outil de visioconférence avec des fonctions interactives (sondage, tableau blanc, sous-groupes).",
+      "exemple": "Une session de 90 minutes sur Teams avec travail en sous-groupes et quiz en direct."
+    },
+    {
+      "id": "coaching",
+      "libelle": "Coaching",
+      "categorie": "Prestations",
+      "definition": "Accompagnement individuel ou collectif centré sur un objectif professionnel précis. Le coach aide la personne à trouver ses propres solutions plutôt qu'à apprendre un contenu.",
+      "exemple": "Six séances pour aider un nouveau responsable administratif à organiser son équipe."
+    },
+    {
+      "id": "cohorte",
+      "libelle": "Cohorte",
+      "categorie": "Ingénierie",
+      "definition": "Groupe d'apprenants qui démarrent et suivent le même parcours au même rythme.",
+      "exemple": "La promotion de septembre et celle de janvier forment deux cohortes distinctes."
+    },
+    {
+      "id": "commanditaire",
+      "libelle": "Commanditaire",
+      "categorie": "Administratif",
+      "definition": "Personne ou structure qui passe la commande, décide et signe. Elle n'est pas forcément celle qui suit le projet ni celle qui bénéficie de la formation.",
+      "exemple": "Le directeur général commande la formation ; la responsable RH la suit ; les comptables la suivent."
+    },
+    {
+      "id": "compensation-handicap",
+      "libelle": "Compensation du handicap",
+      "categorie": "Accessibilité",
+      "definition": "Ensemble des adaptations (matérielles, humaines, organisationnelles, pédagogiques) qui permettent à une personne en situation de handicap de suivre la formation dans des conditions équitables.",
+      "exemple": "Un temps majoré pour les évaluations et des supports en gros caractères."
+    },
+    {
+      "id": "competence",
+      "libelle": "Compétence",
+      "categorie": "Besoin",
+      "definition": "Capacité à mobiliser des savoirs, des savoir-faire et des savoir-être pour agir efficacement dans une situation professionnelle donnée.",
+      "exemple": "« Établir une déclaration de TVA mensuelle dans les délais et sans erreur »."
+    },
+    {
+      "id": "conseil",
+      "libelle": "Conseil",
+      "categorie": "Prestations",
+      "definition": "Prestation d'expertise qui analyse une situation et formule des recommandations, sans transfert de compétences comme objectif principal.",
+      "exemple": "Recommander l'organisation du plan de développement des compétences d'une PME."
+    },
+    {
+      "id": "convention-formation",
+      "libelle": "Convention de formation",
+      "categorie": "Administratif",
+      "definition": "Contrat entre l'organisme de formation et l'entreprise qui précise l'intitulé, les objectifs, la durée, les dates, le prix et les modalités de l'action.",
+      "exemple": "La convention signée par l'employeur avant le démarrage, puis transmise à l'OPCO."
+    },
+    {
+      "id": "copil",
+      "libelle": "COPIL (Comité de pilotage)",
+      "categorie": "Projet",
+      "definition": "Instance de décision du projet qui réunit les décideurs à des étapes clés pour valider, arbitrer et réorienter.",
+      "exemple": "Un COPIL au lancement, à mi-parcours et au bilan, avec le directeur, la RH et le formateur."
+    },
+    {
+      "id": "cpf",
+      "libelle": "CPF (Compte personnel de formation)",
+      "categorie": "Financement",
+      "definition": "Compte en euros rattaché à chaque actif, mobilisable pour des formations certifiantes (RNCP, RS) via la plateforme officielle. Une participation du titulaire peut être demandée selon les règles en vigueur.",
+      "exemple": "Un salarié utilise son CPF pour préparer une certification bureautique enregistrée au RS."
+    },
+    {
+      "id": "critere",
+      "libelle": "Critère",
+      "categorie": "Objectifs",
+      "definition": "Élément mesurable qui permet de juger si un objectif est atteint : seuil, taux, délai, qualité attendue.",
+      "exemple": "« Sans erreur », « en moins de 20 minutes », « 8 écritures sur 10 correctes »."
+    },
+    {
+      "id": "dce",
+      "libelle": "DCE (Dossier de consultation des entreprises)",
+      "categorie": "Administratif",
+      "definition": "Ensemble des documents d'un appel d'offres : règlement de consultation, cahier des charges, critères de notation, pièces à fournir.",
+      "exemple": "Le DCE d'une Région précise que la note pédagogique compte pour 60 % et le prix pour 40 %."
+    },
+    {
+      "id": "diagnostic",
+      "libelle": "Diagnostic",
+      "categorie": "Prestations",
+      "definition": "État des lieux rapide d'une situation pour identifier les problèmes, leurs causes et les priorités d'action.",
+      "exemple": "Un diagnostic des compétences numériques d'une équipe avant de choisir les formations."
+    },
+    {
+      "id": "donnees-anonymisees",
+      "libelle": "Données anonymisées",
+      "categorie": "Juridique",
+      "definition": "Données dont on a retiré tout élément permettant d'identifier une personne, de manière irréversible.",
+      "exemple": "Des bulletins de paie réels où noms, adresses et numéros de sécurité sociale ont été remplacés."
+    },
+    {
+      "id": "dossier-professionnel",
+      "libelle": "Dossier professionnel",
+      "categorie": "Certification",
+      "definition": "Document rédigé par le candidat à un titre professionnel, qui décrit des pratiques réelles en lien avec les compétences du référentiel. Il est remis au jury.",
+      "exemple": "Un candidat décrit comment il a réalisé la clôture annuelle d'une entreprise."
+    },
+    {
+      "id": "e-learning",
+      "libelle": "E-learning",
+      "categorie": "Modalités",
+      "definition": "Formation en ligne suivie en autonomie, au rythme de l'apprenant, généralement sur une plateforme.",
+      "exemple": "Un module de 30 minutes sur le RGPD, avec quiz final, accessible sur le LMS de l'entreprise."
+    },
+    {
+      "id": "ecart",
+      "libelle": "Écart",
+      "categorie": "Besoin",
+      "definition": "Différence observable entre ce qui est fait aujourd'hui et ce qui est attendu.",
+      "exemple": "15 % des factures sont saisies avec un mauvais taux de TVA, pour un objectif de 0 %."
+    },
+    {
+      "id": "emargement",
+      "libelle": "Émargement (feuille d')",
+      "categorie": "Administratif",
+      "definition": "Document signé par chaque participant, par demi-journée, qui prouve sa présence. Il est exigé par les financeurs et par Qualiopi.",
+      "exemple": "Une feuille papier ou une signature électronique matin et après-midi."
+    },
+    {
+      "id": "entretien-professionnel",
+      "libelle": "Entretien professionnel",
+      "categorie": "Réglementaire",
+      "definition": "Entretien obligatoire et périodique entre l'employeur et le salarié, consacré aux perspectives d'évolution et aux besoins de formation, selon la périodicité fixée par le Code du travail.",
+      "exemple": "Plusieurs salariés expriment en entretien le souhait de monter en compétences sur la paie."
+    },
+    {
+      "id": "epi",
+      "libelle": "EPI (Équipement de protection individuelle)",
+      "categorie": "Réglementaire",
+      "definition": "Équipement porté pour se protéger d'un risque : casque, chaussures de sécurité, gilet, gants.",
+      "exemple": "Le formateur doit porter des chaussures de sécurité pour animer dans un entrepôt."
+    },
+    {
+      "id": "evaluation-certificative",
+      "libelle": "Évaluation certificative",
+      "categorie": "Évaluation",
+      "definition": "Évaluation officielle qui conduit à la délivrance d'une certification, selon les modalités fixées par le certificateur.",
+      "exemple": "La session d'examen d'un titre professionnel devant un jury."
+    },
+    {
+      "id": "evaluation-chaud",
+      "libelle": "Évaluation à chaud (satisfaction)",
+      "categorie": "Évaluation",
+      "definition": "Recueil de la satisfaction et du ressenti des participants immédiatement à la fin de la formation.",
+      "exemple": "Un questionnaire en ligne rempli le dernier jour sur le contenu, l'animation et l'organisation."
+    },
+    {
+      "id": "evaluation-formative",
+      "libelle": "Évaluation formative",
+      "categorie": "Évaluation",
+      "definition": "Évaluation réalisée pendant l'apprentissage pour aider l'apprenant à progresser. Elle n'est pas notée à des fins de sanction.",
+      "exemple": "Un quiz en fin de séquence suivi d'une correction collective."
+    },
+    {
+      "id": "evaluation-froid",
+      "libelle": "Évaluation à froid",
+      "categorie": "Évaluation",
+      "definition": "Évaluation réalisée plusieurs semaines ou mois après la formation, pour mesurer ce qui est réellement appliqué au poste.",
+      "exemple": "Un questionnaire envoyé au participant et à son manager trois mois après."
+    },
+    {
+      "id": "evaluation-sommative",
+      "libelle": "Évaluation sommative",
+      "categorie": "Évaluation",
+      "definition": "Évaluation réalisée en fin de module ou de formation pour mesurer le niveau atteint par rapport aux objectifs.",
+      "exemple": "Un cas pratique final noté, qui figure dans l'attestation de fin de formation."
+    },
+    {
+      "id": "fiche-poste",
+      "libelle": "Fiche de poste",
+      "categorie": "Besoin",
+      "definition": "Document qui décrit les missions, les activités, les responsabilités et les compétences requises pour un poste.",
+      "exemple": "La fiche « assistant comptable » liste la saisie, le lettrage et les déclarations de TVA."
+    },
+    {
+      "id": "fichiers-sources",
+      "libelle": "Fichiers sources",
+      "categorie": "Conception",
+      "definition": "Fichiers de travail modifiables à l'origine d'un livrable (projet d'outil auteur, fichiers de mise en page, code), par opposition au livrable final figé.",
+      "exemple": "Le client reçoit le package SCORM et aussi le projet modifiable pour le mettre à jour lui-même."
+    },
+    {
+      "id": "fle",
+      "libelle": "FLE (Français langue étrangère)",
+      "categorie": "Modalités",
+      "definition": "Enseignement du français à des personnes dont ce n'est pas la langue maternelle. Signale un besoin d'adapter les supports et le rythme.",
+      "exemple": "Des consignes simplifiées et un lexique métier illustré pour un groupe allophone."
+    },
+    {
+      "id": "fne-formation",
+      "libelle": "FNE-Formation",
+      "categorie": "Financement",
+      "definition": "Dispositif de l'État qui cofinance des formations de salariés, notamment en cas de mutations économiques, selon des conditions et des priorités qui évoluent chaque année.",
+      "exemple": "Une entreprise en transformation numérique mobilise ce dispositif via son OPCO."
+    },
+    {
+      "id": "formation-formateurs",
+      "libelle": "Formation de formateurs",
+      "categorie": "Prestations",
+      "definition": "Formation qui prépare des collaborateurs internes à animer eux-mêmes une formation auprès de leurs collègues.",
+      "exemple": "Former trois référents internes qui déploieront ensuite le module dans toutes les agences."
+    },
+    {
+      "id": "gamification",
+      "libelle": "Gamification",
+      "categorie": "Pédagogie",
+      "definition": "Utilisation de mécanismes de jeu (points, badges, niveaux, missions) dans un contexte non ludique, pour renforcer l'engagement.",
+      "exemple": "Un parcours e-learning où chaque module réussi débloque un badge et le niveau suivant."
+    },
+    {
+      "id": "grille-evaluation",
+      "libelle": "Grille d'évaluation",
+      "categorie": "Évaluation",
+      "definition": "Outil qui liste les critères observés et les niveaux de réussite attendus, pour évaluer de façon objective et identique pour tous.",
+      "exemple": "Une grille qui note un entretien client simulé sur 5 critères, chacun sur 4 niveaux."
+    },
+    {
+      "id": "habilitation",
+      "libelle": "Habilitation",
+      "categorie": "Certification",
+      "definition": "Autorisation donnée par un certificateur à un organisme de formation pour préparer à sa certification et, selon les cas, organiser les évaluations.",
+      "exemple": "RD Formation doit être habilitée par le certificateur avant de proposer une préparation éligible au CPF."
+    },
+    {
+      "id": "idcc",
+      "libelle": "IDCC",
+      "categorie": "Administratif",
+      "definition": "Identifiant de la convention collective, à quatre chiffres. Il permet de déterminer l'OPCO et les règles de branche.",
+      "exemple": "IDCC 1486 pour les bureaux d'études techniques (Syntec)."
+    },
+    {
+      "id": "indicateur",
+      "libelle": "Indicateur",
+      "categorie": "Besoin",
+      "definition": "Donnée mesurable qui permet de suivre l'évolution d'une situation et de vérifier l'effet d'une action.",
+      "exemple": "Délai moyen de clôture mensuelle : 12 jours aujourd'hui, 7 jours visés."
+    },
+    {
+      "id": "indicateur-qualiopi",
+      "libelle": "Indicateur Qualiopi",
+      "categorie": "Réglementaire",
+      "definition": "Exigence précise du référentiel national qualité. Le référentiel compte 32 indicateurs répartis en 7 critères, chacun devant être prouvé lors de l'audit.",
+      "exemple": "L'indicateur 4 impose de prouver l'analyse du besoin du bénéficiaire."
+    },
+    {
+      "id": "individualisation",
+      "libelle": "Individualisation",
+      "categorie": "Ingénierie",
+      "definition": "Adaptation du parcours à chaque apprenant : contenus, durée, rythme ou modalités, à partir de son positionnement et de ses objectifs.",
+      "exemple": "Deux stagiaires d'une même cohorte suivent des modules différents selon leurs acquis."
+    },
+    {
+      "id": "ingenierie-formation",
+      "libelle": "Ingénierie de formation",
+      "categorie": "Ingénierie",
+      "definition": "Conception d'un dispositif de formation dans son ensemble : analyse du besoin, architecture, modalités, ressources, financement, évaluation du dispositif.",
+      "exemple": "Concevoir un parcours de 400 heures en alternance menant à un titre professionnel."
+    },
+    {
+      "id": "ingenierie-pedagogique",
+      "libelle": "Ingénierie pédagogique",
+      "categorie": "Ingénierie",
+      "definition": "Conception des contenus et des situations d'apprentissage : objectifs, séquences, activités, supports, évaluations.",
+      "exemple": "Scénariser la séquence « lire un bilan » avec ses activités, ses supports et son évaluation."
+    },
+    {
+      "id": "inter",
+      "libelle": "Inter (entreprises)",
+      "categorie": "Modalités",
+      "definition": "Formation qui réunit des participants de plusieurs structures différentes, sur un programme commun.",
+      "exemple": "Une session Excel avec des salariés de cinq entreprises différentes."
+    },
+    {
+      "id": "intra",
+      "libelle": "Intra (entreprise)",
+      "categorie": "Modalités",
+      "definition": "Formation réservée aux salariés d'une seule structure, souvent adaptée à son contexte.",
+      "exemple": "Une formation paie pour les huit gestionnaires d'un même groupe, avec leurs propres cas."
+    },
+    {
+      "id": "iteration",
+      "libelle": "Itération",
+      "categorie": "Projet",
+      "definition": "Cycle de correction d'un livrable : envoi, retours du client, modifications. Le nombre d'itérations incluses est fixé à l'avance.",
+      "exemple": "Deux allers-retours de correction sont inclus sur le storyboard ; les suivants sont facturés."
+    },
+    {
+      "id": "jalon",
+      "libelle": "Jalon",
+      "categorie": "Projet",
+      "definition": "Point de passage clé d'un projet, daté, qui correspond à une livraison ou une décision.",
+      "exemple": "Jalon 2 : validation du storyboard le 15 mars."
+    },
+    {
+      "id": "kirkpatrick",
+      "libelle": "Kirkpatrick (modèle de)",
+      "categorie": "Évaluation",
+      "definition": "Modèle d'évaluation en quatre niveaux : 1 réaction (satisfaction), 2 apprentissage (acquis), 3 comportement (application au poste), 4 résultats (effets sur la structure).",
+      "exemple": "Niveau 3 : le manager constate que les notes de frais sont désormais conformes."
+    },
+    {
+      "id": "licence-utilisation",
+      "libelle": "Licence d'utilisation",
+      "categorie": "Juridique",
+      "definition": "Autorisation d'utiliser une œuvre selon des conditions définies, sans transfert de propriété. L'auteur reste propriétaire.",
+      "exemple": "Le client peut diffuser le module à ses salariés, mais pas le revendre ni le modifier."
+    },
+    {
+      "id": "livrable",
+      "libelle": "Livrable",
+      "categorie": "Projet",
+      "definition": "Production concrète et identifiable remise au client à une étape du projet.",
+      "exemple": "Un scénario pédagogique au format Word, un package SCORM, un rapport d'audit."
+    },
+    {
+      "id": "livret-apprenant",
+      "libelle": "Livret apprenant",
+      "categorie": "Ingénierie",
+      "definition": "Document remis à l'apprenant qui présente le parcours, les objectifs, le calendrier, les règles et sert de support de suivi.",
+      "exemple": "Un livret avec la carte du parcours, les dates, le règlement intérieur et un espace de prise de notes."
+    },
+    {
+      "id": "lms",
+      "libelle": "LMS (Learning Management System)",
+      "categorie": "Conception",
+      "definition": "Plateforme de gestion de la formation en ligne : diffusion des contenus, inscriptions, suivi de la progression, évaluations.",
+      "exemple": "Moodle, 360Learning ou un LMS développé sur mesure."
+    },
+    {
+      "id": "ludopedagogie",
+      "libelle": "Ludopédagogie",
+      "categorie": "Pédagogie",
+      "definition": "Utilisation du jeu comme méthode d'apprentissage, où le jeu lui-même porte l'objectif pédagogique.",
+      "exemple": "Un escape game où il faut équilibrer un bilan pour ouvrir le dernier cadenas."
+    },
+    {
+      "id": "maintenance",
+      "libelle": "Maintenance",
+      "categorie": "Projet",
+      "definition": "Mise à jour et correction d'un livrable après sa livraison (évolution réglementaire, bug, changement d'outil).",
+      "exemple": "Mettre à jour les taux de cotisations d'un module paie au 1er janvier."
+    },
+    {
+      "id": "maquette",
+      "libelle": "Maquette",
+      "categorie": "Conception",
+      "definition": "Prototype visuel d'un écran ou d'un module, qui montre le rendu final avant la production complète.",
+      "exemple": "Trois écrans types du module présentés au client pour valider le design."
+    },
+    {
+      "id": "matrice-alignement",
+      "libelle": "Matrice d'alignement",
+      "categorie": "Ingénierie",
+      "definition": "Tableau qui vérifie la cohérence entre objectifs, activités et évaluations : chaque objectif est travaillé et évalué.",
+      "exemple": "Une ligne par objectif, une colonne pour l'activité associée et une pour l'évaluation correspondante."
+    },
+    {
+      "id": "methodes-actives",
+      "libelle": "Méthodes actives",
+      "categorie": "Pédagogie",
+      "definition": "Méthodes où l'apprenant construit ses savoirs en agissant : cas pratiques, mises en situation, projets, jeux de rôle.",
+      "exemple": "Les participants construisent eux-mêmes un tableau de bord à partir de données réelles."
+    },
+    {
+      "id": "methodes-pedagogiques",
+      "libelle": "Méthodes pédagogiques",
+      "categorie": "Pédagogie",
+      "definition": "Manières d'organiser l'apprentissage. On distingue généralement les méthodes expositive, démonstrative, interrogative, active et expérientielle.",
+      "exemple": "Démontrer une manipulation Excel, puis faire refaire l'exercice par les participants."
+    },
+    {
+      "id": "microlearning",
+      "libelle": "Microlearning",
+      "categorie": "Modalités",
+      "definition": "Format d'apprentissage très court (souvent moins de 5 minutes) centré sur une seule notion, consultable facilement, souvent sur mobile.",
+      "exemple": "Une vidéo de 3 minutes sur « comment lettrer un compte fournisseur »."
+    },
+    {
+      "id": "mobile-first",
+      "libelle": "Mobile first",
+      "categorie": "Conception",
+      "definition": "Principe de conception qui pense d'abord l'affichage sur smartphone, puis l'adapte aux écrans plus grands.",
+      "exemple": "Un module lisible et utilisable sur téléphone pour des techniciens sur chantier."
+    },
+    {
+      "id": "module",
+      "libelle": "Module",
+      "categorie": "Ingénierie",
+      "definition": "Unité d'un parcours, cohérente et centrée sur un ensemble de compétences, composée de plusieurs séquences.",
+      "exemple": "Module « Opérations de fin d'exercice », 35 heures, composé de 5 séquences."
+    },
+    {
+      "id": "motion-design",
+      "libelle": "Motion design",
+      "categorie": "Conception",
+      "definition": "Création de vidéos animées à partir d'éléments graphiques (textes, formes, icônes) pour expliquer un concept.",
+      "exemple": "Une animation de 90 secondes qui montre le circuit d'une facture de sa réception au paiement."
+    },
+    {
+      "id": "naf",
+      "libelle": "NAF (code)",
+      "categorie": "Administratif",
+      "definition": "Code de la nomenclature d'activités française, attribué par l'INSEE, qui identifie l'activité principale d'une entreprise (aussi appelé code APE).",
+      "exemple": "85.59A : formation continue d'adultes."
+    },
+    {
+      "id": "nda",
+      "libelle": "NDA (Numéro de déclaration d'activité)",
+      "categorie": "Administratif",
+      "definition": "Numéro attribué par l'administration (DREETS) à tout organisme de formation déclaré. Il doit figurer sur les conventions et documents contractuels.",
+      "exemple": "Un OF qui sous-traite une formation à RD Formation communique son NDA dans la convention."
+    },
+    {
+      "id": "niveau-interactivite",
+      "libelle": "Niveau d'interactivité",
+      "categorie": "Conception",
+      "definition": "Degré d'engagement demandé à l'apprenant dans un module numérique, de la simple consultation à l'immersion dans un scénario complexe.",
+      "exemple": "Niveau 1 : lire et cliquer « suivant » ; niveau 3 : prendre des décisions dans une simulation."
+    },
+    {
+      "id": "niveau-qualification",
+      "libelle": "Niveau de qualification",
+      "categorie": "Certification",
+      "definition": "Classement national des certifications en 8 niveaux : 3 (CAP), 4 (Bac), 5 (Bac+2), 6 (Bac+3 ou 4), 7 (Bac+5), 8 (doctorat).",
+      "exemple": "Le titre Comptable assistant est de niveau 4."
+    },
+    {
+      "id": "note-de-cadrage",
+      "libelle": "Note de cadrage",
+      "categorie": "Besoin",
+      "definition": "Document rédigé par le prestataire après l'analyse de la demande. Il reformule le besoin, fixe le périmètre, les objectifs et les conditions, et est validé par le client avant la proposition.",
+      "exemple": "Une note de 3 pages signée par le client qui sert de référence en cas de désaccord."
+    },
+    {
+      "id": "objectif-operationnel",
+      "libelle": "Objectif opérationnel",
+      "categorie": "Objectifs",
+      "definition": "Ce que la personne devra réaliser concrètement à son poste après la prestation.",
+      "exemple": "« Réaliser seule les déclarations de TVA mensuelles de ses dossiers »."
+    },
+    {
+      "id": "objectif-pedagogique",
+      "libelle": "Objectif pédagogique",
+      "categorie": "Objectifs",
+      "definition": "Ce que l'apprenant sera capable de faire à l'issue d'une séquence de formation, formulé avec un verbe observable, des conditions et des critères.",
+      "exemple": "« Calculer la TVA due à partir de 20 factures, avec le logiciel, sans erreur »."
+    },
+    {
+      "id": "objectif-strategique",
+      "libelle": "Objectif stratégique",
+      "categorie": "Objectifs",
+      "definition": "Résultat attendu pour la structure, lié à son projet ou à ses enjeux.",
+      "exemple": "« Internaliser la gestion de la TVA pour réduire les coûts d'externalisation de 30 % »."
+    },
+    {
+      "id": "opco",
+      "libelle": "OPCO (Opérateur de compétences)",
+      "categorie": "Financement",
+      "definition": "Organisme agréé par l'État qui accompagne les entreprises d'une branche professionnelle et finance une partie de leurs formations. Il en existe 11, l'entreprise dépend de celui de sa branche.",
+      "exemple": "Un restaurant relève d'AKTO ; une pharmacie d'officine relève de l'OPCO EP."
+    },
+    {
+      "id": "parcours-adaptatif",
+      "libelle": "Parcours adaptatif",
+      "categorie": "Ingénierie",
+      "definition": "Parcours dont le contenu et l'ordre s'ajustent automatiquement ou manuellement selon les résultats et le comportement de l'apprenant.",
+      "exemple": "Un échec au quiz redirige vers une remédiation ; une réussite ouvre directement le module suivant."
+    },
+    {
+      "id": "plan-action",
+      "libelle": "Plan d'action",
+      "categorie": "Prestations",
+      "definition": "Liste d'actions priorisées, avec responsables, échéances et indicateurs, issue d'un audit ou d'un diagnostic.",
+      "exemple": "12 actions classées par priorité pour se mettre en conformité Qualiopi en 3 mois."
+    },
+    {
+      "id": "plan-developpement-competences",
+      "libelle": "Plan de développement des compétences",
+      "categorie": "Financement",
+      "definition": "Ensemble des actions de formation décidées par l'employeur pour ses salariés, financées principalement sur les fonds de l'entreprise.",
+      "exemple": "L'entreprise inscrit la formation Excel de son équipe dans son plan annuel."
+    },
+    {
+      "id": "pmr",
+      "libelle": "PMR (Personne à mobilité réduite)",
+      "categorie": "Accessibilité",
+      "definition": "Toute personne qui éprouve des difficultés à se déplacer. Les locaux accessibles aux PMR disposent d'accès adaptés (rampe, ascenseur, sanitaires).",
+      "exemple": "Vérifier que la salle au 2e étage est desservie par un ascenseur."
+    },
+    {
+      "id": "positionnement",
+      "libelle": "Positionnement",
+      "categorie": "Évaluation",
+      "definition": "Évaluation d'entrée qui mesure les acquis et les besoins de chaque apprenant pour adapter son parcours. On parle aussi d'évaluation diagnostique.",
+      "exemple": "Un test Excel de 20 minutes qui oriente chaque stagiaire vers le niveau adapté."
+    },
+    {
+      "id": "prerequis",
+      "libelle": "Prérequis",
+      "categorie": "Pédagogie",
+      "definition": "Connaissances ou compétences nécessaires avant d'entrer en formation pour pouvoir la suivre avec profit.",
+      "exemple": "« Savoir utiliser un tableur pour saisir et trier des données »."
+    },
+    {
+      "id": "prestation",
+      "libelle": "Prestation",
+      "categorie": "Prestations",
+      "definition": "Service vendu par RD Formation. Le questionnaire distingue cinq familles : formation, prestation ponctuelle, conception de module, ingénierie, démarche certifiante.",
+      "exemple": "Une même demande peut combiner une ingénierie de parcours et l'animation de la formation."
+    },
+    {
+      "id": "prise-en-charge",
+      "libelle": "Prise en charge",
+      "categorie": "Financement",
+      "definition": "Accord d'un financeur (OPCO, État, Région, France Travail) pour financer tout ou partie d'une formation, obtenu en principe avant le démarrage.",
+      "exemple": "L'OPCO accorde une prise en charge de 1 800 € sur un coût total de 2 400 €."
+    },
+    {
+      "id": "pro-a",
+      "libelle": "Pro-A",
+      "categorie": "Financement",
+      "definition": "Reconversion ou promotion par l'alternance : dispositif qui permet à un salarié de se former en alternance pour évoluer ou changer de métier, sous conditions.",
+      "exemple": "Une secrétaire devient assistante comptable via Pro-A tout en restant dans son entreprise."
+    },
+    {
+      "id": "progression-pedagogique",
+      "libelle": "Progression pédagogique",
+      "categorie": "Ingénierie",
+      "definition": "Ordonnancement logique des séquences et des séances d'un parcours, du simple au complexe, avec leur durée.",
+      "exemple": "Un tableau qui planifie 35 séances sur 10 semaines avec objectif et durée de chacune."
+    },
+    {
+      "id": "propriete-intellectuelle",
+      "libelle": "Propriété intellectuelle",
+      "categorie": "Juridique",
+      "definition": "Droits protégeant les créations de l'esprit, dont les droits d'auteur sur les supports, scénarios, vidéos et modules pédagogiques.",
+      "exemple": "Sauf clause contraire, les supports créés par RD Formation restent sa propriété."
+    },
+    {
+      "id": "proposition-technique-financiere",
+      "libelle": "Proposition technique et financière",
+      "categorie": "Administratif",
+      "definition": "Document de réponse qui présente la compréhension du besoin, la solution proposée, la méthode, le planning, l'équipe et le prix.",
+      "exemple": "Un dossier de 10 pages remis en réponse à un appel d'offres."
+    },
+    {
+      "id": "qqoqcp",
+      "libelle": "QQOQCP",
+      "categorie": "Besoin",
+      "definition": "Méthode de questionnement : Qui, Quoi, Où, Quand, Comment, Pourquoi. Elle permet de relancer une réponse vague en entretien.",
+      "exemple": "« Vous parlez d'erreurs : qui les commet, sur quoi, depuis quand, et comment les repérez-vous ? »"
+    },
+    {
+      "id": "qualiopi",
+      "libelle": "Qualiopi",
+      "categorie": "Réglementaire",
+      "definition": "Certification qualité obligatoire pour les organismes de formation qui veulent accéder aux fonds publics ou mutualisés (OPCO, CPF, État, Régions). Elle repose sur le référentiel national qualité.",
+      "exemple": "Sans Qualiopi, une formation ne peut pas être financée par le CPF."
+    },
+    {
+      "id": "reac",
+      "libelle": "REAC",
+      "categorie": "Certification",
+      "definition": "Référentiel emploi, activités, compétences d'un titre professionnel du ministère du Travail. Il décrit l'emploi, les activités types et les compétences évaluées.",
+      "exemple": "Le REAC du titre Gestionnaire comptable et fiscal structure les épreuves de l'examen."
+    },
+    {
+      "id": "referent-handicap",
+      "libelle": "Référent handicap",
+      "categorie": "Accessibilité",
+      "definition": "Personne chargée d'accueillir, d'informer et d'organiser les adaptations pour les personnes en situation de handicap.",
+      "exemple": "Le référent handicap de l'entreprise et celui de RD Formation définissent ensemble les aménagements."
+    },
+    {
+      "id": "referentiel-activites",
+      "libelle": "Référentiel d'activités",
+      "categorie": "Ingénierie",
+      "definition": "Description des activités et tâches réalisées dans un métier, indépendamment de la formation.",
+      "exemple": "« Activité 1 : assurer la tenue comptable ; tâches : saisir, lettrer, rapprocher »."
+    },
+    {
+      "id": "referentiel-competences",
+      "libelle": "Référentiel de compétences",
+      "categorie": "Ingénierie",
+      "definition": "Liste structurée des compétences nécessaires pour exercer les activités d'un métier, avec leurs critères d'évaluation.",
+      "exemple": "« Réaliser un rapprochement bancaire : les écarts sont identifiés et justifiés »."
+    },
+    {
+      "id": "rgaa",
+      "libelle": "RGAA",
+      "categorie": "Accessibilité",
+      "definition": "Référentiel général d'amélioration de l'accessibilité : référentiel français qui décline les critères techniques d'accessibilité des contenus numériques.",
+      "exemple": "Un module conforme au RGAA est utilisable avec un lecteur d'écran."
+    },
+    {
+      "id": "rgpd",
+      "libelle": "RGPD",
+      "categorie": "Réglementaire",
+      "definition": "Règlement général sur la protection des données (règlement européen 2016/679). Il encadre la collecte et l'usage des données personnelles.",
+      "exemple": "Les résultats de tests des stagiaires sont des données personnelles à protéger et à conserver pour une durée limitée."
+    },
+    {
+      "id": "rncp",
+      "libelle": "RNCP",
+      "categorie": "Certification",
+      "definition": "Répertoire national des certifications professionnelles, géré par France Compétences. Il recense les diplômes, titres et certificats classés par niveau de qualification.",
+      "exemple": "Les titres Comptable assistant et Gestionnaire comptable et fiscal sont enregistrés au RNCP."
+    },
+    {
+      "id": "roi",
+      "libelle": "ROI (Retour sur investissement)",
+      "categorie": "Évaluation",
+      "definition": "Mesure financière de l'effet d'une formation : gains obtenus comparés au coût engagé.",
+      "exemple": "Une formation de 3 000 € qui évite 9 000 € de pénalités de retard a un ROI de 200 %."
+    },
+    {
+      "id": "rs",
+      "libelle": "RS (Répertoire spécifique)",
+      "categorie": "Certification",
+      "definition": "Répertoire de France Compétences qui recense des certifications et habilitations complémentaires à un métier, sans niveau de qualification.",
+      "exemple": "Une certification bureautique ou la certification CléA sont enregistrées au RS."
+    },
+    {
+      "id": "savoir-etre",
+      "libelle": "Savoir-être",
+      "categorie": "Besoin",
+      "definition": "Comportements et attitudes professionnels attendus dans une situation de travail. On parle aussi de compétences comportementales ou relationnelles.",
+      "exemple": "« Reformuler la demande d'un client mécontent avant de proposer une solution »."
+    },
+    {
+      "id": "scorm",
+      "libelle": "SCORM",
+      "categorie": "Conception",
+      "definition": "Norme technique qui permet à un module e-learning de fonctionner dans n'importe quel LMS compatible et d'y remonter la progression et les scores. Versions courantes : 1.2 et 2004.",
+      "exemple": "Un package SCORM déposé dans Moodle qui enregistre le score et le statut « terminé »."
+    },
+    {
+      "id": "scenario-pedagogique",
+      "libelle": "Scénario pédagogique",
+      "categorie": "Conception",
+      "definition": "Description détaillée du déroulement d'une formation ou d'un module : objectifs, activités, méthodes, durées, ressources et évaluations, étape par étape.",
+      "exemple": "Un tableau qui décrit les 12 étapes d'une séance de 3 heures."
+    },
+    {
+      "id": "seance",
+      "libelle": "Séance",
+      "categorie": "Ingénierie",
+      "definition": "Plus petite unité de temps pédagogique, réalisée en une fois, avec un objectif précis.",
+      "exemple": "Séance de 3 heures : « Enregistrer les factures d'achat »."
+    },
+    {
+      "id": "sequence",
+      "libelle": "Séquence",
+      "categorie": "Ingénierie",
+      "definition": "Ensemble de séances organisées autour d'un objectif commun, à l'intérieur d'un module.",
+      "exemple": "Séquence « TVA » composée de 4 séances."
+    },
+    {
+      "id": "serious-game",
+      "libelle": "Serious game",
+      "categorie": "Conception",
+      "definition": "Jeu numérique conçu avec une finalité pédagogique ou professionnelle, qui immerge l'apprenant dans un scénario.",
+      "exemple": "Un jeu où l'apprenant gère la trésorerie d'une entreprise fictive pendant 12 mois."
+    },
+    {
+      "id": "siret",
+      "libelle": "SIRET",
+      "categorie": "Administratif",
+      "definition": "Identifiant à 14 chiffres d'un établissement : les 9 chiffres du SIREN de l'entreprise suivis de 5 chiffres propres à l'établissement.",
+      "exemple": "Une entreprise avec deux agences a un seul SIREN et deux SIRET."
+    },
+    {
+      "id": "situation-travail",
+      "libelle": "Situation de travail",
+      "categorie": "Besoin",
+      "definition": "Contexte réel dans lequel une compétence est mobilisée : tâche, environnement, outils, contraintes.",
+      "exemple": "« Préparer la clôture mensuelle en fin de mois, sous pression de délai, avec le logiciel Sage »."
+    },
+    {
+      "id": "sous-traitance",
+      "libelle": "Sous-traitance",
+      "categorie": "Administratif",
+      "definition": "Situation où un organisme de formation confie la réalisation d'une action à un autre prestataire, tout en restant responsable vis-à-vis du client et de Qualiopi.",
+      "exemple": "Un OF confie à RD Formation l'animation d'un module paie de son parcours."
+    },
+    {
+      "id": "storyboard",
+      "libelle": "Storyboard",
+      "categorie": "Conception",
+      "definition": "Document qui décrit écran par écran un module numérique : textes, médias, interactions, navigation et feedbacks.",
+      "exemple": "Une page par écran avec le visuel prévu, le texte à l'écran, la voix off et les boutons."
+    },
+    {
+      "id": "subrogation",
+      "libelle": "Subrogation",
+      "categorie": "Financement",
+      "definition": "Mécanisme par lequel le financeur paie directement l'organisme de formation, sans que l'entreprise avance les frais.",
+      "exemple": "L'OPCO règle directement la facture à RD Formation ; l'entreprise ne paie que le reste à charge."
+    },
+    {
+      "id": "sur-mesure",
+      "libelle": "Sur-mesure",
+      "categorie": "Modalités",
+      "definition": "Formation conçue spécifiquement pour un client à partir de son besoin, de son contexte et de ses documents.",
+      "exemple": "Un module construit sur les procédures et les vrais dossiers du cabinet."
+    },
+    {
+      "id": "synchrone",
+      "libelle": "Synchrone",
+      "categorie": "Modalités",
+      "definition": "Modalité où formateur et apprenants sont connectés en même temps, à distance ou en présentiel. Son contraire est `asynchrone`.",
+      "exemple": "Une classe virtuelle est synchrone ; un module e-learning est asynchrone."
+    },
+    {
+      "id": "transfert",
+      "libelle": "Transfert (des acquis)",
+      "categorie": "Évaluation",
+      "definition": "Application effective au poste de travail de ce qui a été appris en formation. C'est la finalité de toute formation professionnelle.",
+      "exemple": "Un mois après, la stagiaire utilise seule les tableaux croisés dynamiques pour son reporting."
+    },
+    {
+      "id": "tuteur",
+      "libelle": "Tuteur",
+      "categorie": "Modalités",
+      "definition": "Salarié expérimenté qui accompagne un apprenant en entreprise : accueil, transmission, suivi, lien avec l'organisme de formation.",
+      "exemple": "Le chef comptable suit l'apprentie et participe aux bilans trimestriels."
+    },
+    {
+      "id": "vae",
+      "libelle": "VAE (Validation des acquis de l'expérience)",
+      "categorie": "Certification",
+      "definition": "Dispositif qui permet d'obtenir tout ou partie d'une certification en faisant reconnaître son expérience, sans suivre la formation complète.",
+      "exemple": "Une assistante avec 8 ans d'expérience obtient un titre par VAE après un entretien avec le jury."
+    },
+    {
+      "id": "xapi",
+      "libelle": "xAPI",
+      "categorie": "Conception",
+      "definition": "Norme de suivi des apprentissages plus récente que SCORM. Elle enregistre des activités variées, y compris hors LMS, dans un entrepôt de données (LRS).",
+      "exemple": "Suivre qu'un apprenant a regardé une vidéo, réussi une simulation et participé à un atelier."
+    }
+  ]
+}

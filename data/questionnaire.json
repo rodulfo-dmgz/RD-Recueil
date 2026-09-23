@@ -1,0 +1,4460 @@
+{
+  "sections": [
+    {
+      "id": "TC-0",
+      "partie": 1,
+      "titre": "Cadrage de la demande",
+      "ordre": 1,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-1",
+      "partie": 1,
+      "titre": "Identification de la structure",
+      "ordre": 2,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-2",
+      "partie": 1,
+      "titre": "Interlocuteurs",
+      "ordre": 3,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-3",
+      "partie": 1,
+      "titre": "Contexte et origine de la demande",
+      "ordre": 4,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-4",
+      "partie": 1,
+      "titre": "Analyse du besoin",
+      "ordre": 5,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-5",
+      "partie": 1,
+      "titre": "Public concerné",
+      "ordre": 6,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-6",
+      "partie": 1,
+      "titre": "Objectifs",
+      "ordre": 7,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-7",
+      "partie": 1,
+      "titre": "Contenus et périmètre",
+      "ordre": 8,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-8",
+      "partie": 1,
+      "titre": "Modalités de réalisation",
+      "ordre": 9,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-9",
+      "partie": 1,
+      "titre": "Évaluation",
+      "ordre": 10,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-10",
+      "partie": 1,
+      "titre": "Financement et budget",
+      "ordre": 11,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-11",
+      "partie": 1,
+      "titre": "Cadre juridique et contraintes",
+      "ordre": 12,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-12",
+      "partie": 1,
+      "titre": "Pilotage du projet",
+      "ordre": 13,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "TC-13",
+      "partie": 1,
+      "titre": "Réponse attendue",
+      "ordre": 14,
+      "condition": "-",
+      "visible_client": true
+    },
+    {
+      "id": "V-FOR",
+      "partie": 2,
+      "titre": "Organisation d'une formation",
+      "ordre": 15,
+      "condition": "TC-0.01 contient FOR",
+      "visible_client": true
+    },
+    {
+      "id": "V-PON",
+      "partie": 2,
+      "titre": "Prestation ponctuelle",
+      "ordre": 16,
+      "condition": "TC-0.01 contient PON",
+      "visible_client": true
+    },
+    {
+      "id": "V-MOD",
+      "partie": 2,
+      "titre": "Conception d'un module ou d'une ressource",
+      "ordre": 17,
+      "condition": "TC-0.01 contient MOD",
+      "visible_client": true
+    },
+    {
+      "id": "V-ING",
+      "partie": 2,
+      "titre": "Ingénierie de parcours ou de dispositif",
+      "ordre": 18,
+      "condition": "TC-0.01 contient ING",
+      "visible_client": true
+    },
+    {
+      "id": "V-CER",
+      "partie": 2,
+      "titre": "Démarche certifiante",
+      "ordre": 19,
+      "condition": "TC-0.01 contient CER",
+      "visible_client": true
+    },
+    {
+      "id": "ANA",
+      "partie": 3,
+      "titre": "Analyse du consultant",
+      "ordre": 20,
+      "condition": "-",
+      "visible_client": false
+    }
+  ],
+  "questions": [
+    {
+      "id": "TC-0.01",
+      "section": "TC-0",
+      "ordre": 1,
+      "libelle": "Quel(s) type(s) de prestation\\* recherchez-vous ?",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "FOR",
+          "libelle": "Formation"
+        },
+        {
+          "valeur": "PON",
+          "libelle": "Prestation ponctuelle (conseil, audit, atelier, coaching)"
+        },
+        {
+          "valeur": "MOD",
+          "libelle": "Conception d'un module ou d'une ressource"
+        },
+        {
+          "valeur": "ING",
+          "libelle": "Ingénierie de parcours ou de dispositif"
+        },
+        {
+          "valeur": "CER",
+          "libelle": "Démarche certifiante"
+        },
+        {
+          "valeur": "NSP",
+          "libelle": "Je ne sais pas encore"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "prestation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-0.02",
+      "section": "TC-0",
+      "ordre": 2,
+      "libelle": "Décrivez votre demande en quelques phrases, avec vos propres mots.",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-0.03",
+      "section": "TC-0",
+      "ordre": 3,
+      "libelle": "À quelle date souhaitez-vous démarrer ?",
+      "type": "date",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-0.04",
+      "section": "TC-0",
+      "ordre": 4,
+      "libelle": "Quel est le degré d'urgence ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "faible",
+          "libelle": "Faible"
+        },
+        {
+          "valeur": "modere",
+          "libelle": "Modéré"
+        },
+        {
+          "valeur": "eleve",
+          "libelle": "Élevé"
+        },
+        {
+          "valeur": "imperatif-obligation-legale-ou-date-butoir",
+          "libelle": "Impératif (obligation légale ou date butoir)"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-0.05",
+      "section": "TC-0",
+      "ordre": 5,
+      "libelle": "Comment avez-vous connu RD Formation ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "recommandation",
+          "libelle": "Recommandation"
+        },
+        {
+          "valeur": "site-internet",
+          "libelle": "Site internet"
+        },
+        {
+          "valeur": "reseaux-sociaux",
+          "libelle": "Réseaux sociaux"
+        },
+        {
+          "valeur": "opco",
+          "libelle": "OPCO\\*"
+        },
+        {
+          "valeur": "salon-ou-evenement",
+          "libelle": "Salon ou événement"
+        },
+        {
+          "valeur": "deja-client",
+          "libelle": "Déjà client"
+        },
+        {
+          "valeur": "autre",
+          "libelle": "Autre"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "opco"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-0.06",
+      "section": "TC-0",
+      "ordre": 6,
+      "libelle": "Cette demande s'inscrit-elle dans un appel d'offres\\* ou une consultation formelle ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "appel-offres"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-0.07",
+      "section": "TC-0",
+      "ordre": 7,
+      "libelle": "Joignez le dossier de consultation (DCE\\*).",
+      "type": "fichier",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "TC-0.06 = oui",
+      "glossaire": [
+        "dce"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.01",
+      "section": "TC-1",
+      "ordre": 1,
+      "libelle": "Raison sociale",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.02",
+      "section": "TC-1",
+      "ordre": 2,
+      "libelle": "Forme juridique",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "sarl",
+          "libelle": "SARL"
+        },
+        {
+          "valeur": "sas",
+          "libelle": "SAS"
+        },
+        {
+          "valeur": "sasu",
+          "libelle": "SASU"
+        },
+        {
+          "valeur": "eurl",
+          "libelle": "EURL"
+        },
+        {
+          "valeur": "sa",
+          "libelle": "SA"
+        },
+        {
+          "valeur": "entreprise-individuelle",
+          "libelle": "Entreprise individuelle"
+        },
+        {
+          "valeur": "association",
+          "libelle": "Association"
+        },
+        {
+          "valeur": "collectivite-territoriale",
+          "libelle": "Collectivité territoriale"
+        },
+        {
+          "valeur": "etablissement-public",
+          "libelle": "Établissement public"
+        },
+        {
+          "valeur": "autre",
+          "libelle": "Autre"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-1.03",
+      "section": "TC-1",
+      "ordre": 3,
+      "libelle": "Numéro SIRET\\*",
+      "type": "siret",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "siret"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.04",
+      "section": "TC-1",
+      "ordre": 4,
+      "libelle": "Code NAF\\*",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "naf"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-1.05",
+      "section": "TC-1",
+      "ordre": 5,
+      "libelle": "Secteur d'activité",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.06",
+      "section": "TC-1",
+      "ordre": 6,
+      "libelle": "Adresse du siège",
+      "type": "adresse",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.07",
+      "section": "TC-1",
+      "ordre": 7,
+      "libelle": "Adresse du lieu de réalisation, si différente",
+      "type": "adresse",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.08",
+      "section": "TC-1",
+      "ordre": 8,
+      "libelle": "Effectif total de la structure",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "moins-de-11-salaries",
+          "libelle": "Moins de 11 salariés"
+        },
+        {
+          "valeur": "11-a-49",
+          "libelle": "11 à 49"
+        },
+        {
+          "valeur": "50-a-249",
+          "libelle": "50 à 249"
+        },
+        {
+          "valeur": "250-a-999",
+          "libelle": "250 à 999"
+        },
+        {
+          "valeur": "1-000-et-plus",
+          "libelle": "1 000 et plus"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-1.09",
+      "section": "TC-1",
+      "ordre": 9,
+      "libelle": "Convention collective (CCN\\*) et numéro IDCC\\*",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "ccn",
+        "idcc"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-1.10",
+      "section": "TC-1",
+      "ordre": 10,
+      "libelle": "OPCO\\* de rattachement",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "afdas",
+          "libelle": "AFDAS"
+        },
+        {
+          "valeur": "akto",
+          "libelle": "AKTO"
+        },
+        {
+          "valeur": "atlas",
+          "libelle": "ATLAS"
+        },
+        {
+          "valeur": "constructys",
+          "libelle": "Constructys"
+        },
+        {
+          "valeur": "ocapiat",
+          "libelle": "OCAPIAT"
+        },
+        {
+          "valeur": "opco-2i",
+          "libelle": "OPCO 2i"
+        },
+        {
+          "valeur": "opco-cohesion-sociale",
+          "libelle": "OPCO Cohésion sociale"
+        },
+        {
+          "valeur": "opco-commerce",
+          "libelle": "OPCO Commerce"
+        },
+        {
+          "valeur": "opco-ep",
+          "libelle": "OPCO EP"
+        },
+        {
+          "valeur": "opco-mobilites",
+          "libelle": "OPCO Mobilités"
+        },
+        {
+          "valeur": "opco-sante",
+          "libelle": "OPCO Santé"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "opco"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-1.11",
+      "section": "TC-1",
+      "ordre": 11,
+      "libelle": "Site internet",
+      "type": "url",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.12",
+      "section": "TC-1",
+      "ordre": 12,
+      "libelle": "Votre structure est-elle elle-même un organisme de formation (demande de sous-traitance\\*) ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "sous-traitance"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-1.13",
+      "section": "TC-1",
+      "ordre": 13,
+      "libelle": "Numéro de déclaration d'activité (NDA\\*)",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "TC-1.12 = oui",
+      "glossaire": [
+        "nda"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-1.14",
+      "section": "TC-1",
+      "ordre": 14,
+      "libelle": "Votre structure est-elle certifiée Qualiopi\\* ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "oui",
+          "libelle": "Oui"
+        },
+        {
+          "valeur": "non",
+          "libelle": "Non"
+        },
+        {
+          "valeur": "en-cours",
+          "libelle": "En cours"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "TC-1.12 = oui",
+      "glossaire": [
+        "qualiopi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-2.01",
+      "section": "TC-2",
+      "ordre": 1,
+      "libelle": "Commanditaire\\* (personne qui décide et signe)",
+      "type": "contact",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "commanditaire"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-2.02",
+      "section": "TC-2",
+      "ordre": 2,
+      "libelle": "Référent opérationnel du projet (personne qui suit au quotidien)",
+      "type": "contact",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-2.03",
+      "section": "TC-2",
+      "ordre": 3,
+      "libelle": "Interlocuteur administratif et financier",
+      "type": "contact",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-2.04",
+      "section": "TC-2",
+      "ordre": 4,
+      "libelle": "Référent handicap\\* de votre structure, s'il existe",
+      "type": "contact",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "referent-handicap"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-2.05",
+      "section": "TC-2",
+      "ordre": 5,
+      "libelle": "Experts métier mobilisables pour le projet",
+      "type": "tableau_contacts",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-2.06",
+      "section": "TC-2",
+      "ordre": 6,
+      "libelle": "Tuteurs\\* ou managers des futurs participants",
+      "type": "tableau_contacts",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "tuteur"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-2.07",
+      "section": "TC-2",
+      "ordre": 7,
+      "libelle": "Canal de communication préféré",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "e-mail",
+          "libelle": "E-mail"
+        },
+        {
+          "valeur": "telephone",
+          "libelle": "Téléphone"
+        },
+        {
+          "valeur": "visioconference",
+          "libelle": "Visioconférence"
+        },
+        {
+          "valeur": "rendez-vous-sur-site",
+          "libelle": "Rendez-vous sur site"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-3.01",
+      "section": "TC-3",
+      "ordre": 1,
+      "libelle": "Qu'est-ce qui déclenche cette demande ?",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "projet-strategique-ou-de-developpement",
+          "libelle": "Projet stratégique ou de développement"
+        },
+        {
+          "valeur": "nouvel-outil-ou-logiciel",
+          "libelle": "Nouvel outil ou logiciel"
+        },
+        {
+          "valeur": "evolution-reglementaire",
+          "libelle": "Évolution réglementaire"
+        },
+        {
+          "valeur": "reorganisation-interne",
+          "libelle": "Réorganisation interne"
+        },
+        {
+          "valeur": "difficultes-constatees",
+          "libelle": "Difficultés constatées"
+        },
+        {
+          "valeur": "recrutement-ou-integration",
+          "libelle": "Recrutement ou intégration"
+        },
+        {
+          "valeur": "reconversion-ou-mobilite-interne",
+          "libelle": "Reconversion ou mobilité interne"
+        },
+        {
+          "valeur": "suite-aux-entretiens-professionnels",
+          "libelle": "Suite aux entretiens professionnels\\*"
+        },
+        {
+          "valeur": "demarche-qualite-ou-certification",
+          "libelle": "Démarche qualité ou certification"
+        },
+        {
+          "valeur": "autre",
+          "libelle": "Autre"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "entretien-professionnel"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-3.02",
+      "section": "TC-3",
+      "ordre": 2,
+      "libelle": "Décrivez le contexte : enjeux, projet en cours, calendrier de votre structure.",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-3.03",
+      "section": "TC-3",
+      "ordre": 3,
+      "libelle": "Que se passera-t-il si rien n'est fait ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-3.04",
+      "section": "TC-3",
+      "ordre": 4,
+      "libelle": "Des actions ont-elles déjà été menées sur ce sujet ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-3.05",
+      "section": "TC-3",
+      "ordre": 5,
+      "libelle": "Lesquelles, et avec quels résultats ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "TC-3.04 = oui",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-3.06",
+      "section": "TC-3",
+      "ordre": 6,
+      "libelle": "D'autres acteurs sont-ils impliqués (prestataires, consultants, institutions) ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.01",
+      "section": "TC-4",
+      "ordre": 1,
+      "libelle": "Décrivez les situations de travail\\* concernées (tâches, activités concrètes).",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "situation-travail"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.02",
+      "section": "TC-4",
+      "ordre": 2,
+      "libelle": "Comment ces situations sont-elles réalisées aujourd'hui ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.03",
+      "section": "TC-4",
+      "ordre": 3,
+      "libelle": "Comment devront-elles être réalisées demain ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.04",
+      "section": "TC-4",
+      "ordre": 4,
+      "libelle": "Donnez des exemples concrets d'écarts\\* constatés (erreurs, retards, difficultés, réclamations).",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "ecart"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.05",
+      "section": "TC-4",
+      "ordre": 5,
+      "libelle": "Selon vous, ces écarts proviennent principalement de :",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "un-manque-de-competences",
+          "libelle": "Un manque de compétences"
+        },
+        {
+          "valeur": "un-manque-d-information",
+          "libelle": "Un manque d'information"
+        },
+        {
+          "valeur": "l-organisation-du-travail",
+          "libelle": "L'organisation du travail"
+        },
+        {
+          "valeur": "des-outils-inadaptes",
+          "libelle": "Des outils inadaptés"
+        },
+        {
+          "valeur": "la-motivation-ou-l-engagement",
+          "libelle": "La motivation ou l'engagement"
+        },
+        {
+          "valeur": "le-management",
+          "libelle": "Le management"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "besoin-formation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.06",
+      "section": "TC-4",
+      "ordre": 6,
+      "libelle": "Quelles compétences\\* faut-il développer (savoirs, savoir-faire, savoir-être\\*) ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "competence",
+        "savoir-etre"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.07",
+      "section": "TC-4",
+      "ordre": 7,
+      "libelle": "Quels indicateurs\\* montreront que la prestation a réussi, pour votre structure ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "indicateur"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.08",
+      "section": "TC-4",
+      "ordre": 8,
+      "libelle": "Données chiffrées disponibles",
+      "type": "tableau",
+      "options": [],
+      "colonnes": [
+        "Indicateur",
+        "Valeur actuelle",
+        "Valeur visée",
+        "Échéance"
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "indicateur"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-4.09",
+      "section": "TC-4",
+      "ordre": 9,
+      "libelle": "Joignez les documents utiles (fiches de poste\\*, procédures, comptes rendus, audits).",
+      "type": "fichier",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "fiche-poste"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-5.01",
+      "section": "TC-5",
+      "ordre": 1,
+      "libelle": "Nombre total de personnes concernées",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.02",
+      "section": "TC-5",
+      "ordre": 2,
+      "libelle": "Nombre de groupes envisagés",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.03",
+      "section": "TC-5",
+      "ordre": 3,
+      "libelle": "Postes ou métiers concernés",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.04",
+      "section": "TC-5",
+      "ordre": 4,
+      "libelle": "Statut des participants",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "salaries",
+          "libelle": "Salariés"
+        },
+        {
+          "valeur": "dirigeants",
+          "libelle": "Dirigeants"
+        },
+        {
+          "valeur": "demandeurs-d-emploi",
+          "libelle": "Demandeurs d'emploi"
+        },
+        {
+          "valeur": "alternants",
+          "libelle": "Alternants\\*"
+        },
+        {
+          "valeur": "agents-publics",
+          "libelle": "Agents publics"
+        },
+        {
+          "valeur": "travailleurs-independants",
+          "libelle": "Travailleurs indépendants"
+        },
+        {
+          "valeur": "benevoles",
+          "libelle": "Bénévoles"
+        },
+        {
+          "valeur": "autre",
+          "libelle": "Autre"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "alternant"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.05",
+      "section": "TC-5",
+      "ordre": 5,
+      "libelle": "Niveau de qualification\\* des participants",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "sans-diplome",
+          "libelle": "Sans diplôme"
+        },
+        {
+          "valeur": "niveau-3-cap-bep",
+          "libelle": "Niveau 3 (CAP, BEP)"
+        },
+        {
+          "valeur": "niveau-4-bac",
+          "libelle": "Niveau 4 (Bac)"
+        },
+        {
+          "valeur": "niveau-5-bac-2",
+          "libelle": "Niveau 5 (Bac+2)"
+        },
+        {
+          "valeur": "niveau-6-bac-3-ou-4",
+          "libelle": "Niveau 6 (Bac+3 ou 4)"
+        },
+        {
+          "valeur": "niveau-7-et-plus-bac-5-et-plus",
+          "libelle": "Niveau 7 et plus (Bac+5 et plus)"
+        },
+        {
+          "valeur": "heterogene",
+          "libelle": "Hétérogène"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "niveau-qualification"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.06",
+      "section": "TC-5",
+      "ordre": 6,
+      "libelle": "Ancienneté moyenne dans le poste",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "moins-d-un-an",
+          "libelle": "Moins d'un an"
+        },
+        {
+          "valeur": "1-a-3-ans",
+          "libelle": "1 à 3 ans"
+        },
+        {
+          "valeur": "3-a-10-ans",
+          "libelle": "3 à 10 ans"
+        },
+        {
+          "valeur": "plus-de-10-ans",
+          "libelle": "Plus de 10 ans"
+        },
+        {
+          "valeur": "heterogene",
+          "libelle": "Hétérogène"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.07",
+      "section": "TC-5",
+      "ordre": 7,
+      "libelle": "Niveau actuel des participants sur le sujet",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "debutant",
+          "libelle": "Débutant"
+        },
+        {
+          "valeur": "notions",
+          "libelle": "Notions"
+        },
+        {
+          "valeur": "intermediaire",
+          "libelle": "Intermédiaire"
+        },
+        {
+          "valeur": "avance",
+          "libelle": "Avancé"
+        },
+        {
+          "valeur": "heterogene",
+          "libelle": "Hétérogène"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.08",
+      "section": "TC-5",
+      "ordre": 8,
+      "libelle": "Des prérequis\\* sont-ils exigés pour entrer en formation ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "prerequis"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.09",
+      "section": "TC-5",
+      "ordre": 9,
+      "libelle": "Souhaitez-vous un positionnement\\* individuel avant la prestation ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "positionnement"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-5.10",
+      "section": "TC-5",
+      "ordre": 10,
+      "libelle": "La participation est-elle :",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "volontaire",
+          "libelle": "Volontaire"
+        },
+        {
+          "valeur": "imposee",
+          "libelle": "Imposée"
+        },
+        {
+          "valeur": "mixte",
+          "libelle": "Mixte"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.11",
+      "section": "TC-5",
+      "ordre": 11,
+      "libelle": "Aisance des participants avec le numérique",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "faible",
+          "libelle": "Faible"
+        },
+        {
+          "valeur": "moyenne",
+          "libelle": "Moyenne"
+        },
+        {
+          "valeur": "bonne",
+          "libelle": "Bonne"
+        },
+        {
+          "valeur": "heterogene",
+          "libelle": "Hétérogène"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.12",
+      "section": "TC-5",
+      "ordre": 12,
+      "libelle": "Maîtrise du français",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "langue-maternelle",
+          "libelle": "Langue maternelle"
+        },
+        {
+          "valeur": "courante",
+          "libelle": "Courante"
+        },
+        {
+          "valeur": "intermediaire",
+          "libelle": "Intermédiaire"
+        },
+        {
+          "valeur": "debutante-besoin-fle",
+          "libelle": "Débutante (besoin FLE\\*)"
+        },
+        {
+          "valeur": "heterogene",
+          "libelle": "Hétérogène"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "fle"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.13",
+      "section": "TC-5",
+      "ordre": 13,
+      "libelle": "Des participants ont-ils besoin d'une compensation du handicap\\* ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "oui",
+          "libelle": "Oui"
+        },
+        {
+          "valeur": "non",
+          "libelle": "Non"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "compensation-handicap"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.14",
+      "section": "TC-5",
+      "ordre": 14,
+      "libelle": "Décrivez les adaptations nécessaires, sans aucune donnée médicale.",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "TC-5.13 = oui",
+      "glossaire": [
+        "compensation-handicap"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.15",
+      "section": "TC-5",
+      "ordre": 15,
+      "libelle": "Contraintes de disponibilité (horaires, travail posté, saisonnalité, déplacements)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-5.16",
+      "section": "TC-5",
+      "ordre": 16,
+      "libelle": "Attentes ou appréhensions déjà exprimées par les participants",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-6.01",
+      "section": "TC-6",
+      "ordre": 1,
+      "libelle": "Objectif stratégique\\* : qu'attend votre structure de cette prestation ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "objectif-strategique"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-6.02",
+      "section": "TC-6",
+      "ordre": 2,
+      "libelle": "Objectifs opérationnels\\* : que devront faire les personnes à leur poste ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "objectif-operationnel"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-6.03",
+      "section": "TC-6",
+      "ordre": 3,
+      "libelle": "Objectifs pédagogiques\\* : à l'issue de la prestation, les participants seront capables de… (actions observables, méthode des 3C\\*, verbes de Bloom\\*)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [
+        "objectif-pedagogique",
+        "3c",
+        "bloom"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-6.04",
+      "section": "TC-6",
+      "ordre": 4,
+      "libelle": "Classez vos objectifs par ordre de priorité.",
+      "type": "tableau",
+      "options": [],
+      "colonnes": [
+        "Priorité",
+        "Objectif"
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-6.05",
+      "section": "TC-6",
+      "ordre": 5,
+      "libelle": "À quels critères\\* reconnaîtrez-vous que les objectifs sont atteints ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "critere"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-7.01",
+      "section": "TC-7",
+      "ordre": 1,
+      "libelle": "Thèmes attendus",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-7.02",
+      "section": "TC-7",
+      "ordre": 2,
+      "libelle": "Thèmes à exclure ou déjà maîtrisés",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-7.03",
+      "section": "TC-7",
+      "ordre": 3,
+      "libelle": "Référentiels à respecter",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "rncp",
+          "libelle": "RNCP\\*"
+        },
+        {
+          "valeur": "repertoire-specifique-rs",
+          "libelle": "Répertoire spécifique (RS\\*)"
+        },
+        {
+          "valeur": "reac",
+          "libelle": "REAC\\*"
+        },
+        {
+          "valeur": "norme-ou-reglementation",
+          "libelle": "Norme ou réglementation"
+        },
+        {
+          "valeur": "procedures-internes",
+          "libelle": "Procédures internes"
+        },
+        {
+          "valeur": "aucun",
+          "libelle": "Aucun"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "rncp",
+        "rs",
+        "reac"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-7.04",
+      "section": "TC-7",
+      "ordre": 4,
+      "libelle": "Code ou référence précise du référentiel",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "TC-7.03 contient RNCP OU TC-7.03 contient Répertoire spécifique (RS) OU TC-7.03 contient REAC",
+      "glossaire": [
+        "rncp",
+        "rs"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-7.05",
+      "section": "TC-7",
+      "ordre": 5,
+      "libelle": "Outils ou logiciels métier à intégrer (nom et version)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-7.06",
+      "section": "TC-7",
+      "ordre": 6,
+      "libelle": "Pouvez-vous fournir des documents réels (cas, données anonymisées\\*) ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "donnees-anonymisees"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-7.07",
+      "section": "TC-7",
+      "ordre": 7,
+      "libelle": "Joignez ces documents.",
+      "type": "fichier",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "TC-7.06 = oui",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-7.08",
+      "section": "TC-7",
+      "ordre": 8,
+      "libelle": "Niveau de personnalisation attendu",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "catalogue",
+          "libelle": "Catalogue\\*"
+        },
+        {
+          "valeur": "adapte-catalogue-ajuste-a-votre-contexte",
+          "libelle": "Adapté (catalogue ajusté à votre contexte)"
+        },
+        {
+          "valeur": "sur-mesure",
+          "libelle": "Sur-mesure\\*"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "catalogue",
+        "sur-mesure"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.01",
+      "section": "TC-8",
+      "ordre": 1,
+      "libelle": "Modalité souhaitée",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "presentiel",
+          "libelle": "Présentiel"
+        },
+        {
+          "valeur": "distanciel-synchrone",
+          "libelle": "Distanciel synchrone\\*"
+        },
+        {
+          "valeur": "distanciel-asynchrone-e-learning",
+          "libelle": "Distanciel asynchrone\\* (e-learning\\*)"
+        },
+        {
+          "valeur": "blended-learning",
+          "libelle": "Blended learning\\*"
+        },
+        {
+          "valeur": "afest",
+          "libelle": "AFEST\\*"
+        },
+        {
+          "valeur": "pas-de-preference",
+          "libelle": "Pas de préférence"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "synchrone",
+        "asynchrone",
+        "e-learning",
+        "blended-learning",
+        "afest"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.02",
+      "section": "TC-8",
+      "ordre": 2,
+      "libelle": "Format",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "intra",
+          "libelle": "Intra\\*"
+        },
+        {
+          "valeur": "inter",
+          "libelle": "Inter\\*"
+        },
+        {
+          "valeur": "individuel",
+          "libelle": "Individuel"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "intra",
+        "inter"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.03",
+      "section": "TC-8",
+      "ordre": 3,
+      "libelle": "Durée envisagée (en heures)",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.04",
+      "section": "TC-8",
+      "ordre": 4,
+      "libelle": "Rythme",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "continu-jours-consecutifs",
+          "libelle": "Continu (jours consécutifs)"
+        },
+        {
+          "valeur": "discontinu-par-exemple-un-jour-par-semaine",
+          "libelle": "Discontinu (par exemple un jour par semaine)"
+        },
+        {
+          "valeur": "sessions-courtes-demi-journees-ou-moins",
+          "libelle": "Sessions courtes (demi-journées ou moins)"
+        },
+        {
+          "valeur": "a-definir",
+          "libelle": "À définir"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.05",
+      "section": "TC-8",
+      "ordre": 5,
+      "libelle": "Période de réalisation",
+      "type": "periode",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.06",
+      "section": "TC-8",
+      "ordre": 6,
+      "libelle": "Plages horaires possibles",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.07",
+      "section": "TC-8",
+      "ordre": 7,
+      "libelle": "Lieu de réalisation",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "dans-vos-locaux",
+          "libelle": "Dans vos locaux"
+        },
+        {
+          "valeur": "chez-rd-formation",
+          "libelle": "Chez RD Formation"
+        },
+        {
+          "valeur": "lieu-externe",
+          "libelle": "Lieu externe"
+        },
+        {
+          "valeur": "a-distance",
+          "libelle": "À distance"
+        },
+        {
+          "valeur": "mixte",
+          "libelle": "Mixte"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.08",
+      "section": "TC-8",
+      "ordre": 8,
+      "libelle": "Nombre maximum de participants par groupe",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.09",
+      "section": "TC-8",
+      "ordre": 9,
+      "libelle": "Méthodes pédagogiques\\* souhaitées",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "methodes-actives",
+          "libelle": "Méthodes actives\\*"
+        },
+        {
+          "valeur": "etudes-de-cas",
+          "libelle": "Études de cas"
+        },
+        {
+          "valeur": "mises-en-situation",
+          "libelle": "Mises en situation"
+        },
+        {
+          "valeur": "ludopedagogie",
+          "libelle": "Ludopédagogie\\*"
+        },
+        {
+          "valeur": "classe-inversee",
+          "libelle": "Classe inversée\\*"
+        },
+        {
+          "valeur": "apports-theoriques",
+          "libelle": "Apports théoriques"
+        },
+        {
+          "valeur": "pas-de-preference",
+          "libelle": "Pas de préférence"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "methodes-pedagogiques",
+        "methodes-actives",
+        "ludopedagogie",
+        "classe-inversee"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.10",
+      "section": "TC-8",
+      "ordre": 10,
+      "libelle": "Méthodes à éviter (expériences négatives passées)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.11",
+      "section": "TC-8",
+      "ordre": 11,
+      "libelle": "Disposez-vous d'une plateforme de formation (LMS\\*) ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "lms"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-8.12",
+      "section": "TC-8",
+      "ordre": 12,
+      "libelle": "Laquelle, et quelles normes accepte-t-elle ?",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "scorm-1-2",
+          "libelle": "SCORM\\* 1.2"
+        },
+        {
+          "valeur": "scorm-2004",
+          "libelle": "SCORM 2004"
+        },
+        {
+          "valeur": "xapi",
+          "libelle": "xAPI\\*"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "TC-8.11 = oui",
+      "glossaire": [
+        "scorm",
+        "xapi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.13",
+      "section": "TC-8",
+      "ordre": 13,
+      "libelle": "Nom de la plateforme",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "TC-8.11 = oui",
+      "glossaire": [
+        "lms"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-8.14",
+      "section": "TC-8",
+      "ordre": 14,
+      "libelle": "Équipements disponibles pour les participants",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "ordinateur-individuel",
+          "libelle": "Ordinateur individuel"
+        },
+        {
+          "valeur": "tablette",
+          "libelle": "Tablette"
+        },
+        {
+          "valeur": "smartphone",
+          "libelle": "Smartphone"
+        },
+        {
+          "valeur": "connexion-internet-fiable",
+          "libelle": "Connexion internet fiable"
+        },
+        {
+          "valeur": "casque-et-micro",
+          "libelle": "Casque et micro"
+        },
+        {
+          "valeur": "salle-equipee",
+          "libelle": "Salle équipée"
+        },
+        {
+          "valeur": "aucun",
+          "libelle": "Aucun"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-9.01",
+      "section": "TC-9",
+      "ordre": 1,
+      "libelle": "Quelles évaluations attendez-vous ?",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "positionnement",
+          "libelle": "Positionnement\\*"
+        },
+        {
+          "valeur": "evaluation-formative",
+          "libelle": "Évaluation formative\\*"
+        },
+        {
+          "valeur": "evaluation-sommative",
+          "libelle": "Évaluation sommative\\*"
+        },
+        {
+          "valeur": "evaluation-certificative",
+          "libelle": "Évaluation certificative\\*"
+        },
+        {
+          "valeur": "satisfaction-a-chaud",
+          "libelle": "Satisfaction à chaud\\*"
+        },
+        {
+          "valeur": "evaluation-a-froid",
+          "libelle": "Évaluation à froid\\*"
+        },
+        {
+          "valeur": "mesure-du-transfert",
+          "libelle": "Mesure du transfert\\*"
+        },
+        {
+          "valeur": "mesure-du-roi",
+          "libelle": "Mesure du ROI\\*"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "positionnement",
+        "evaluation-formative",
+        "evaluation-sommative",
+        "evaluation-certificative",
+        "evaluation-chaud",
+        "evaluation-froid",
+        "transfert",
+        "roi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-9.02",
+      "section": "TC-9",
+      "ordre": 2,
+      "libelle": "Niveaux du modèle de Kirkpatrick\\* visés",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "niveau-1-reaction",
+          "libelle": "Niveau 1 : Réaction"
+        },
+        {
+          "valeur": "niveau-2-apprentissage",
+          "libelle": "Niveau 2 : Apprentissage"
+        },
+        {
+          "valeur": "niveau-3-comportement-au-poste",
+          "libelle": "Niveau 3 : Comportement au poste"
+        },
+        {
+          "valeur": "niveau-4-resultats-pour-la-structure",
+          "libelle": "Niveau 4 : Résultats pour la structure"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [
+        "kirkpatrick"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-9.03",
+      "section": "TC-9",
+      "ordre": 3,
+      "libelle": "Qui observera l'application des acquis au poste de travail ?",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "TC-9.01 contient Mesure du transfert",
+      "glossaire": [
+        "transfert"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-9.04",
+      "section": "TC-9",
+      "ordre": 4,
+      "libelle": "Délai souhaité pour l'évaluation à froid\\*",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "1-mois",
+          "libelle": "1 mois"
+        },
+        {
+          "valeur": "3-mois",
+          "libelle": "3 mois"
+        },
+        {
+          "valeur": "6-mois",
+          "libelle": "6 mois"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "TC-9.01 contient Évaluation à froid",
+      "glossaire": [
+        "evaluation-froid"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-9.05",
+      "section": "TC-9",
+      "ordre": 5,
+      "libelle": "Documents de bilan attendus",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "bilan-pedagogique-collectif",
+          "libelle": "Bilan pédagogique collectif"
+        },
+        {
+          "valeur": "synthese-individuelle",
+          "libelle": "Synthèse individuelle"
+        },
+        {
+          "valeur": "tableau-de-bord",
+          "libelle": "Tableau de bord"
+        },
+        {
+          "valeur": "aucun",
+          "libelle": "Aucun"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-10.01",
+      "section": "TC-10",
+      "ordre": 1,
+      "libelle": "Mode de financement envisagé",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "fonds-propres",
+          "libelle": "Fonds propres"
+        },
+        {
+          "valeur": "plan-de-developpement-des-competences",
+          "libelle": "Plan de développement des compétences\\*"
+        },
+        {
+          "valeur": "prise-en-charge-opco",
+          "libelle": "Prise en charge OPCO\\*"
+        },
+        {
+          "valeur": "cpf",
+          "libelle": "CPF\\*"
+        },
+        {
+          "valeur": "fne-formation",
+          "libelle": "FNE-Formation\\*"
+        },
+        {
+          "valeur": "pro-a",
+          "libelle": "Pro-A\\*"
+        },
+        {
+          "valeur": "france-travail-aif",
+          "libelle": "France Travail (AIF\\*)"
+        },
+        {
+          "valeur": "region",
+          "libelle": "Région"
+        },
+        {
+          "valeur": "autre",
+          "libelle": "Autre"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "plan-developpement-competences",
+        "opco",
+        "cpf",
+        "fne-formation",
+        "pro-a",
+        "aif"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-10.02",
+      "section": "TC-10",
+      "ordre": 2,
+      "libelle": "Enveloppe budgétaire envisagée (HT)",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "moins-de-1-500",
+          "libelle": "Moins de 1 500 €"
+        },
+        {
+          "valeur": "1-500-a-5-000",
+          "libelle": "1 500 à 5 000 €"
+        },
+        {
+          "valeur": "5-000-a-15-000",
+          "libelle": "5 000 à 15 000 €"
+        },
+        {
+          "valeur": "15-000-a-50-000",
+          "libelle": "15 000 à 50 000 €"
+        },
+        {
+          "valeur": "plus-de-50-000",
+          "libelle": "Plus de 50 000 €"
+        },
+        {
+          "valeur": "non-definie",
+          "libelle": "Non définie"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-10.03",
+      "section": "TC-10",
+      "ordre": 3,
+      "libelle": "Une demande de prise en charge\\* est-elle déjà en cours ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "prise-en-charge"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-10.04",
+      "section": "TC-10",
+      "ordre": 4,
+      "libelle": "Date limite de dépôt du dossier de financement",
+      "type": "date",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "TC-10.03 = oui",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-10.05",
+      "section": "TC-10",
+      "ordre": 5,
+      "libelle": "Contraintes de facturation",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "bon-de-commande-obligatoire",
+          "libelle": "Bon de commande obligatoire"
+        },
+        {
+          "valeur": "subrogation-de-paiement",
+          "libelle": "Subrogation\\* de paiement"
+        },
+        {
+          "valeur": "paiement-echelonne",
+          "libelle": "Paiement échelonné"
+        },
+        {
+          "valeur": "portail-de-facturation-chorus-pro-etc",
+          "libelle": "Portail de facturation (Chorus Pro, etc.)"
+        },
+        {
+          "valeur": "aucune",
+          "libelle": "Aucune"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "subrogation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-11.01",
+      "section": "TC-11",
+      "ordre": 1,
+      "libelle": "Une charte graphique\\* doit-elle être respectée ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "charte-graphique"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-11.02",
+      "section": "TC-11",
+      "ordre": 2,
+      "libelle": "Joignez votre charte graphique\\*.",
+      "type": "fichier",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "TC-11.01 = oui",
+      "glossaire": [
+        "charte-graphique"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-11.03",
+      "section": "TC-11",
+      "ordre": 3,
+      "libelle": "Un accord de confidentialité\\* est-il nécessaire ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "accord-confidentialite"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-11.04",
+      "section": "TC-11",
+      "ordre": 4,
+      "libelle": "La prestation implique-t-elle des données personnelles (RGPD\\*) ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "oui",
+          "libelle": "Oui"
+        },
+        {
+          "valeur": "non",
+          "libelle": "Non"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "rgpd"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-11.05",
+      "section": "TC-11",
+      "ordre": 5,
+      "libelle": "Propriété intellectuelle\\* des supports produits",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "rd-formation-reste-proprietaire",
+          "libelle": "RD Formation reste propriétaire"
+        },
+        {
+          "valeur": "cession-de-droits-au-client",
+          "libelle": "Cession de droits\\* au client"
+        },
+        {
+          "valeur": "licence-d-utilisation-accordee-au-client",
+          "libelle": "Licence d'utilisation\\* accordée au client"
+        },
+        {
+          "valeur": "a-definir-ensemble",
+          "libelle": "À définir ensemble"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "propriete-intellectuelle",
+        "cession-droits",
+        "licence-utilisation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-11.06",
+      "section": "TC-11",
+      "ordre": 6,
+      "libelle": "Vos formateurs internes réutiliseront-ils les supports ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-11.07",
+      "section": "TC-11",
+      "ordre": 7,
+      "libelle": "Contraintes d'accès au site (badge, EPI\\*, habilitation de sécurité)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "epi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-11.08",
+      "section": "TC-11",
+      "ordre": 8,
+      "libelle": "Autres contraintes",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-12.01",
+      "section": "TC-12",
+      "ordre": 1,
+      "libelle": "Qui valide les livrables\\* ?",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "livrable"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-12.02",
+      "section": "TC-12",
+      "ordre": 2,
+      "libelle": "Délai de validation par livrable\\* (jours ouvrés)",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "livrable"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-12.03",
+      "section": "TC-12",
+      "ordre": 3,
+      "libelle": "Nombre d'itérations\\* de correction prévues par livrable",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "1",
+          "libelle": "1"
+        },
+        {
+          "valeur": "2",
+          "libelle": "2"
+        },
+        {
+          "valeur": "3",
+          "libelle": "3"
+        },
+        {
+          "valeur": "a-definir",
+          "libelle": "À définir"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "iteration"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-12.04",
+      "section": "TC-12",
+      "ordre": 4,
+      "libelle": "Un comité de pilotage (COPIL\\*) est-il prévu ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "copil"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-12.05",
+      "section": "TC-12",
+      "ordre": 5,
+      "libelle": "Fréquence souhaitée des points de suivi",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "hebdomadaire",
+          "libelle": "Hebdomadaire"
+        },
+        {
+          "valeur": "toutes-les-deux-semaines",
+          "libelle": "Toutes les deux semaines"
+        },
+        {
+          "valeur": "mensuelle",
+          "libelle": "Mensuelle"
+        },
+        {
+          "valeur": "a-chaque-jalon",
+          "libelle": "À chaque jalon\\*"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "jalon"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-12.06",
+      "section": "TC-12",
+      "ordre": 6,
+      "libelle": "Jalons\\* ou dates imposées",
+      "type": "tableau",
+      "options": [],
+      "colonnes": [
+        "Jalon",
+        "Date",
+        "Commentaire"
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "jalon"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-12.07",
+      "section": "TC-12",
+      "ordre": 7,
+      "libelle": "Modalités du bilan de fin de prestation",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "reunion-de-bilan",
+          "libelle": "Réunion de bilan"
+        },
+        {
+          "valeur": "rapport-ecrit",
+          "libelle": "Rapport écrit"
+        },
+        {
+          "valeur": "les-deux",
+          "libelle": "Les deux"
+        },
+        {
+          "valeur": "aucun",
+          "libelle": "Aucun"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-13.01",
+      "section": "TC-13",
+      "ordre": 1,
+      "libelle": "Format de proposition souhaité",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "devis-simple",
+          "libelle": "Devis simple"
+        },
+        {
+          "valeur": "proposition-technique-et-financiere",
+          "libelle": "Proposition technique et financière\\*"
+        },
+        {
+          "valeur": "reponse-formelle-a-l-appel-d-offres",
+          "libelle": "Réponse formelle à l'appel d'offres"
+        },
+        {
+          "valeur": "presentation-orale",
+          "libelle": "Présentation orale"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "proposition-technique-financiere"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-13.02",
+      "section": "TC-13",
+      "ordre": 2,
+      "libelle": "Date limite de réception de la proposition",
+      "type": "date",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-13.03",
+      "section": "TC-13",
+      "ordre": 3,
+      "libelle": "Classez vos critères de choix du prestataire.",
+      "type": "classement",
+      "options": [
+        {
+          "valeur": "prix",
+          "libelle": "Prix"
+        },
+        {
+          "valeur": "expertise-metier",
+          "libelle": "Expertise métier"
+        },
+        {
+          "valeur": "approche-pedagogique",
+          "libelle": "Approche pédagogique"
+        },
+        {
+          "valeur": "delais",
+          "libelle": "Délais"
+        },
+        {
+          "valeur": "references",
+          "libelle": "Références"
+        },
+        {
+          "valeur": "proximite-geographique",
+          "libelle": "Proximité géographique"
+        },
+        {
+          "valeur": "certification-qualiopi",
+          "libelle": "Certification Qualiopi\\*"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "qualiopi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "TC-13.04",
+      "section": "TC-13",
+      "ordre": 4,
+      "libelle": "D'autres prestataires sont-ils consultés ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "TC-13.05",
+      "section": "TC-13",
+      "ordre": 5,
+      "libelle": "Commentaires libres",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.01",
+      "section": "V-FOR",
+      "ordre": 1,
+      "libelle": "Sessions souhaitées",
+      "type": "tableau",
+      "options": [],
+      "colonnes": [
+        "Session",
+        "Date de début",
+        "Date de fin",
+        "Nombre de participants"
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.02",
+      "section": "V-FOR",
+      "ordre": 2,
+      "libelle": "Horaires journaliers",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.03",
+      "section": "V-FOR",
+      "ordre": 3,
+      "libelle": "La salle est fournie par :",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "votre-structure",
+          "libelle": "Votre structure"
+        },
+        {
+          "valeur": "rd-formation",
+          "libelle": "RD Formation"
+        },
+        {
+          "valeur": "location-externe",
+          "libelle": "Location externe"
+        },
+        {
+          "valeur": "sans-objet-distanciel",
+          "libelle": "Sans objet (distanciel)"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.04",
+      "section": "V-FOR",
+      "ordre": 4,
+      "libelle": "Matériel à prévoir",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "videoprojecteur",
+          "libelle": "Vidéoprojecteur"
+        },
+        {
+          "valeur": "paperboard",
+          "libelle": "Paperboard"
+        },
+        {
+          "valeur": "postes-informatiques",
+          "libelle": "Postes informatiques"
+        },
+        {
+          "valeur": "wifi",
+          "libelle": "Wifi"
+        },
+        {
+          "valeur": "logiciels-installes",
+          "libelle": "Logiciels installés"
+        },
+        {
+          "valeur": "autre",
+          "libelle": "Autre"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.05",
+      "section": "V-FOR",
+      "ordre": 5,
+      "libelle": "Les locaux sont-ils accessibles aux PMR\\* ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "oui",
+          "libelle": "Oui"
+        },
+        {
+          "valeur": "non",
+          "libelle": "Non"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "FOR.03 = Votre structure",
+      "glossaire": [
+        "pmr"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.06",
+      "section": "V-FOR",
+      "ordre": 6,
+      "libelle": "Restauration et pauses",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "prises-en-charge-par-votre-structure",
+          "libelle": "Prises en charge par votre structure"
+        },
+        {
+          "valeur": "a-organiser-par-rd-formation",
+          "libelle": "À organiser par RD Formation"
+        },
+        {
+          "valeur": "libres",
+          "libelle": "Libres"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.07",
+      "section": "V-FOR",
+      "ordre": 7,
+      "libelle": "Qui anime ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "formateur-rd-formation",
+          "libelle": "Formateur RD Formation"
+        },
+        {
+          "valeur": "formateur-interne-forme-par-rd-formation-formation-de-formateurs",
+          "libelle": "Formateur interne formé par RD Formation (formation de formateurs\\*)"
+        },
+        {
+          "valeur": "co-animation",
+          "libelle": "Co-animation"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "formation-formateurs"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.08",
+      "section": "V-FOR",
+      "ordre": 8,
+      "libelle": "Supports remis aux participants",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "papier",
+          "libelle": "Papier"
+        },
+        {
+          "valeur": "numerique",
+          "libelle": "Numérique"
+        },
+        {
+          "valeur": "acces-a-une-plateforme",
+          "libelle": "Accès à une plateforme"
+        },
+        {
+          "valeur": "aucun",
+          "libelle": "Aucun"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.09",
+      "section": "V-FOR",
+      "ordre": 9,
+      "libelle": "Documents administratifs attendus",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "convention-de-formation",
+          "libelle": "Convention de formation\\*"
+        },
+        {
+          "valeur": "programme-detaille",
+          "libelle": "Programme détaillé"
+        },
+        {
+          "valeur": "convocations",
+          "libelle": "Convocations"
+        },
+        {
+          "valeur": "feuilles-d-emargement",
+          "libelle": "Feuilles d'émargement\\*"
+        },
+        {
+          "valeur": "certificat-de-realisation",
+          "libelle": "Certificat de réalisation\\*"
+        },
+        {
+          "valeur": "attestation-de-fin-de-formation",
+          "libelle": "Attestation de fin de formation\\*"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "convention-formation",
+        "emargement",
+        "certificat-realisation",
+        "attestation-fin-formation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.10",
+      "section": "V-FOR",
+      "ordre": 10,
+      "libelle": "Qui envoie les convocations ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "votre-structure",
+          "libelle": "Votre structure"
+        },
+        {
+          "valeur": "rd-formation",
+          "libelle": "RD Formation"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "FOR.11",
+      "section": "V-FOR",
+      "ordre": 11,
+      "libelle": "Cette formation sera-t-elle reconduite (sessions récurrentes) ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "PON.01",
+      "section": "V-PON",
+      "ordre": 1,
+      "libelle": "Nature de la prestation",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "conseil",
+          "libelle": "Conseil\\*"
+        },
+        {
+          "valeur": "audit-ou-diagnostic",
+          "libelle": "Audit\\* ou diagnostic\\*"
+        },
+        {
+          "valeur": "animation-d-atelier-ou-de-seminaire",
+          "libelle": "Animation d'atelier ou de séminaire"
+        },
+        {
+          "valeur": "conference",
+          "libelle": "Conférence"
+        },
+        {
+          "valeur": "coaching-individuel",
+          "libelle": "Coaching\\* individuel"
+        },
+        {
+          "valeur": "coaching-d-equipe",
+          "libelle": "Coaching d'équipe"
+        },
+        {
+          "valeur": "accompagnement-qualiopi",
+          "libelle": "Accompagnement Qualiopi\\*"
+        },
+        {
+          "valeur": "accompagnement-de-formateurs-internes",
+          "libelle": "Accompagnement de formateurs internes"
+        },
+        {
+          "valeur": "participation-a-un-jury",
+          "libelle": "Participation à un jury"
+        },
+        {
+          "valeur": "autre",
+          "libelle": "Autre"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "conseil",
+        "audit",
+        "diagnostic",
+        "coaching",
+        "qualiopi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.02",
+      "section": "V-PON",
+      "ordre": 2,
+      "libelle": "Quelle question précise la prestation doit-elle résoudre ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.03",
+      "section": "V-PON",
+      "ordre": 3,
+      "libelle": "Livrable attendu",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "rapport-ecrit",
+          "libelle": "Rapport écrit"
+        },
+        {
+          "valeur": "plan-d-action",
+          "libelle": "Plan d'action\\*"
+        },
+        {
+          "valeur": "restitution-orale",
+          "libelle": "Restitution orale"
+        },
+        {
+          "valeur": "support-de-presentation",
+          "libelle": "Support de présentation"
+        },
+        {
+          "valeur": "grille-de-diagnostic",
+          "libelle": "Grille de diagnostic"
+        },
+        {
+          "valeur": "aucun",
+          "libelle": "Aucun"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "plan-action",
+        "livrable"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.04",
+      "section": "V-PON",
+      "ordre": 4,
+      "libelle": "Durée estimée",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "une-demi-journee",
+          "libelle": "Une demi-journée"
+        },
+        {
+          "valeur": "une-journee",
+          "libelle": "Une journée"
+        },
+        {
+          "valeur": "2-a-5-jours",
+          "libelle": "2 à 5 jours"
+        },
+        {
+          "valeur": "plus-de-5-jours",
+          "libelle": "Plus de 5 jours"
+        },
+        {
+          "valeur": "a-definir",
+          "libelle": "À définir"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.05",
+      "section": "V-PON",
+      "ordre": 5,
+      "libelle": "Nombre de personnes rencontrées ou participantes",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.06",
+      "section": "V-PON",
+      "ordre": 6,
+      "libelle": "Les documents et personnes nécessaires seront-ils accessibles ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "PON.07",
+      "section": "V-PON",
+      "ordre": 7,
+      "libelle": "Type d'audit Qualiopi préparé",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "audit-initial",
+          "libelle": "Audit initial"
+        },
+        {
+          "valeur": "audit-de-surveillance",
+          "libelle": "Audit de surveillance"
+        },
+        {
+          "valeur": "audit-de-renouvellement",
+          "libelle": "Audit de renouvellement"
+        },
+        {
+          "valeur": "audit-blanc",
+          "libelle": "Audit blanc\\*"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "PON.01 contient Accompagnement Qualiopi",
+      "glossaire": [
+        "audit-blanc",
+        "qualiopi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.08",
+      "section": "V-PON",
+      "ordre": 8,
+      "libelle": "Date de l'audit prévu",
+      "type": "date",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "PON.01 contient Accompagnement Qualiopi",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.09",
+      "section": "V-PON",
+      "ordre": 9,
+      "libelle": "Indicateurs Qualiopi\\* à travailler en priorité",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "PON.01 contient Accompagnement Qualiopi",
+      "glossaire": [
+        "indicateur-qualiopi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "PON.10",
+      "section": "V-PON",
+      "ordre": 10,
+      "libelle": "Souhaitez-vous un suivi après la prestation ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "non",
+          "libelle": "Non"
+        },
+        {
+          "valeur": "point-a-1-mois",
+          "libelle": "Point à 1 mois"
+        },
+        {
+          "valeur": "point-a-3-mois",
+          "libelle": "Point à 3 mois"
+        },
+        {
+          "valeur": "accompagnement-continu",
+          "libelle": "Accompagnement continu"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.01",
+      "section": "V-MOD",
+      "ordre": 1,
+      "libelle": "Format final attendu",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "e-learning-autonome",
+          "libelle": "E-learning\\* autonome"
+        },
+        {
+          "valeur": "support-d-animation-presentiel",
+          "libelle": "Support d'animation présentiel"
+        },
+        {
+          "valeur": "classe-virtuelle",
+          "libelle": "Classe virtuelle\\*"
+        },
+        {
+          "valeur": "microlearning",
+          "libelle": "Microlearning\\*"
+        },
+        {
+          "valeur": "video",
+          "libelle": "Vidéo"
+        },
+        {
+          "valeur": "serious-game",
+          "libelle": "Serious game\\*"
+        },
+        {
+          "valeur": "ressource-imprimable",
+          "libelle": "Ressource imprimable"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "e-learning",
+        "classe-virtuelle",
+        "microlearning",
+        "serious-game"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.02",
+      "section": "V-MOD",
+      "ordre": 2,
+      "libelle": "Durée visée pour l'apprenant",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.03",
+      "section": "V-MOD",
+      "ordre": 3,
+      "libelle": "Niveau d'interactivité\\* souhaité",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "niveau-1-consultation",
+          "libelle": "Niveau 1 : consultation"
+        },
+        {
+          "valeur": "niveau-2-interactions-simples",
+          "libelle": "Niveau 2 : interactions simples"
+        },
+        {
+          "valeur": "niveau-3-scenarios-et-simulations",
+          "libelle": "Niveau 3 : scénarios et simulations"
+        },
+        {
+          "valeur": "niveau-4-immersion-complete",
+          "libelle": "Niveau 4 : immersion complète"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "niveau-interactivite"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.04",
+      "section": "V-MOD",
+      "ordre": 4,
+      "libelle": "Gamification\\*",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "aucune",
+          "libelle": "Aucune"
+        },
+        {
+          "valeur": "legere-points-badges",
+          "libelle": "Légère (points, badges)"
+        },
+        {
+          "valeur": "forte-scenario-missions-progression",
+          "libelle": "Forte (scénario, missions, progression)"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "gamification"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.05",
+      "section": "V-MOD",
+      "ordre": 5,
+      "libelle": "Médias attendus",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "texte",
+          "libelle": "Texte"
+        },
+        {
+          "valeur": "images",
+          "libelle": "Images"
+        },
+        {
+          "valeur": "infographies",
+          "libelle": "Infographies"
+        },
+        {
+          "valeur": "video-tournee",
+          "libelle": "Vidéo tournée"
+        },
+        {
+          "valeur": "motion-design",
+          "libelle": "Motion design\\*"
+        },
+        {
+          "valeur": "audio-ou-voix-off",
+          "libelle": "Audio ou voix off"
+        },
+        {
+          "valeur": "simulation-logicielle",
+          "libelle": "Simulation logicielle"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "motion-design"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.06",
+      "section": "V-MOD",
+      "ordre": 6,
+      "libelle": "Qui fournit le contenu expert ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "votre-structure",
+          "libelle": "Votre structure"
+        },
+        {
+          "valeur": "rd-formation",
+          "libelle": "RD Formation"
+        },
+        {
+          "valeur": "coproduction",
+          "libelle": "Coproduction"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.07",
+      "section": "V-MOD",
+      "ordre": 7,
+      "libelle": "Joignez l'existant réutilisable (supports, vidéos, procédures).",
+      "type": "fichier",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "MOD.08",
+      "section": "V-MOD",
+      "ordre": 8,
+      "libelle": "Livrables attendus",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "scenario-pedagogique",
+          "libelle": "Scénario pédagogique\\*"
+        },
+        {
+          "valeur": "storyboard",
+          "libelle": "Storyboard\\*"
+        },
+        {
+          "valeur": "maquette",
+          "libelle": "Maquette\\*"
+        },
+        {
+          "valeur": "support-animateur",
+          "libelle": "Support animateur"
+        },
+        {
+          "valeur": "support-apprenant",
+          "libelle": "Support apprenant"
+        },
+        {
+          "valeur": "activites-et-exercices",
+          "libelle": "Activités et exercices"
+        },
+        {
+          "valeur": "banque-de-questions",
+          "libelle": "Banque de questions\\*"
+        },
+        {
+          "valeur": "package-scorm",
+          "libelle": "Package SCORM\\*"
+        },
+        {
+          "valeur": "fichiers-sources",
+          "libelle": "Fichiers sources\\*"
+        },
+        {
+          "valeur": "guide-de-deploiement",
+          "libelle": "Guide de déploiement"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "scenario-pedagogique",
+        "storyboard",
+        "maquette",
+        "banque-questions",
+        "scorm",
+        "fichiers-sources"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.09",
+      "section": "V-MOD",
+      "ordre": 9,
+      "libelle": "Contraintes techniques de diffusion (LMS\\*, navigateurs, mobile first\\*)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "lms",
+        "mobile-first"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.10",
+      "section": "V-MOD",
+      "ordre": 10,
+      "libelle": "Exigences d'accessibilité numérique\\*",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "conformite-rgaa",
+          "libelle": "Conformité RGAA\\*"
+        },
+        {
+          "valeur": "sous-titres",
+          "libelle": "Sous-titres"
+        },
+        {
+          "valeur": "transcriptions",
+          "libelle": "Transcriptions"
+        },
+        {
+          "valeur": "non-requise",
+          "libelle": "Non requise"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "accessibilite-numerique",
+        "rgaa"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.11",
+      "section": "V-MOD",
+      "ordre": 11,
+      "libelle": "Langue(s) du module",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "MOD.12",
+      "section": "V-MOD",
+      "ordre": 12,
+      "libelle": "Maintenance\\* après livraison",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "non",
+          "libelle": "Non"
+        },
+        {
+          "valeur": "ponctuelle-a-la-demande",
+          "libelle": "Ponctuelle à la demande"
+        },
+        {
+          "valeur": "contrat-annuel",
+          "libelle": "Contrat annuel"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "maintenance"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.01",
+      "section": "V-ING",
+      "ordre": 1,
+      "libelle": "Nature de l'ingénierie attendue",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "ingenierie-de-formation-le-dispositif",
+          "libelle": "Ingénierie de formation\\* (le dispositif)"
+        },
+        {
+          "valeur": "ingenierie-pedagogique-les-contenus-et-scenarios",
+          "libelle": "Ingénierie pédagogique\\* (les contenus et scénarios)"
+        },
+        {
+          "valeur": "les-deux",
+          "libelle": "Les deux"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "ingenierie-formation",
+        "ingenierie-pedagogique"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.02",
+      "section": "V-ING",
+      "ordre": 2,
+      "libelle": "Existe-t-il un référentiel de compétences\\* ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "oui",
+          "libelle": "Oui"
+        },
+        {
+          "valeur": "partiel",
+          "libelle": "Partiel"
+        },
+        {
+          "valeur": "non-a-construire",
+          "libelle": "Non, à construire"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "referentiel-competences"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.03",
+      "section": "V-ING",
+      "ordre": 3,
+      "libelle": "Existe-t-il un référentiel d'activités\\* ou des fiches de poste\\* ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "oui",
+          "libelle": "Oui"
+        },
+        {
+          "valeur": "partiel",
+          "libelle": "Partiel"
+        },
+        {
+          "valeur": "non",
+          "libelle": "Non"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "referentiel-activites",
+        "fiche-poste"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.04",
+      "section": "V-ING",
+      "ordre": 4,
+      "libelle": "Joignez ces référentiels.",
+      "type": "fichier",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "ING.02 = Oui OU ING.02 = Partiel OU ING.03 = Oui OU ING.03 = Partiel",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "ING.05",
+      "section": "V-ING",
+      "ordre": 5,
+      "libelle": "Volume horaire global envisagé",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.06",
+      "section": "V-ING",
+      "ordre": 6,
+      "libelle": "Niveau de découpage attendu",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "blocs-de-competences",
+          "libelle": "Blocs de compétences\\*"
+        },
+        {
+          "valeur": "modules",
+          "libelle": "Modules\\*"
+        },
+        {
+          "valeur": "sequences",
+          "libelle": "Séquences\\*"
+        },
+        {
+          "valeur": "seances",
+          "libelle": "Séances\\*"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [
+        "bloc-competences",
+        "module",
+        "sequence",
+        "seance"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.07",
+      "section": "V-ING",
+      "ordre": 7,
+      "libelle": "Individualisation\\* souhaitée",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "positionnement-d-entree",
+          "libelle": "Positionnement\\* d'entrée"
+        },
+        {
+          "valeur": "parcours-adaptatif",
+          "libelle": "Parcours adaptatif\\*"
+        },
+        {
+          "valeur": "allegement-de-parcours",
+          "libelle": "Allègement de parcours\\*"
+        },
+        {
+          "valeur": "aucune",
+          "libelle": "Aucune"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "individualisation",
+        "positionnement",
+        "parcours-adaptatif",
+        "allegement"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.08",
+      "section": "V-ING",
+      "ordre": 8,
+      "libelle": "Le parcours inclut-il de l'alternance\\* ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "alternance"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "ING.09",
+      "section": "V-ING",
+      "ordre": 9,
+      "libelle": "Rythme d'alternance et rôle du tuteur\\*",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "ING.08 = oui",
+      "glossaire": [
+        "tuteur",
+        "alternance"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.10",
+      "section": "V-ING",
+      "ordre": 10,
+      "libelle": "Répartition présentiel / distanciel souhaitée (en %)",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.11",
+      "section": "V-ING",
+      "ordre": 11,
+      "libelle": "Nombre de cohortes\\* prévues",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "cohorte"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.12",
+      "section": "V-ING",
+      "ordre": 12,
+      "libelle": "Livrables attendus",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "cartographie-des-competences",
+          "libelle": "Cartographie des compétences\\*"
+        },
+        {
+          "valeur": "matrice-d-alignement",
+          "libelle": "Matrice d'alignement\\*"
+        },
+        {
+          "valeur": "architecture-du-parcours",
+          "libelle": "Architecture du parcours"
+        },
+        {
+          "valeur": "progression-pedagogique",
+          "libelle": "Progression pédagogique\\*"
+        },
+        {
+          "valeur": "fiches-sequences",
+          "libelle": "Fiches séquences"
+        },
+        {
+          "valeur": "fiches-seances",
+          "libelle": "Fiches séances"
+        },
+        {
+          "valeur": "grilles-d-evaluation",
+          "libelle": "Grilles d'évaluation\\*"
+        },
+        {
+          "valeur": "plan-d-evaluation",
+          "libelle": "Plan d'évaluation"
+        },
+        {
+          "valeur": "guide-du-formateur",
+          "libelle": "Guide du formateur"
+        },
+        {
+          "valeur": "livret-apprenant",
+          "libelle": "Livret apprenant\\*"
+        },
+        {
+          "valeur": "dossier-de-preuves-qualiopi",
+          "libelle": "Dossier de preuves Qualiopi\\*"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "cartographie-competences",
+        "matrice-alignement",
+        "progression-pedagogique",
+        "grille-evaluation",
+        "livret-apprenant",
+        "qualiopi"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ING.13",
+      "section": "V-ING",
+      "ordre": 13,
+      "libelle": "Faut-il prévoir une formation de formateurs\\* pour les personnes qui déploieront le parcours ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "formation-formateurs"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "ING.14",
+      "section": "V-ING",
+      "ordre": 14,
+      "libelle": "Le dispositif doit-il être transféré en autonomie à vos équipes ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": false
+    },
+    {
+      "id": "CER.01",
+      "section": "V-CER",
+      "ordre": 1,
+      "libelle": "Intitulé de la certification visée",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.02",
+      "section": "V-CER",
+      "ordre": 2,
+      "libelle": "Code RNCP\\* ou RS\\*",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "rncp",
+        "rs"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.03",
+      "section": "V-CER",
+      "ordre": 3,
+      "libelle": "Certificateur\\*",
+      "type": "texte",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "certificateur"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.04",
+      "section": "V-CER",
+      "ordre": 4,
+      "libelle": "Statut de l'organisme préparant à la certification",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "deja-habilite",
+          "libelle": "Déjà habilité\\*"
+        },
+        {
+          "valeur": "habilitation-a-demander",
+          "libelle": "Habilitation à demander"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [
+        "habilitation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.05",
+      "section": "V-CER",
+      "ordre": 5,
+      "libelle": "Périmètre visé",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "certification-complete",
+          "libelle": "Certification complète"
+        },
+        {
+          "valeur": "un-ou-plusieurs-blocs-de-competences",
+          "libelle": "Un ou plusieurs blocs de compétences\\*"
+        },
+        {
+          "valeur": "je-ne-sais-pas",
+          "libelle": "Je ne sais pas"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "bloc-competences"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.06",
+      "section": "V-CER",
+      "ordre": 6,
+      "libelle": "Lesquels ?",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "C/F",
+      "condition": "CER.05 = Un ou plusieurs blocs de compétences",
+      "glossaire": [
+        "bloc-competences"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.07",
+      "section": "V-CER",
+      "ordre": 7,
+      "libelle": "Certains participants visent-ils une VAE\\* ?",
+      "type": "oui_non",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "vae"
+      ],
+      "nsp_autorise": false
+    },
+    {
+      "id": "CER.08",
+      "section": "V-CER",
+      "ordre": 8,
+      "libelle": "Modalités d'évaluation imposées par le référentiel",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.09",
+      "section": "V-CER",
+      "ordre": 9,
+      "libelle": "Dates de session d'examen connues",
+      "type": "tableau",
+      "options": [],
+      "colonnes": [
+        "Session",
+        "Date",
+        "Lieu"
+      ],
+      "obligatoire": false,
+      "rempli_par": "C/F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.10",
+      "section": "V-CER",
+      "ordre": 10,
+      "libelle": "Préparation aux épreuves attendue",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "dossier-professionnel",
+          "libelle": "Dossier professionnel\\*"
+        },
+        {
+          "valeur": "oraux-blancs",
+          "libelle": "Oraux blancs"
+        },
+        {
+          "valeur": "mises-en-situation-d-examen",
+          "libelle": "Mises en situation d'examen"
+        },
+        {
+          "valeur": "preparation-complete",
+          "libelle": "Préparation complète"
+        }
+      ],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [
+        "dossier-professionnel"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "CER.11",
+      "section": "V-CER",
+      "ordre": 11,
+      "libelle": "Taux de réussite visé (%)",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "C",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.01",
+      "section": "ANA",
+      "ordre": 1,
+      "libelle": "Date et modalité de l'entretien",
+      "type": "texte",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.02",
+      "section": "ANA",
+      "ordre": 2,
+      "libelle": "Personnes présentes à l'entretien",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.03",
+      "section": "ANA",
+      "ordre": 3,
+      "libelle": "Reformulation de la demande (ce que le client demande)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.04",
+      "section": "ANA",
+      "ordre": 4,
+      "libelle": "Reformulation du besoin (ce dont le client a réellement besoin)",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [
+        "besoin-formation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.05",
+      "section": "ANA",
+      "ordre": 5,
+      "libelle": "Le besoin relève-t-il de la formation ?",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "oui",
+          "libelle": "Oui"
+        },
+        {
+          "valeur": "partiellement",
+          "libelle": "Partiellement"
+        },
+        {
+          "valeur": "non-reorienter",
+          "libelle": "Non (réorienter)"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [
+        "besoin-formation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.06",
+      "section": "ANA",
+      "ordre": 6,
+      "libelle": "Prestation(s) retenue(s) après analyse",
+      "type": "choix_multiple",
+      "options": [
+        {
+          "valeur": "FOR",
+          "libelle": "Formation"
+        },
+        {
+          "valeur": "PON",
+          "libelle": "Prestation ponctuelle"
+        },
+        {
+          "valeur": "MOD",
+          "libelle": "Conception de module"
+        },
+        {
+          "valeur": "ING",
+          "libelle": "Ingénierie"
+        },
+        {
+          "valeur": "CER",
+          "libelle": "Démarche certifiante"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [
+        "prestation"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.07",
+      "section": "ANA",
+      "ordre": 7,
+      "libelle": "Objectifs pédagogiques reformulés en 3C\\*",
+      "type": "tableau",
+      "options": [],
+      "colonnes": [
+        "Comportement (verbe de Bloom\\*)",
+        "Conditions",
+        "Critères"
+      ],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [
+        "3c",
+        "bloom"
+      ],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.08",
+      "section": "ANA",
+      "ordre": 8,
+      "libelle": "Points de vigilance et risques",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.09",
+      "section": "ANA",
+      "ordre": 9,
+      "libelle": "Points restant à clarifier",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.10",
+      "section": "ANA",
+      "ordre": 10,
+      "libelle": "Estimation de charge (jours)",
+      "type": "nombre",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.11",
+      "section": "ANA",
+      "ordre": 11,
+      "libelle": "Estimation financière (HT)",
+      "type": "montant",
+      "options": [],
+      "obligatoire": false,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.12",
+      "section": "ANA",
+      "ordre": 12,
+      "libelle": "Go / No go",
+      "type": "choix_unique",
+      "options": [
+        {
+          "valeur": "go",
+          "libelle": "Go"
+        },
+        {
+          "valeur": "go-sous-conditions",
+          "libelle": "Go sous conditions"
+        },
+        {
+          "valeur": "no-go",
+          "libelle": "No go"
+        }
+      ],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    },
+    {
+      "id": "ANA.13",
+      "section": "ANA",
+      "ordre": 13,
+      "libelle": "Justification",
+      "type": "texte_long",
+      "options": [],
+      "obligatoire": true,
+      "rempli_par": "F",
+      "condition": "-",
+      "glossaire": [],
+      "nsp_autorise": true
+    }
+  ]
+}
