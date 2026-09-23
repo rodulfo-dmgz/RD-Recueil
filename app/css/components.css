@@ -298,3 +298,37 @@
 }
 .entretien-question:last-child { border-bottom: none; }
 .entretien-question .texte-doux { margin: 4px 0 8px; }
+
+/* Note de cadrage (Lot 4) */
+
+.editeur-note__grille {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.editeur-note__texte {
+  min-height: 60vh;
+  font-family: var(--police-code);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.editeur-note__apercu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.editeur-note__apercu h1, .editeur-note__apercu h2, .editeur-note__apercu h3 { font-family: var(--police-titre); }
+.editeur-note__apercu table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.editeur-note__apercu th, .editeur-note__apercu td {
+  border: 1px solid var(--bordure);
+  padding: 6px 8px;
+  text-align: left;
+}
+.editeur-note__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+.cadrage-actions { display: flex; flex-direction: column; gap: 12px; }
+.cadrage-actions form { display: flex; flex-direction: column; gap: 8px; }
+
+@media (max-width: 768px) {
+  .editeur-note__grille { grid-template-columns: 1fr; }
+}

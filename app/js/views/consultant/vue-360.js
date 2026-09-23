@@ -18,6 +18,13 @@ const TRANSITIONS = {
   en_analyse: [{ vers: 'reorientee', libelle: 'Passer en réorientée' }],
 };
 const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
+const STATUTS_AVEC_CADRAGE = new Set([
+  'en_analyse',
+  'cadrage_envoye',
+  'cadrage_a_revoir',
+  'cadrage_valide',
+  'proposition_envoyee',
+]);
 
 export async function vueVue360(reference) {
   const app = document.getElementById('app');
@@ -103,6 +110,14 @@ function rendreActions(demande) {
     lienEntretien.href = `#/demandes/${demande.reference}/entretien`;
     lienEntretien.textContent = 'Mode entretien';
     actions.appendChild(lienEntretien);
+  }
+
+  if (STATUTS_AVEC_CADRAGE.has(demande.statut)) {
+    const lienNote = document.createElement('a');
+    lienNote.className = 'btn btn--primaire';
+    lienNote.href = `#/demandes/${demande.reference}/cadrage`;
+    lienNote.textContent = 'Note de cadrage';
+    actions.appendChild(lienNote);
   }
 
   if (!STATUTS_FINAUX.has(demande.statut)) {

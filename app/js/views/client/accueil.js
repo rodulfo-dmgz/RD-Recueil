@@ -84,6 +84,16 @@ function rendre(reference) {
   lienRecap.textContent = 'Voir le récapitulatif';
 
   actions.append(boutonReprendre, lienRecap);
+
+  const STATUTS_AVEC_CADRAGE = new Set(['cadrage_envoye', 'cadrage_a_revoir', 'cadrage_valide', 'proposition_envoyee']);
+  if (STATUTS_AVEC_CADRAGE.has(etat.demande.statut)) {
+    const lienCadrage = document.createElement('a');
+    lienCadrage.className = 'btn btn--secondaire';
+    lienCadrage.href = `#/d/${reference}/cadrage`;
+    lienCadrage.textContent = 'Note de cadrage';
+    actions.appendChild(lienCadrage);
+  }
+
   main.appendChild(actions);
 
   app.appendChild(main);

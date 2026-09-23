@@ -39,6 +39,18 @@ export async function chargerGlossaire(questionnaireId) {
   return data;
 }
 
+// docs/04_MODELE_NOTE_DE_CADRAGE.md n'est pas publié sur GitHub Pages : le
+// gabarit est stocké dans questionnaires.gabarit_cadrage_md (migration 0009).
+export async function chargerGabaritCadrage(questionnaireId) {
+  const { data, error } = await supabase
+    .from('questionnaires')
+    .select('gabarit_cadrage_md')
+    .eq('id', questionnaireId)
+    .single();
+  if (error) throw error;
+  return data.gabarit_cadrage_md;
+}
+
 export async function obtenirVersionPublieeCourante() {
   const { data, error } = await supabase
     .from('questionnaires')

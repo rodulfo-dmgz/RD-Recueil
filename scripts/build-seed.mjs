@@ -25,13 +25,13 @@ function sqlTextArray(values) {
   return `ARRAY[${values.map(sqlString).join(', ')}]::text[]`;
 }
 
-export function buildSeed({ questionnaire, glossaire, version, sourceHash }) {
+export function buildSeed({ questionnaire, glossaire, version, sourceHash, gabaritCadrageMd }) {
   const lines = [];
   lines.push(`-- Généré par scripts/build-seed.mjs -- ne pas modifier à la main.`);
   lines.push('');
 
-  lines.push(`insert into questionnaires (id, statut, source_hash, publie_le) values`);
-  lines.push(`  (${sqlString(version)}, 'publie', ${sqlString(sourceHash)}, now());`);
+  lines.push(`insert into questionnaires (id, statut, source_hash, gabarit_cadrage_md, publie_le) values`);
+  lines.push(`  (${sqlString(version)}, 'publie', ${sqlString(sourceHash)}, ${sqlString(gabaritCadrageMd)}, now());`);
   lines.push('');
 
   lines.push(`insert into sections (questionnaire_id, id, partie, titre, ordre, condition, visible_client) values`);
@@ -90,9 +90,10 @@ async function main() {
 
   const questionnaire = JSON.parse(await readFile(join(ROOT, 'data', 'questionnaire.json'), 'utf8'));
   const glossaire = JSON.parse(await readFile(join(ROOT, 'data', 'glossaire.json'), 'utf8'));
+  const gabaritCadrageMd = await readFile(join(ROOT, 'docs', '04_MODELE_NOTE_DE_CADRAGE.md'), 'utf8');
   const sourceHash = await computeSourceHash();
 
-  const sql = buildSeed({ questionnaire, glossaire, version, sourceHash });
+  const sql = buildSeed({ questionnaire, glossaire, version, sourceHash, gabaritCadrageMd });
 
   const outPath = join(ROOT, 'supabase', 'seed', `seed_${version}.sql`);
   await writeFile(outPath, sql, 'utf8');

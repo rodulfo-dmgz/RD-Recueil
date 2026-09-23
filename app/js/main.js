@@ -7,11 +7,13 @@ import { vueAccueilDemande } from './views/client/accueil.js';
 import { vueSection } from './views/client/section.js';
 import { vueRecap } from './views/client/recap.js';
 import { vueGlossaire } from './views/client/glossaire.js';
+import { vueCadrageClient } from './views/client/cadrage.js';
 import { vueTableauDeBord } from './views/consultant/tableau-de-bord.js';
 import { vueListeDemandes } from './views/consultant/liste.js';
 import { vueCreationDemande } from './views/consultant/creation.js';
 import { vueVue360 } from './views/consultant/vue-360.js';
 import { vueEntretien } from './views/consultant/entretien.js';
+import { vueEditeurNote } from './views/consultant/editeur-note.js';
 
 async function garantirProfil() {
   if (getProfil()) return getProfil();
@@ -76,6 +78,15 @@ route('/d/:ref/recap', async ({ ref }) => {
   vueRecap(ref);
 });
 
+route('/d/:ref/cadrage', async ({ ref }) => {
+  const profil = await garantirProfil();
+  if (!profil) {
+    navigate('/connexion');
+    return;
+  }
+  vueCadrageClient(ref);
+});
+
 route('/glossaire', async () => {
   const profil = await garantirProfil();
   if (!profil) {
@@ -98,6 +109,11 @@ route('/demandes/nouvelle', async () => {
 route('/demandes/:ref/entretien', async ({ ref }) => {
   if (!(await garantirStaff())) return;
   vueEntretien(ref);
+});
+
+route('/demandes/:ref/cadrage', async ({ ref }) => {
+  if (!(await garantirStaff())) return;
+  vueEditeurNote(ref);
 });
 
 route('/demandes/:ref', async ({ ref }) => {
