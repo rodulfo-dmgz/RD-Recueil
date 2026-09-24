@@ -8,7 +8,6 @@ Kit de conception d'une application qui transforme une demande client (formation
 
 | Fichier | Contenu |
 |---|---|
-| `CLAUDE.md` | Consignes pour Claude Code : pile, conventions, méthode de travail |
 | `docs/01_ARCHITECTURE.md` | Vision, rôles, cycle de vie, écrans, pile technique, arborescence, modèle de données SQL, RLS, glossaire à l'exécution, note de cadrage, correspondance Qualiopi, charte, règles métier, lots |
 | `docs/02_MODELE_RECUEIL_BESOINS.md` | Questionnaire complet : tronc commun (14 sections), 5 volets spécifiques, espace consultant |
 | `docs/03_GLOSSAIRE.md` | 134 termes techniques avec identifiant, catégorie, définition et exemple |
@@ -32,17 +31,6 @@ Un client ne voit que le tronc commun et les volets correspondant aux prestation
 - **Par** : `C` client, `F` formateur ou consultant, `C/F` les deux.
 - **Condition** : règle d'affichage (grammaire en section 6.3 de l'architecture).
 
-## Démarrer avec Claude Code
-
-```bash
-git init rd-recueil && cd rd-recueil
-# copier CLAUDE.md, README.md et docs/ à la racine
-claude
-```
-
-Premier message conseillé :
-
-> Lis CLAUDE.md et les quatre fichiers de docs/. Propose-moi le plan détaillé du Lot 0 (scripts de parsing, contrôle de cohérence, seed SQL) sans écrire de code, puis attends ma validation.
 
 ## Utilisation sans application
 
