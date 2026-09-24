@@ -134,6 +134,15 @@ function rendre(reference) {
     actions.appendChild(lienCadrage);
   }
 
+  const STATUTS_AVEC_PROPOSITION = new Set(['proposition_envoyee', 'gagnee', 'perdue']);
+  if (STATUTS_AVEC_PROPOSITION.has(etat.demande.statut)) {
+    const lienProposition = document.createElement('a');
+    lienProposition.className = 'btn btn--secondaire';
+    lienProposition.href = `#/d/${reference}/proposition`;
+    lienProposition.textContent = 'Proposition';
+    actions.appendChild(lienProposition);
+  }
+
   main.appendChild(actions);
 
   app.appendChild(main);

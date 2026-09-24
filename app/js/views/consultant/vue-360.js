@@ -18,11 +18,6 @@ const TRANSITIONS = {
     { vers: 'en_saisie', libelle: 'Réouvrir la saisie' },
   ],
   en_analyse: [{ vers: 'reorientee', libelle: 'Passer en réorientée' }],
-  cadrage_valide: [{ vers: 'proposition_envoyee', libelle: 'Marquer la proposition envoyée' }],
-  proposition_envoyee: [
-    { vers: 'gagnee', libelle: 'Marquer gagnée' },
-    { vers: 'perdue', libelle: 'Marquer perdue' },
-  ],
 };
 const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
 const STATUTS_AVEC_CADRAGE = new Set([
@@ -32,6 +27,10 @@ const STATUTS_AVEC_CADRAGE = new Set([
   'cadrage_valide',
   'proposition_envoyee',
 ]);
+// proposition_envoyee/gagnee/perdue résultent désormais de la décision du
+// client sur une vraie proposition (devis + justification), jamais d'un
+// simple clic consultant - cf. editeur-proposition.js.
+const STATUTS_AVEC_PROPOSITION = new Set(['cadrage_valide', 'proposition_envoyee', 'gagnee', 'perdue']);
 
 export async function vueVue360(reference) {
   const app = document.getElementById('app');
@@ -126,6 +125,14 @@ function rendreActions(demande) {
     lienNote.href = `#/demandes/${demande.reference}/cadrage`;
     lienNote.textContent = 'Note de cadrage';
     actions.appendChild(lienNote);
+  }
+
+  if (STATUTS_AVEC_PROPOSITION.has(demande.statut)) {
+    const lienProposition = document.createElement('a');
+    lienProposition.className = 'btn btn--primaire';
+    lienProposition.href = `#/demandes/${demande.reference}/proposition`;
+    lienProposition.textContent = 'Proposition';
+    actions.appendChild(lienProposition);
   }
 
   const lienPreuves = document.createElement('a');

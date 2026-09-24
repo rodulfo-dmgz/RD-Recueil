@@ -10,12 +10,14 @@ import { vueSection } from './views/client/section.js';
 import { vueRecap } from './views/client/recap.js';
 import { vueGlossaire } from './views/client/glossaire.js';
 import { vueCadrageClient } from './views/client/cadrage.js';
+import { vuePropositionClient } from './views/client/proposition.js';
 import { vueTableauDeBord } from './views/consultant/tableau-de-bord.js';
 import { vueListeDemandes } from './views/consultant/liste.js';
 import { vueCreationDemande } from './views/consultant/creation.js';
 import { vueVue360 } from './views/consultant/vue-360.js';
 import { vueEntretien } from './views/consultant/entretien.js';
 import { vueEditeurNote } from './views/consultant/editeur-note.js';
+import { vueEditeurProposition } from './views/consultant/editeur-proposition.js';
 import { vuePreuves } from './views/consultant/preuves.js';
 import { vueCreationCompte } from './views/consultant/creation-compte.js';
 
@@ -101,6 +103,11 @@ route('/d/:ref/cadrage', async ({ ref }) => {
   vueCadrageClient(ref);
 });
 
+route('/d/:ref/proposition', async ({ ref }) => {
+  if (!(await garantirProfilActif())) return;
+  vuePropositionClient(ref);
+});
+
 route('/glossaire', async () => {
   if (!(await garantirProfilActif())) return;
   vueGlossaire();
@@ -124,6 +131,11 @@ route('/demandes/:ref/entretien', async ({ ref }) => {
 route('/demandes/:ref/cadrage', async ({ ref }) => {
   if (!(await garantirStaff())) return;
   vueEditeurNote(ref);
+});
+
+route('/demandes/:ref/proposition', async ({ ref }) => {
+  if (!(await garantirStaff())) return;
+  vueEditeurProposition(ref);
 });
 
 route('/demandes/:ref/preuves', async ({ ref }) => {

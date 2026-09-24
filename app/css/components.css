@@ -715,6 +715,9 @@
 
 .relance-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
+/* Proposition commerciale (devis) */
+.devis-total { margin-top: 8px; font-weight: 600; text-align: right; }
+
 @media (max-width: 768px) {
   .editeur-note__grille { grid-template-columns: 1fr; }
 }
