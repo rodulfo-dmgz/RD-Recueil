@@ -241,7 +241,7 @@ Les questions et le glossaire sont **rédigés dans les fichiers Markdown**, pui
   "rempli_par": "C/F",
   "condition": "TC-8.11 = oui",
   "glossaire": ["scorm", "xapi"],
-  "nsp_autorise": true
+  "nsp_autorise": false
 }
 ```
 
@@ -270,7 +270,8 @@ Les questions et le glossaire sont **rédigés dans les fichiers Markdown**, pui
 
 **Réponse « Je ne sais pas / à définir ensemble »**
 Stockée dans la colonne `nsp = true` (la valeur peut rester vide). Elle compte comme **renseignée** pour la soumission et alimente la liste des points d'entretien.
-Non proposée pour : `oui_non`, `siret`, `adresse`, `contact`, `url`, `fichier`, et les questions `TC-0.02`, `TC-1.01`, `TC-1.05`.
+Non proposée pour : `oui_non`, `siret`, `adresse`, `contact`, `url`, `fichier`.
+Non proposée non plus pour les questions dont les options offrent déjà un choix « Je ne sais pas » équivalent (redondant avec la case) : `TC-0.01`, `TC-0.02`, `TC-1.01`, `TC-1.05`, `TC-1.10`, `TC-4.05`, `TC-5.13`, `TC-8.12`, `TC-10.01`, `TC-11.04`, `FOR.05`, `CER.04`, `CER.05`.
 
 ### 6.3 Grammaire des conditions
 

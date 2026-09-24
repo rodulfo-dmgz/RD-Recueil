@@ -200,7 +200,7 @@
       "glossaire": [
         "prestation"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "TC-0.02",
@@ -580,7 +580,7 @@
       "glossaire": [
         "opco"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "TC-1.11",
@@ -986,7 +986,7 @@
       "glossaire": [
         "besoin-formation"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "TC-4.06",
@@ -1402,7 +1402,7 @@
       "glossaire": [
         "compensation-handicap"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "TC-5.14",
@@ -1973,7 +1973,7 @@
         "scorm",
         "xapi"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "TC-8.13",
@@ -2216,7 +2216,7 @@
       "rempli_par": "C",
       "condition": "-",
       "glossaire": [],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "TC-10.02",
@@ -2391,7 +2391,7 @@
       "glossaire": [
         "rgpd"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "TC-11.05",
@@ -2868,7 +2868,7 @@
       "glossaire": [
         "pmr"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "FOR.06",
@@ -4055,7 +4055,7 @@
       "glossaire": [
         "habilitation"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "CER.05",
@@ -4083,7 +4083,7 @@
       "glossaire": [
         "bloc-competences"
       ],
-      "nsp_autorise": true
+      "nsp_autorise": false
     },
     {
       "id": "CER.06",

@@ -44,7 +44,9 @@ test('parse-questionnaire : exemple TC-8.12 conforme à 01_ARCHITECTURE.md secti
   assert.equal(q.rempli_par, 'C/F');
   assert.equal(q.condition, 'TC-8.11 = oui');
   assert.deepEqual(q.glossaire, ['scorm', 'xapi']);
-  assert.equal(q.nsp_autorise, true);
+  // TC-8.12 propose déjà "Je ne sais pas" comme option : la case NSP
+  // universelle serait redondante (01_ARCHITECTURE.md section 6.2).
+  assert.equal(q.nsp_autorise, false);
   assert.deepEqual(q.options[0], { valeur: 'scorm-1-2', libelle: 'SCORM\\* 1.2' });
 });
 

@@ -10,7 +10,25 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
 const NSP_EXCLUDED_TYPES = new Set(['oui_non', 'siret', 'adresse', 'contact', 'url', 'fichier']);
-const NSP_EXCLUDED_IDS = new Set(['TC-0.02', 'TC-1.01', 'TC-1.05']);
+// Questions dont les options proposent déjà un choix "Je ne sais pas" (ou
+// équivalent) : la case universelle serait une deuxième façon de dire la
+// même chose, redondante et source de confusion (signalé sur TC-5.13, même
+// motif partout ailleurs dans cette liste).
+const NSP_EXCLUDED_IDS = new Set([
+  'TC-0.01',
+  'TC-0.02',
+  'TC-1.01',
+  'TC-1.05',
+  'TC-1.10',
+  'TC-4.05',
+  'TC-5.13',
+  'TC-8.12',
+  'TC-10.01',
+  'TC-11.04',
+  'FOR.05',
+  'CER.04',
+  'CER.05',
+]);
 
 const QUESTION_ID_RE = /^[A-Z]+(-\d+)?\.\d+$/;
 const PARTIE_RE = /^# PARTIE (\d+) · (.+)$/;
