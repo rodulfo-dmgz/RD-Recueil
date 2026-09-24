@@ -125,6 +125,15 @@ function rendre(reference) {
 
   actions.append(boutonReprendre, lienRecap);
 
+  const STATUTS_AVEC_CRENEAUX = new Set(['soumise', 'entretien_planifie']);
+  if (STATUTS_AVEC_CRENEAUX.has(etat.demande.statut)) {
+    const lienCreneaux = document.createElement('a');
+    lienCreneaux.className = 'btn btn--secondaire';
+    lienCreneaux.href = `#/d/${reference}/creneaux`;
+    lienCreneaux.textContent = "Rendez-vous d'entretien";
+    actions.appendChild(lienCreneaux);
+  }
+
   const STATUTS_AVEC_CADRAGE = new Set(['cadrage_envoye', 'cadrage_a_revoir', 'cadrage_valide', 'proposition_envoyee']);
   if (STATUTS_AVEC_CADRAGE.has(etat.demande.statut)) {
     const lienCadrage = document.createElement('a');

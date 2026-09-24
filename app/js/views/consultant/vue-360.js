@@ -13,10 +13,7 @@ import { rendreReponsesParSection, rendreJournal } from '../../components/lectur
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 
 const TRANSITIONS = {
-  soumise: [
-    { vers: 'entretien_planifie', libelle: 'Planifier l’entretien' },
-    { vers: 'en_saisie', libelle: 'Réouvrir la saisie' },
-  ],
+  soumise: [{ vers: 'en_saisie', libelle: 'Réouvrir la saisie' }],
   en_analyse: [{ vers: 'reorientee', libelle: 'Passer en réorientée' }],
 };
 const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
@@ -31,6 +28,9 @@ const STATUTS_AVEC_CADRAGE = new Set([
 // client sur une vraie proposition (devis + justification), jamais d'un
 // simple clic consultant - cf. editeur-proposition.js.
 const STATUTS_AVEC_PROPOSITION = new Set(['cadrage_valide', 'proposition_envoyee', 'gagnee', 'perdue']);
+// entretien_planifie résulte désormais du choix d'un créneau par le client
+// (cf. creneaux.js), plus d'un simple clic consultant.
+const STATUTS_AVEC_CRENEAUX = new Set(['soumise', 'entretien_planifie']);
 
 export async function vueVue360(reference) {
   const app = document.getElementById('app');
@@ -109,6 +109,14 @@ function rendreActions(demande) {
     bouton.textContent = t.libelle;
     bouton.addEventListener('click', () => transitionner(demande, t.vers));
     actions.appendChild(bouton);
+  }
+
+  if (STATUTS_AVEC_CRENEAUX.has(demande.statut)) {
+    const lienCreneaux = document.createElement('a');
+    lienCreneaux.className = 'btn btn--primaire';
+    lienCreneaux.href = `#/demandes/${demande.reference}/creneaux`;
+    lienCreneaux.textContent = 'Planifier l’entretien';
+    actions.appendChild(lienCreneaux);
   }
 
   if (demande.statut === 'soumise' || demande.statut === 'entretien_planifie') {
