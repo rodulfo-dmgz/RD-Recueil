@@ -101,7 +101,10 @@ function construireResultat(resultat) {
 // Champ libre (titre, code RNCP ou RS) - seul un code RNCP au format
 // "RNCP12345" peut être vérifié auprès de France Compétences (l'API ne
 // couvre pas le Répertoire Spécifique). Pour tout autre contenu, le champ se
-// comporte comme un texte simple.
+// comporte comme un texte simple. La vérification n'est jamais persistée :
+// elle est donc relancée à chaque affichage du champ (retour sur la section,
+// rechargement) pour que le résultat reste visible plutôt que de disparaître
+// dès que le composant est reconstruit.
 export function render(question, valeur, { onChange, lectureSeule }) {
   const conteneur = document.createElement('div');
   conteneur.className = 'champ-code-rncp';
@@ -114,10 +117,6 @@ export function render(question, valeur, { onChange, lectureSeule }) {
   input.disabled = Boolean(lectureSeule);
   conteneur.appendChild(input);
 
-  if (lectureSeule) {
-    return conteneur;
-  }
-
   const statut = document.createElement('p');
   statut.className = 'texte-doux champ-code-rncp__statut';
   statut.hidden = true;
@@ -125,15 +124,7 @@ export function render(question, valeur, { onChange, lectureSeule }) {
 
   let dernierCodeVerifie = null;
 
-  input.addEventListener('input', () => {
-    onChange(input.value);
-    statut.hidden = true;
-    const resultatPrecedent = conteneur.querySelector('.champ-code-rncp__resultat');
-    resultatPrecedent?.remove();
-  });
-
-  input.addEventListener('blur', async () => {
-    const code = input.value.trim();
+  async function lancerVerification(code) {
     if (!estCodeRncp(code) || code === dernierCodeVerifie) return;
     dernierCodeVerifie = code;
     statut.hidden = false;
@@ -146,7 +137,24 @@ export function render(question, valeur, { onChange, lectureSeule }) {
     } catch {
       statut.hidden = true;
     }
+  }
+
+  if (estCodeRncp(valeur)) {
+    lancerVerification(valeur.trim());
+  }
+
+  if (lectureSeule) {
+    return conteneur;
+  }
+
+  input.addEventListener('input', () => {
+    onChange(input.value);
+    dernierCodeVerifie = null;
+    statut.hidden = true;
+    conteneur.querySelector('.champ-code-rncp__resultat')?.remove();
   });
+
+  input.addEventListener('blur', () => lancerVerification(input.value.trim()));
 
   return conteneur;
 }
