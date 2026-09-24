@@ -47,11 +47,27 @@ function rendre(demande, creneaux) {
 
   const confirme = creneaux.find((c) => c.choisi);
 
-  const p = document.createElement('p');
-  p.textContent = confirme
-    ? `Rendez-vous confirmé par le client : ${formaterCreneau(confirme)}.`
-    : `En attente que le client réserve un créneau sur cal.com/${LIEN_CALCOM}.`;
-  main.appendChild(p);
+  const bloc = document.createElement('div');
+  bloc.className = 'carte confirmation-creneau' + (confirme ? '' : ' confirmation-creneau--attente');
+
+  const icone = document.createElement('span');
+  icone.className = 'confirmation-creneau__icone';
+  icone.innerHTML = `<i data-lucide="${confirme ? 'calendar-check' : 'calendar-clock'}"></i>`;
+  bloc.appendChild(icone);
+
+  const titreBloc = document.createElement('p');
+  titreBloc.className = 'confirmation-creneau__titre';
+  titreBloc.textContent = confirme ? 'Rendez-vous confirmé par le client' : 'En attente de réservation';
+  bloc.appendChild(titreBloc);
+
+  const detail = document.createElement('p');
+  detail.className = confirme ? 'confirmation-creneau__date' : 'texte-doux';
+  detail.textContent = confirme
+    ? formaterCreneau(confirme)
+    : `Déjà ajouté à votre agenda dès que le client réserve sur cal.com/${LIEN_CALCOM}.`;
+  bloc.appendChild(detail);
+
+  main.appendChild(bloc);
 
   app.appendChild(main);
   if (window.lucide) window.lucide.createIcons();

@@ -5,6 +5,7 @@ import { listerCreneaux, confirmerReservationCalcom } from '../../services/crene
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
+import { genererLienGoogleCalendar, genererIcs } from '../../engine/calendrier.js';
 
 const LIEN_CALCOM = 'rdformation/30min';
 const NAMESPACE_CALCOM = 'entretien-cadrage';
@@ -14,6 +15,66 @@ function formaterCreneau(creneau) {
   const debut = new Date(creneau.debut).toLocaleString('fr-FR', options);
   const fin = new Date(creneau.fin).toLocaleTimeString('fr-FR', { timeStyle: 'short' });
   return `${debut} – ${fin}`;
+}
+
+function telechargerIcs(contenu, nomFichier) {
+  const blob = new Blob([contenu], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement('a');
+  lien.href = url;
+  lien.download = nomFichier;
+  lien.click();
+  URL.revokeObjectURL(url);
+}
+
+function rendreConfirmation(demande, creneau) {
+  const bloc = document.createElement('div');
+  bloc.className = 'carte confirmation-creneau';
+
+  const icone = document.createElement('span');
+  icone.className = 'confirmation-creneau__icone';
+  icone.innerHTML = '<i data-lucide="calendar-check"></i>';
+  bloc.appendChild(icone);
+
+  const titre = document.createElement('p');
+  titre.className = 'confirmation-creneau__titre';
+  titre.textContent = 'Entretien confirmé';
+  bloc.appendChild(titre);
+
+  const date = document.createElement('p');
+  date.className = 'confirmation-creneau__date';
+  date.textContent = formaterCreneau(creneau);
+  bloc.appendChild(date);
+
+  const evenement = {
+    titre: `Entretien de cadrage - ${demande.reference} (RD Formation)`,
+    debut: new Date(creneau.debut),
+    fin: new Date(creneau.fin),
+    details: `Entretien de cadrage pour la demande ${demande.reference} avec RD Formation.`,
+  };
+
+  const actions = document.createElement('div');
+  actions.className = 'confirmation-creneau__actions';
+
+  const lienGoogle = document.createElement('a');
+  lienGoogle.className = 'btn btn--secondaire';
+  lienGoogle.href = genererLienGoogleCalendar(evenement);
+  lienGoogle.target = '_blank';
+  lienGoogle.rel = 'noopener noreferrer';
+  lienGoogle.textContent = 'Ajouter à Google Calendar';
+
+  const boutonIcs = document.createElement('button');
+  boutonIcs.type = 'button';
+  boutonIcs.className = 'btn btn--secondaire';
+  boutonIcs.textContent = 'Télécharger (Outlook, Apple Calendar…)';
+  boutonIcs.addEventListener('click', () => {
+    telechargerIcs(genererIcs({ ...evenement, uid: `${demande.id}@rd-recueil` }), 'entretien-rd-formation.ics');
+  });
+
+  actions.append(lienGoogle, boutonIcs);
+  bloc.appendChild(actions);
+
+  return bloc;
 }
 
 // Chargeur officiel Cal.com (embed-snippet) - idempotent, sûr à rappeler.
@@ -85,10 +146,9 @@ function rendre(demande, creneaux) {
   const confirme = creneaux.find((c) => c.choisi);
 
   if (confirme) {
-    const p = document.createElement('p');
-    p.textContent = `Entretien confirmé : ${formaterCreneau(confirme)}.`;
-    main.appendChild(p);
+    main.appendChild(rendreConfirmation(demande, confirme));
     app.appendChild(main);
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 

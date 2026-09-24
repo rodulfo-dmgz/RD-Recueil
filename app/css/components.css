@@ -721,6 +721,25 @@
 /* Widget de réservation Cal.com (entretien) */
 .calcom-widget { width: 100%; min-height: 650px; }
 
+/* Confirmation de rendez-vous d'entretien */
+.confirmation-creneau { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 32px 24px; }
+.confirmation-creneau__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--rd-turquoise);
+  color: #fff;
+  margin-bottom: 8px;
+}
+.confirmation-creneau__icone svg { width: 28px; height: 28px; }
+.confirmation-creneau--attente .confirmation-creneau__icone { background: var(--fond); color: var(--texte-doux); }
+.confirmation-creneau__titre { font-family: var(--police-titre); font-size: 18px; font-weight: 600; margin: 0; }
+.confirmation-creneau__date { font-size: 15px; color: var(--texte-doux); margin: 0; }
+.confirmation-creneau__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+
 /* Outil de pré-remplissage tarifaire (proposition) */
 .outil-tarif summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
 .outil-tarif label { display: block; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
