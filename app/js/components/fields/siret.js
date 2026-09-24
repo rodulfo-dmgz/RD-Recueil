@@ -55,7 +55,13 @@ export function render(question, valeur, { onChange, lectureSeule, onAutoRemplir
     input.setAttribute('aria-expanded', 'false');
   }
 
+  let dernierSiretTraite = null;
+
   async function declencherAutoRemplir(siret, donneesPreChargees) {
+    // Évite un second remplissage (donc un second toast) si le champ perd le
+    // focus après une sélection dans la liste, sur la même valeur déjà traitée.
+    if (siret === dernierSiretTraite) return;
+    dernierSiretTraite = siret;
     statut.hidden = false;
     statut.textContent = 'Recherche de l\'établissement…';
     try {
@@ -124,6 +130,7 @@ export function render(question, valeur, { onChange, lectureSeule, onAutoRemplir
   input.addEventListener('input', () => {
     input.value = input.value.replace(/\D/g, '').slice(0, 14);
     onChange(input.value);
+    dernierSiretTraite = null; // toute frappe autorise à nouveau le remplissage automatique
     clearTimeout(minuterie);
     const valeurActuelle = input.value;
 

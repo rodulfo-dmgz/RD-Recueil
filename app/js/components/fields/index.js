@@ -15,6 +15,7 @@ import * as adresse from './adresse.js';
 import * as siret from './siret.js';
 import * as url from './url.js';
 import * as fichier from './fichier.js';
+import * as code_rncp from './code_rncp.js';
 
 export const modulesParType = {
   texte,
@@ -34,4 +35,5 @@ export const modulesParType = {
   siret,
   url,
   fichier,
+  code_rncp,
 };

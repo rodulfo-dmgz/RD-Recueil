@@ -20,6 +20,7 @@ export function render(question, valeur, { onChange, lectureSeule, televerser })
       if (!lectureSeule) {
         const retirer = document.createElement('button');
         retirer.type = 'button';
+        retirer.className = 'btn btn--secondaire';
         retirer.textContent = 'Retirer';
         retirer.addEventListener('click', () => {
           chemins.splice(index, 1);

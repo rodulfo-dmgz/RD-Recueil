@@ -13,14 +13,23 @@ function genererMotDePasseTemporaire(): string {
   return btoa(String.fromCharCode(...octets)).replace(/[+/=]/g, "").slice(0, 16);
 }
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 function reponseJson(corps: unknown, statut = 200) {
   return new Response(JSON.stringify(corps), {
     status: statut,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...corsHeaders },
   });
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
   if (req.method !== "POST") {
     return reponseJson({ erreur: "Méthode non autorisée." }, 405);
   }

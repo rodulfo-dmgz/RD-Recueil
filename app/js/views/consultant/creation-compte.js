@@ -59,6 +59,12 @@ export async function vueCreationCompte() {
   const selectDemande = document.createElement('select');
   selectDemande.className = 'champ-saisie';
   selectDemande.innerHTML = '<option value="">Chargement…</option>';
+  selectDemande.addEventListener('keydown', (evt) => {
+    if (evt.key === 'Delete' || evt.key === 'Backspace') {
+      evt.preventDefault();
+      selectDemande.value = '';
+    }
+  });
   champDemande.appendChild(selectDemande);
 
   const champDroit = document.createElement('label');
@@ -128,9 +134,9 @@ export async function vueCreationCompte() {
   try {
     const demandes = await listerDemandes();
     selectDemande.innerHTML =
-      '<option value="">— Choisir —</option>' +
+      '<option value="" disabled hidden selected>Sélectionner</option>' +
       demandes
-        .map((d) => `<option value="${d.id}">${d.reference} — ${d.clients?.raison_sociale || 'Client inconnu'}</option>`)
+        .map((d) => `<option value="${d.id}">${d.reference}, ${d.clients?.raison_sociale || 'Client inconnu'}</option>`)
         .join('');
   } catch (err) {
     selectDemande.innerHTML = '<option value="">Impossible de charger les demandes</option>';

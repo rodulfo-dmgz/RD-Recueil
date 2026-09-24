@@ -266,6 +266,7 @@ Les questions et le glossaire sont **rédigés dans les fichiers Markdown**, pui
 | `siret` | input masqué | `"12345678900012"` | 14 chiffres + clé de Luhn |
 | `url` | input URL | `"https://…"` | URL valide |
 | `fichier` | dépôt multiple | `["demandes/RDF-2026-0001/TC-4.09/fiche.pdf"]` | 20 Mo max par fichier ; PDF, DOCX, XLSX, PPTX, PNG, JPG |
+| `code_rncp` | input texte + vérification officielle (RNCP/CFD) | `"RNCP12345"` | libre ; si le code correspond au format RNCP/CFD, l'intitulé officiel est vérifié via l'API France Compétences (Edge Function `rncp-lookup`) |
 
 **Réponse « Je ne sais pas / à définir ensemble »**
 Stockée dans la colonne `nsp = true` (la valeur peut rester vide). Elle compte comme **renseignée** pour la soumission et alimente la liste des points d'entretien.
@@ -632,7 +633,7 @@ Export « Dossier de preuves » (V2) : un PDF par demande regroupant réponses, 
 |---|---|---|
 | **0 · Référentiel** | Scripts de parsing, `check-coherence`, JSON, seed SQL | 187 questions et 134 termes parsés ; zéro erreur de cohérence ; tests `parse` verts |
 | **1 · Socle** | Migrations, RLS, Auth (e-mail + mot de passe), routeur, charte, layout | Un client ne peut lire aucune demande hors `demande_acces` (test manuel avec deux comptes) |
-| **2 · Moteur de formulaire** | 17 types de champs, conditions, validation, NSP, progression, autosave | Tests `conditions` et `validation` verts ; saisie complète d'une demande multi-volets sur mobile |
+| **2 · Moteur de formulaire** | 18 types de champs, conditions, validation, NSP, progression, autosave | Tests `conditions` et `validation` verts ; saisie complète d'une demande multi-volets sur mobile |
 | **3 · Espace consultant** | Tableau de bord, liste, création, invitation, vue 360, mode entretien, statuts | Parcours `brouillon` → `en_analyse` complet, journal alimenté |
 | **4 · Note de cadrage** | Moteur de gabarit, éditeur, envoi, validation client, versions, PDF | Note générée sans variable brute restante ; PDF A4 conforme |
 | **5 · Pilotage** | Relances, alertes, exports CSV, dossier de preuves Qualiopi | Export conforme pour une demande test |

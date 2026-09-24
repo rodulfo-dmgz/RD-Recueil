@@ -145,7 +145,7 @@
 | TC-7.01 | Thèmes attendus | texte_long | - | O | C | - | - |
 | TC-7.02 | Thèmes à exclure ou déjà maîtrisés | texte_long | - | N | C | - | - |
 | TC-7.03 | Référentiels à respecter | choix_multiple | RNCP\* ; Répertoire spécifique (RS\*) ; REAC\* ; Norme ou réglementation ; Procédures internes ; Aucun | O | C/F | - | rncp ; rs ; reac |
-| TC-7.04 | Code ou référence précise du référentiel | texte | - | N | C/F | TC-7.03 contient RNCP OU TC-7.03 contient Répertoire spécifique (RS) OU TC-7.03 contient REAC | rncp ; rs |
+| TC-7.04 | Code ou référence précise du référentiel | code_rncp | - | N | C/F | TC-7.03 contient RNCP OU TC-7.03 contient Répertoire spécifique (RS) OU TC-7.03 contient REAC | rncp ; rs |
 | TC-7.05 | Outils ou logiciels métier à intégrer (nom et version) | texte_long | - | N | C | - | - |
 | TC-7.06 | Pouvez-vous fournir des documents réels (cas, données anonymisées\*) ? | oui_non | - | N | C | - | donnees-anonymisees |
 | TC-7.07 | Joignez ces documents. | fichier | - | N | C | TC-7.06 = oui | - |
@@ -313,7 +313,7 @@
 | ID | Question | Type | Options | Obl. | Par | Condition | Glossaire |
 |---|---|---|---|---|---|---|---|
 | CER.01 | Intitulé de la certification visée | texte | - | O | C | - | - |
-| CER.02 | Code RNCP\* ou RS\* | texte | - | N | C/F | - | rncp ; rs |
+| CER.02 | Code RNCP\* ou RS\* | code_rncp | - | N | C/F | - | rncp ; rs |
 | CER.03 | Certificateur\* | texte | - | N | C/F | - | certificateur |
 | CER.04 | Statut de l'organisme préparant à la certification | choix_unique | Déjà habilité\* ; Habilitation à demander ; Je ne sais pas | O | C/F | - | habilitation |
 | CER.05 | Périmètre visé | choix_unique | Certification complète ; Un ou plusieurs blocs de compétences\* ; Je ne sais pas | O | C | - | bloc-competences |

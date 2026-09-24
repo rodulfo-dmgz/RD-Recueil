@@ -33,13 +33,17 @@ export function rendreChamp(question, reponse, { onChange, lectureSeule, indexGl
   }
   conteneur.appendChild(label);
 
-  if (module) {
-    const entree = module.render(question, valeur, {
-      lectureSeule: Boolean(lectureSeule) || Boolean(nsp),
+  let entree = null;
+  function construireEntree(valeurEntree, nspEffectif) {
+    return module.render(question, valeurEntree, {
+      lectureSeule: Boolean(lectureSeule) || Boolean(nspEffectif),
       onChange: (nouvelleValeur) => onChange({ valeur: nouvelleValeur, nsp: false }),
       televerser,
       onAutoRemplir,
     });
+  }
+  if (module) {
+    entree = construireEntree(valeur, nsp);
     conteneur.appendChild(entree);
   }
 
@@ -50,7 +54,17 @@ export function rendreChamp(question, reponse, { onChange, lectureSeule, indexGl
     nspInput.type = 'checkbox';
     nspInput.checked = Boolean(nsp);
     nspInput.disabled = Boolean(lectureSeule);
-    nspInput.addEventListener('change', () => onChange({ valeur, nsp: nspInput.checked }));
+    nspInput.addEventListener('change', () => {
+      const coche = nspInput.checked;
+      // Cocher "Je ne sais pas" efface la réponse en dessous (au lieu de la
+      // laisser cochée/remplie mais grisée) ; décocher repart d'un champ vide.
+      onChange({ valeur: null, nsp: coche });
+      if (module && entree) {
+        const nouvelleEntree = construireEntree(null, coche);
+        entree.replaceWith(nouvelleEntree);
+        entree = nouvelleEntree;
+      }
+    });
     nspLabel.append(nspInput, ' Je ne sais pas / à définir ensemble');
     conteneur.appendChild(nspLabel);
   }

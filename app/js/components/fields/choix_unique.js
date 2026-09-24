@@ -9,7 +9,10 @@ export function render(question, valeur, { onChange, lectureSeule }) {
 
     const vide = document.createElement('option');
     vide.value = '';
-    vide.textContent = '— Choisir —';
+    vide.textContent = 'Sélectionner';
+    vide.disabled = true;
+    vide.hidden = true;
+    vide.selected = !valeur;
     select.appendChild(vide);
 
     for (const option of options) {
@@ -20,6 +23,15 @@ export function render(question, valeur, { onChange, lectureSeule }) {
       select.appendChild(opt);
     }
     select.addEventListener('change', () => onChange(select.value || null));
+    // Suppr/Retour arrière réinitialise la liste (aucun autre moyen de
+    // revenir à "vide" une fois l'option placeholder cachée du menu).
+    select.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Delete' || evt.key === 'Backspace') {
+        evt.preventDefault();
+        select.value = '';
+        onChange(null);
+      }
+    });
     return select;
   }
 

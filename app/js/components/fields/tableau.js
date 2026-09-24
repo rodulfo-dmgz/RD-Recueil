@@ -28,6 +28,7 @@ export function render(question, valeur, { onChange, lectureSeule }) {
         const td = document.createElement('td');
         const input = document.createElement('input');
         input.type = 'text';
+        input.className = 'champ-saisie';
         input.value = ligne[colonne] ?? '';
         input.disabled = Boolean(lectureSeule);
         input.addEventListener('input', () => {

@@ -14,18 +14,22 @@ const LIBELLE_STATUT = {
 };
 
 // Depuis le SIRET saisi sur cette question, quels autres champs de la même
-// demande peuvent être pré-remplis (annuaire public des entreprises) -
-// jamais en écrasant une réponse déjà saisie par le client.
+// demande sont pré-remplis (annuaire public des entreprises) - remplace
+// systématiquement la valeur existante par la donnée officielle.
 const AUTO_REMPLISSAGE_SIRET = {
-  'TC-1.03': { raisonSociale: 'TC-1.01', codeNaf: 'TC-1.04', adresse: 'TC-1.06' },
+  'TC-1.03': {
+    raisonSociale: 'TC-1.01',
+    formeJuridique: 'TC-1.02',
+    codeNaf: 'TC-1.04',
+    secteurActivite: 'TC-1.05',
+    adresse: 'TC-1.06',
+    effectif: 'TC-1.08',
+    conventionCollective: 'TC-1.09',
+    estOrganismeFormation: 'TC-1.12',
+    nda: 'TC-1.13',
+    estQualiopi: 'TC-1.14',
+  },
 };
-
-function estVide(valeur) {
-  if (valeur == null || valeur === '') return true;
-  if (Array.isArray(valeur)) return valeur.length === 0;
-  if (typeof valeur === 'object') return Object.keys(valeur).length === 0;
-  return false;
-}
 
 function questionsVisiblesDeLaSection(etat, sectionId) {
   return etat.questionnaire.questions
@@ -98,20 +102,17 @@ export function vueSection(reference, sectionId) {
                 return;
               }
               const cibles = AUTO_REMPLISSAGE_SIRET[question.id];
-              const valeursTrouvees = { raisonSociale: donnees.raisonSociale, codeNaf: donnees.codeNaf, adresse: donnees.adresse };
               let nbRemplis = 0;
               for (const [cle, idCible] of Object.entries(cibles)) {
-                const valeurTrouvee = valeursTrouvees[cle];
-                if (!valeurTrouvee) continue;
-                const reponseExistante = etat.reponses.get(idCible);
-                if (reponseExistante && !estVide(reponseExistante.valeur)) continue;
+                const valeurTrouvee = donnees[cle];
+                if (valeurTrouvee == null || valeurTrouvee === '') continue;
                 mettreAJourReponse(idCible, { valeur: valeurTrouvee, nsp: false });
                 nbRemplis++;
               }
               const message =
                 nbRemplis > 0
                   ? `${donnees.raisonSociale || 'Établissement trouvé'} - ${nbRemplis} champ(s) pré-rempli(s).`
-                  : `${donnees.raisonSociale || 'Établissement trouvé'} (champs déjà renseignés, non modifiés).`;
+                  : `${donnees.raisonSociale || 'Établissement trouvé'} (aucune donnée exploitable).`;
               statut.textContent = message;
               if (nbRemplis > 0) {
                 afficherToast(message, { type: 'succes' });
