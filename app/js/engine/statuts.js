@@ -19,6 +19,13 @@ export const LIBELLES_STATUT = {
 
 export const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
 
+// Seuls ces statuts autorisent le client à modifier ses réponses (RLS,
+// fonction client_peut_ecrire_reponse - 0002_functions.sql). Une fois la
+// demande soumise, l'écriture est déjà bloquée côté serveur : ces vues
+// reflètent simplement cette règle pour ne pas montrer un formulaire
+// éditable qui échouerait silencieusement à l'enregistrement.
+export const STATUTS_MODIFIABLES_CLIENT = new Set(['envoyee', 'en_saisie']);
+
 // Catégorie visuelle (couleur du badge) par statut.
 const CATEGORIES_STATUT = {
   cadrage_valide: 'succes',

@@ -6,6 +6,7 @@ import { indexerGlossaire } from '../../engine/glossary.js';
 import { initGlossaryTooltip } from '../../components/glossary-tooltip.js';
 import { rendreProgression } from '../../components/progress.js';
 import { afficherToast } from '../../components/toast.js';
+import { STATUTS_MODIFIABLES_CLIENT } from '../../engine/statuts.js';
 
 // Icône Lucide par section (identifiants stables - 02_MODELE_RECUEIL_BESOINS.md).
 const ICONES_SECTION = {
@@ -87,6 +88,12 @@ function rendre(reference) {
     .filter((s) => etat.visibilite.sectionsVisibles.has(s.id) && s.partie !== 3)
     .sort((a, b) => a.ordre - b.ordre);
 
+  // Une fois la demande soumise, l'écriture des réponses est déjà bloquée
+  // côté serveur (RLS, client_peut_ecrire_reponse) : la saisie ne doit plus
+  // être accessible depuis cette page, seuls le récapitulatif et le
+  // rendez-vous d'entretien le restent.
+  const modifiable = STATUTS_MODIFIABLES_CLIENT.has(etat.demande.statut);
+
   // La progression par section est déjà visible, en plus détaillé, sur
   // chaque carte ci-dessous (icône, barre, pourcentage) : les pastilles ne
   // sont pas redemandées ici pour éviter d'afficher deux fois la même
@@ -100,8 +107,8 @@ function rendre(reference) {
     const pourcentage = info ? info.pourcentage : 0;
     const complete = pourcentage === 100;
 
-    const carte = document.createElement('a');
-    carte.href = `#/d/${reference}/s/${section.id}`;
+    const carte = document.createElement(modifiable ? 'a' : 'div');
+    if (modifiable) carte.href = `#/d/${reference}/s/${section.id}`;
     carte.className = 'section-carte' + (complete ? ' section-carte--complete' : '');
 
     carte.innerHTML = `
@@ -121,21 +128,25 @@ function rendre(reference) {
   const actions = document.createElement('div');
   actions.className = 'accueil-demande__actions';
 
-  const premiereIncomplete =
-    sectionsVisibles.find((s) => (etat.progression.parSection.get(s.id)?.pourcentage ?? 100) < 100) ||
-    sectionsVisibles[0];
+  if (modifiable) {
+    const premiereIncomplete =
+      sectionsVisibles.find((s) => (etat.progression.parSection.get(s.id)?.pourcentage ?? 100) < 100) ||
+      sectionsVisibles[0];
 
-  const boutonReprendre = document.createElement('a');
-  boutonReprendre.className = 'btn btn--primaire';
-  boutonReprendre.href = premiereIncomplete ? `#/d/${reference}/s/${premiereIncomplete.id}` : `#/d/${reference}/recap`;
-  boutonReprendre.textContent = 'Reprendre la saisie';
+    const boutonReprendre = document.createElement('a');
+    boutonReprendre.className = 'btn btn--primaire';
+    boutonReprendre.href = premiereIncomplete
+      ? `#/d/${reference}/s/${premiereIncomplete.id}`
+      : `#/d/${reference}/recap`;
+    boutonReprendre.textContent = 'Reprendre la saisie';
+    actions.appendChild(boutonReprendre);
+  }
 
   const lienRecap = document.createElement('a');
-  lienRecap.className = 'btn btn--secondaire';
+  lienRecap.className = modifiable ? 'btn btn--secondaire' : 'btn btn--primaire';
   lienRecap.href = `#/d/${reference}/recap`;
   lienRecap.textContent = 'Voir le récapitulatif';
-
-  actions.append(boutonReprendre, lienRecap);
+  actions.appendChild(lienRecap);
 
   const STATUTS_AVEC_CRENEAUX = new Set(['soumise', 'entretien_planifie']);
   if (STATUTS_AVEC_CRENEAUX.has(etat.demande.statut)) {

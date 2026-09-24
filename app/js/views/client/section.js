@@ -6,6 +6,7 @@ import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 import { chargerEtatDemande } from './accueil.js';
+import { STATUTS_MODIFIABLES_CLIENT } from '../../engine/statuts.js';
 
 const LIBELLE_STATUT = {
   'en-attente': 'Modifications non enregistrées…',
@@ -81,15 +82,23 @@ export async function vueSection(reference, sectionId) {
     titre.textContent = section.titre;
     main.appendChild(titre);
 
-    elementStatut = document.createElement('p');
-    elementStatut.className = 'texte-doux section-questions__statut';
-    elementStatut.textContent = LIBELLE_STATUT[etat.statutEnregistrement] || '';
-    main.appendChild(elementStatut);
+    // Une fois la demande soumise, l'écriture est déjà refusée côté serveur
+    // (RLS) : la section s'affiche alors en lecture seule plutôt que de
+    // montrer un formulaire dont l'enregistrement échouerait silencieusement.
+    const lectureSeule = !STATUTS_MODIFIABLES_CLIENT.has(etat.demande.statut);
+
+    if (!lectureSeule) {
+      elementStatut = document.createElement('p');
+      elementStatut.className = 'texte-doux section-questions__statut';
+      elementStatut.textContent = LIBELLE_STATUT[etat.statutEnregistrement] || '';
+      main.appendChild(elementStatut);
+    }
 
     for (const question of questions) {
       const reponse = etat.reponses.get(question.id) || {};
       const champ = rendreChamp(question, reponse, {
         indexGlossaire: etat.glossaireIndex,
+        lectureSeule,
         onChange: (nouvelleReponse) => mettreAJourReponse(question.id, nouvelleReponse),
         televerser:
           question.type === 'fichier'
