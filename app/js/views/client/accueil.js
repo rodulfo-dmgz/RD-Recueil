@@ -67,6 +67,7 @@ function rendre(reference) {
   main.className = 'conteneur';
 
   const titre = document.createElement('h1');
+  titre.className = 'accueil-demande__titre';
   titre.textContent = `Demande ${etat.demande.reference}`;
   main.appendChild(titre);
 
@@ -74,7 +75,11 @@ function rendre(reference) {
     .filter((s) => etat.visibilite.sectionsVisibles.has(s.id) && s.partie !== 3)
     .sort((a, b) => a.ordre - b.ordre);
 
-  main.appendChild(rendreProgression(etat.progression, sectionsVisibles));
+  // La progression par section est déjà visible, en plus détaillé, sur
+  // chaque carte ci-dessous (icône, barre, pourcentage) : les pastilles ne
+  // sont pas redemandées ici pour éviter d'afficher deux fois la même
+  // information juste avant la grille.
+  main.appendChild(rendreProgression(etat.progression));
 
   const grilleSections = document.createElement('div');
   grilleSections.className = 'section-grille';
@@ -88,10 +93,14 @@ function rendre(reference) {
     carte.className = 'section-carte' + (complete ? ' section-carte--complete' : '');
 
     carte.innerHTML = `
-      <span class="section-carte__icone"><i data-lucide="${ICONES_SECTION[section.id] || 'file-text'}"></i></span>
-      <span class="section-carte__titre">${section.titre}</span>
-      <span class="section-carte__barre"><span style="width:${pourcentage}%"></span></span>
-      <span class="section-carte__pourcentage">${pourcentage}%</span>
+      <div class="section-carte__haut">
+        <span class="section-carte__icone"><i data-lucide="${ICONES_SECTION[section.id] || 'file-text'}"></i></span>
+        <span class="section-carte__titre">${section.titre}</span>
+      </div>
+      <div class="section-carte__bas">
+        <span class="section-carte__barre"><span style="width:${pourcentage}%"></span></span>
+        <span class="section-carte__pourcentage">${pourcentage}%</span>
+      </div>
     `;
     grilleSections.appendChild(carte);
   }

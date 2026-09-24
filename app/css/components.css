@@ -499,6 +499,7 @@
 .champ-fichier__liste li { display: flex; justify-content: space-between; gap: 8px; }
 
 /* Progression - section 6.6 / 12.2 */
+.progression { margin-bottom: 28px; }
 .progression__barre {
   height: 8px;
   border-radius: 4px;
@@ -506,7 +507,7 @@
   overflow: hidden;
 }
 .progression__remplissage { height: 100%; background: var(--rd-turquoise); transition: width .2s ease; }
-.progression__texte { margin: 6px 0 0; font-size: 13px; }
+.progression__texte { margin: 8px 0 0; font-size: 13px; }
 .progression__pastilles { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .progression__pastille {
   padding: 4px 10px;
@@ -536,19 +537,28 @@
 
 /* Accueil de la demande, récapitulatif, glossaire */
 
+.accueil-demande__titre { margin-bottom: 20px; }
+
 .section-grille {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
 }
+/* La grille étire chaque carte à la hauteur de sa ligne (comportement par
+   défaut de CSS Grid). En interne, la carte répartit ce surplus entre le
+   bloc haut (icône + titre) et le bloc bas (barre + pourcentage) via
+   space-between : quelle que soit la longueur du titre d'une carte voisine,
+   la barre reste calée en bas de chaque carte, donc au même niveau sur
+   toute la ligne. */
 .section-carte {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
   text-align: center;
-  gap: 6px;
-  padding: 16px 10px 12px;
+  gap: 14px;
+  padding: 20px 14px 16px;
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
   background: var(--surface);
@@ -557,6 +567,8 @@
   transition: border-color .15s ease, transform .1s ease;
 }
 .section-carte:hover { border-color: var(--rd-bleu); transform: translateY(-2px); }
+.section-carte__haut { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.section-carte__bas { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
 .section-carte__icone {
   display: inline-flex;
   align-items: center;
@@ -577,12 +589,11 @@
   border-radius: 4px;
   background: var(--bordure);
   overflow: hidden;
-  margin-top: 2px;
 }
 .section-carte__barre span { display: block; height: 100%; background: var(--rd-turquoise); }
 .section-carte__pourcentage { font-size: 11px; color: var(--texte-doux); }
 
-.accueil-demande__actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.accueil-demande__actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
 
 .recap-section { margin-bottom: 16px; }
 .recap-section dl { margin: 0; }
