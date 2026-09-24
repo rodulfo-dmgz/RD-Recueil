@@ -1,0 +1,125 @@
+/* Page de connexion - mise en page à deux colonnes (charte + formulaire). */
+
+.login-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--fond);
+}
+
+.login-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 920px;
+  min-height: 520px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(31, 69, 144, .16);
+}
+
+.login-brand-card {
+  background: linear-gradient(135deg, var(--rd-bleu), var(--rd-turquoise));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.login-brand-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255, 87, 10, .18) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, .12) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.login-brand-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.login-brand__logo {
+  width: 150px;
+  height: 150px;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .2));
+  animation: login-logo-flotte 3s ease-in-out infinite;
+}
+@keyframes login-logo-flotte {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-brand__logo { animation: none; }
+}
+.login-brand__nom {
+  font-family: var(--police-titre);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+.login-brand__slogan {
+  font-family: var(--police-texte);
+  font-size: 15px;
+  color: rgba(255, 255, 255, .82);
+  max-width: 280px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.login-form-card {
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--bordure);
+  background: var(--fond);
+  color: var(--texte);
+  cursor: pointer;
+}
+.theme-toggle svg { width: 18px; height: 18px; }
+
+.login-form {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.login-form__titre { font-size: 1.5rem; }
+.login-form__soustitre { color: var(--texte-doux); margin-top: 4px; }
+
+@media (max-width: 768px) {
+  .login-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: auto; }
+  .login-brand-card { padding: 32px; }
+  .login-brand__logo { width: 64px; height: 64px; margin-bottom: 4px; }
+  .login-brand__nom { font-size: 2rem; }
+  .login-brand__slogan { display: none; }
+  .login-form-card { padding: 32px 24px; }
+}

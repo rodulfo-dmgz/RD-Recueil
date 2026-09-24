@@ -18,3 +18,16 @@
   --rayon: 10px;
   --ombre: 0 2px 8px rgba(31, 69, 144, .08);
 }
+
+/* Thème sombre - active via la classe .dark sur <html> (js/theme.js). */
+:root.dark {
+  --fond: #0F172A;
+  --surface: #1A2436;
+  --texte: #E7EAF0;
+  --texte-doux: #9AA5B8;
+  --bordure: #2E3A50;
+  --succes: #35C6BC;
+  --alerte: #FF8A4D;
+  --erreur: #F27171;
+  --ombre: 0 2px 10px rgba(0, 0, 0, .45);
+}
