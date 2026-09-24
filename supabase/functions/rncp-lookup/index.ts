@@ -9,6 +9,15 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const RNCP_RE = /^RNCP\d{3,5}$/;
 const API_BASE = "https://api.apprentissage.beta.gouv.fr/api/certification/v1";
 
+const LIBELLES_VOIES_ACCES: Record<string, string> = {
+  apprentissage: "Apprentissage",
+  experience: "VAE (validation des acquis de l'expérience)",
+  candidature_individuelle: "Candidature individuelle",
+  contrat_professionnalisation: "Contrat de professionnalisation",
+  formation_continue: "Formation continue",
+  formation_statut_eleve: "Formation initiale (statut élève/étudiant)",
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
@@ -20,6 +29,47 @@ function reponseJson(corps: unknown, statut = 200) {
     status: statut,
     headers: { "Content-Type": "application/json", ...corsHeaders },
   });
+}
+
+// deno-lint-ignore no-explicit-any
+function extraireCertification(certification: any, rncp: string) {
+  const voiesAccesBrutes = certification.type?.voie_acces?.rncp || {};
+  const voiesAcces = Object.entries(voiesAccesBrutes)
+    .filter(([, actif]) => actif === true)
+    .map(([cle]) => LIBELLES_VOIES_ACCES[cle] || cle);
+
+  return {
+    trouve: true,
+    rncp: certification.identifiant?.rncp ?? rncp,
+    intitule: certification.intitule?.rncp ?? certification.intitule?.cfd?.long ?? null,
+    actif:
+      !certification.periode_validite?.fin ||
+      new Date(certification.periode_validite.fin) > new Date(),
+    periodeValidite: {
+      debut: certification.periode_validite?.debut ?? null,
+      fin: certification.periode_validite?.fin ?? null,
+    },
+    blocsCompetences: (certification.blocs_competences?.rncp || []).map(
+      // deno-lint-ignore no-explicit-any
+      (bloc: any) => ({ code: bloc.code, intitule: bloc.intitule })
+    ),
+    domaines: {
+      rome: (certification.domaines?.rome?.rncp || []).map(
+        // deno-lint-ignore no-explicit-any
+        (d: any) => ({ code: d.code, intitule: d.intitule })
+      ),
+      nsf: (certification.domaines?.nsf?.rncp || []).map(
+        // deno-lint-ignore no-explicit-any
+        (d: any) => ({ code: d.code, intitule: d.intitule })
+      ),
+    },
+    conventionCollectives: (certification.convention_collectives?.rncp || []).map(
+      // deno-lint-ignore no-explicit-any
+      (c: any) => ({ numero: c.numero, intitule: c.intitule })
+    ),
+    voiesAcces,
+    lienOfficiel: `https://www.francecompetences.fr/recherche/rncp/${(certification.identifiant?.rncp ?? rncp).replace(/^RNCP/i, "")}/`,
+  };
 }
 
 Deno.serve(async (req: Request) => {
@@ -71,12 +121,5 @@ Deno.serve(async (req: Request) => {
     return reponseJson({ trouve: false });
   }
 
-  return reponseJson({
-    trouve: true,
-    rncp: certification.identifiant?.rncp ?? rncp,
-    intitule: certification.intitule?.rncp ?? certification.intitule?.cfd?.long ?? null,
-    actif:
-      !certification.periode_validite?.fin ||
-      new Date(certification.periode_validite.fin) > new Date(),
-  });
+  return reponseJson(extraireCertification(certification, rncp));
 });

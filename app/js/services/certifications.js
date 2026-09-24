@@ -24,5 +24,5 @@ export async function verifierCodeRncp(code) {
   if (!reponse.ok) {
     throw new Error(resultat.erreur || 'Échec de la vérification du code RNCP.');
   }
-  return resultat; // { trouve, rncp?, intitule?, actif? }
+  return resultat; // { trouve, rncp?, intitule?, actif?, periodeValidite?, blocsCompetences?, domaines?, voiesAcces?, lienOfficiel? }
 }

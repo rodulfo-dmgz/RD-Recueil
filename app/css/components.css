@@ -353,6 +353,21 @@
 .champ-saisie--code { font-family: var(--police-code); letter-spacing: .05em; }
 .champ-siret__statut { margin: 6px 0 0; font-size: 13px; }
 .champ-code-rncp__statut { margin: 6px 0 0; font-size: 13px; }
+.champ-code-rncp__resultat {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+}
+.champ-code-rncp__intitule { margin: 0 0 6px; font-weight: 600; }
+.champ-code-rncp__badge { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
+.champ-code-rncp__badge--actif { color: var(--succes); }
+.champ-code-rncp__badge--expire { color: var(--erreur); }
+.champ-code-rncp__section-titre { margin: 10px 0 4px; font-size: 13px; font-weight: 600; }
+.champ-code-rncp__liste { margin: 0; padding-left: 18px; font-size: 13px; }
+.champ-code-rncp__liste li { margin-bottom: 2px; }
+.champ-code-rncp__lien { display: inline-block; margin-top: 10px; font-size: 13px; }
 
 .champ-siret { position: relative; }
 .champ-siret__suggestions {

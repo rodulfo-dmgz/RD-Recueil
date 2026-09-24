@@ -1,5 +1,103 @@
 import { estCodeRncp, verifierCodeRncp } from '../../services/certifications.js';
 
+function formaterDate(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString('fr-FR');
+}
+
+function construireResultat(resultat) {
+  const bloc = document.createElement('div');
+  bloc.className = 'champ-code-rncp__resultat';
+
+  if (!resultat.trouve) {
+    bloc.textContent = 'Code RNCP inconnu de France Compétences.';
+    return bloc;
+  }
+
+  const entete = document.createElement('p');
+  entete.className = 'champ-code-rncp__intitule';
+  entete.textContent = resultat.intitule || resultat.rncp;
+  bloc.appendChild(entete);
+
+  const debut = formaterDate(resultat.periodeValidite?.debut);
+  const fin = formaterDate(resultat.periodeValidite?.fin);
+  const statut = document.createElement('p');
+  statut.className = resultat.actif ? 'champ-code-rncp__badge champ-code-rncp__badge--actif' : 'champ-code-rncp__badge champ-code-rncp__badge--expire';
+  statut.textContent = resultat.actif
+    ? `Certification active${debut ? ` depuis le ${debut}` : ''}.`
+    : `Certification expirée${fin ? ` depuis le ${fin}` : ''}.`;
+  bloc.appendChild(statut);
+
+  if (resultat.blocsCompetences?.length) {
+    const titre = document.createElement('p');
+    titre.className = 'champ-code-rncp__section-titre';
+    titre.textContent = 'Blocs de compétences (utile pour la note de cadrage) :';
+    bloc.appendChild(titre);
+    const liste = document.createElement('ul');
+    liste.className = 'champ-code-rncp__liste';
+    for (const b of resultat.blocsCompetences) {
+      const li = document.createElement('li');
+      li.textContent = b.intitule;
+      liste.appendChild(li);
+    }
+    bloc.appendChild(liste);
+  }
+
+  const domaines = [...(resultat.domaines?.rome || []), ...(resultat.domaines?.nsf || [])];
+  if (domaines.length) {
+    const titre = document.createElement('p');
+    titre.className = 'champ-code-rncp__section-titre';
+    titre.textContent = 'Domaine :';
+    bloc.appendChild(titre);
+    const liste = document.createElement('ul');
+    liste.className = 'champ-code-rncp__liste';
+    for (const d of domaines) {
+      const li = document.createElement('li');
+      li.textContent = d.intitule;
+      liste.appendChild(li);
+    }
+    bloc.appendChild(liste);
+  }
+
+  if (resultat.conventionCollectives?.length) {
+    const titre = document.createElement('p');
+    titre.className = 'champ-code-rncp__section-titre';
+    titre.textContent = 'Convention(s) collective(s) associée(s) :';
+    bloc.appendChild(titre);
+    const liste = document.createElement('ul');
+    liste.className = 'champ-code-rncp__liste';
+    for (const c of resultat.conventionCollectives) {
+      const li = document.createElement('li');
+      li.textContent = `${c.numero} - ${c.intitule}`;
+      liste.appendChild(li);
+    }
+    bloc.appendChild(liste);
+  }
+
+  if (resultat.voiesAcces?.length) {
+    const titre = document.createElement('p');
+    titre.className = 'champ-code-rncp__section-titre';
+    titre.textContent = "Voies d'accès :";
+    bloc.appendChild(titre);
+    const texte = document.createElement('p');
+    texte.className = 'texte-doux';
+    texte.textContent = resultat.voiesAcces.join(', ');
+    bloc.appendChild(texte);
+  }
+
+  if (resultat.lienOfficiel) {
+    const lien = document.createElement('a');
+    lien.href = resultat.lienOfficiel;
+    lien.target = '_blank';
+    lien.rel = 'noopener noreferrer';
+    lien.className = 'champ-code-rncp__lien';
+    lien.textContent = 'Voir la fiche officielle France Compétences';
+    bloc.appendChild(lien);
+  }
+
+  return bloc;
+}
+
 // Champ libre (titre, code RNCP ou RS) - seul un code RNCP au format
 // "RNCP12345" peut être vérifié auprès de France Compétences (l'API ne
 // couvre pas le Répertoire Spécifique). Pour tout autre contenu, le champ se
@@ -30,6 +128,8 @@ export function render(question, valeur, { onChange, lectureSeule }) {
   input.addEventListener('input', () => {
     onChange(input.value);
     statut.hidden = true;
+    const resultatPrecedent = conteneur.querySelector('.champ-code-rncp__resultat');
+    resultatPrecedent?.remove();
   });
 
   input.addEventListener('blur', async () => {
@@ -40,13 +140,9 @@ export function render(question, valeur, { onChange, lectureSeule }) {
     statut.textContent = 'Vérification du code RNCP…';
     try {
       const resultat = await verifierCodeRncp(code);
-      if (!resultat.trouve) {
-        statut.textContent = 'Code RNCP inconnu de France Compétences.';
-        return;
-      }
-      statut.textContent = resultat.actif
-        ? `Certification vérifiée : ${resultat.intitule || resultat.rncp}.`
-        : `Certification vérifiée (référence expirée) : ${resultat.intitule || resultat.rncp}.`;
+      statut.hidden = true;
+      conteneur.querySelector('.champ-code-rncp__resultat')?.remove();
+      conteneur.appendChild(construireResultat(resultat));
     } catch {
       statut.hidden = true;
     }
