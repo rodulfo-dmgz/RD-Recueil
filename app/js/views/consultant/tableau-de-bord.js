@@ -1,23 +1,6 @@
 import { listerDemandes, listerDemandesInactives } from '../../services/demandes.js';
 import { afficherToast } from '../../components/toast.js';
-
-const LIBELLES_STATUT = {
-  brouillon: 'Brouillon',
-  envoyee: 'Envoyée',
-  en_saisie: 'En saisie',
-  soumise: 'Soumise',
-  entretien_planifie: 'Entretien planifié',
-  en_analyse: 'En analyse',
-  cadrage_envoye: 'Note envoyée',
-  cadrage_a_revoir: 'Note à revoir',
-  cadrage_valide: 'Note validée',
-  proposition_envoyee: 'Proposition envoyée',
-  gagnee: 'Gagnée',
-  perdue: 'Perdue',
-  reorientee: 'Réorientée',
-  abandonnee: 'Abandonnée',
-};
-const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
+import { LIBELLES_STATUT, STATUTS_FINAUX } from '../../engine/statuts.js';
 
 export async function vueTableauDeBord() {
   const app = document.getElementById('app');

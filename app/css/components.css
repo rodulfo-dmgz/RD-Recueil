@@ -593,6 +593,46 @@
 .section-carte__barre span { display: block; height: 100%; background: var(--rd-turquoise); }
 .section-carte__pourcentage { font-size: 11px; color: var(--texte-doux); }
 
+/* Mes demandes (accueil client) */
+.mes-demandes-liste { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+.demande-carte {
+  display: block;
+  padding: 20px 24px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  color: var(--texte);
+  text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.demande-carte:hover { border-color: var(--rd-bleu); box-shadow: var(--ombre); }
+.demande-carte__entete { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.demande-carte__reference { font-family: var(--police-titre); font-size: 18px; font-weight: 600; }
+.demande-carte__statut {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--fond);
+  color: var(--texte-doux);
+}
+.demande-carte__statut--succes { background: var(--succes); color: #fff; }
+.demande-carte__statut--attention { background: var(--alerte); color: #fff; }
+.demande-carte__statut--cloture { background: var(--erreur); color: #fff; }
+.demande-carte__type { margin: 8px 0 0; font-size: 13px; }
+.demande-carte__progression { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.demande-carte__barre {
+  flex: 1;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--bordure);
+  overflow: hidden;
+}
+.demande-carte__barre span { display: block; height: 100%; background: var(--rd-turquoise); }
+.demande-carte__pourcentage { font-size: 12px; font-weight: 600; color: var(--texte-doux); }
+.demande-carte__date { margin: 10px 0 0; font-size: 12px; }
+
 .accueil-demande__actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
 
 .recap-section { margin-bottom: 16px; }
