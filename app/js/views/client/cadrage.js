@@ -2,6 +2,7 @@
 import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { listerVersions, validerNote, demanderModification } from '../../services/notes-cadrage.js';
 import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
+import { ouvrirModaleSignature, rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
@@ -73,6 +74,7 @@ function rendre(demande, note) {
     info.className = 'texte-doux';
     info.textContent = `Note validée le ${new Date(note.validee_le).toLocaleDateString('fr-FR')}.`;
     main.appendChild(info);
+    if (note.signature_image) main.appendChild(rendreApercuSignature(note.signature_image));
   } else if (note.statut === 'envoyee') {
     main.appendChild(rendreActions(demande, note));
   } else if (note.statut === 'a_revoir') {
@@ -94,17 +96,20 @@ function rendreActions(demande, note) {
   boutonValider.type = 'button';
   boutonValider.className = 'btn btn--primaire';
   boutonValider.textContent = 'Valider la note';
-  boutonValider.addEventListener('click', async () => {
-    if (!window.confirm('Confirmer la validation de cette note de cadrage ?')) return;
-    boutonValider.disabled = true;
-    try {
-      await validerNote(note.id);
-      afficherToast('Note validée. Merci !', { type: 'succes' });
-      navigate(`/d/${demande.reference}`);
-    } catch (err) {
-      afficherToast(err.message, { type: 'erreur' });
-      boutonValider.disabled = false;
-    }
+  boutonValider.addEventListener('click', () => {
+    ouvrirModaleSignature({
+      onValider: async (signatureImage) => {
+        try {
+          await validerNote(note.id, signatureImage);
+          afficherToast('Note validée. Merci !', { type: 'succes' });
+          navigate(`/d/${demande.reference}`);
+          return true;
+        } catch (err) {
+          afficherToast(err.message, { type: 'erreur' });
+          return false;
+        }
+      },
+    });
   });
 
   const formModif = document.createElement('form');

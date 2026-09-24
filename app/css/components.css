@@ -857,3 +857,36 @@
 @media (max-width: 768px) {
   .editeur-note__grille { grid-template-columns: 1fr; }
 }
+
+/* Signature électronique simple (validation de la note de cadrage) */
+.modale-signature {
+  border: none;
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  background: var(--surface);
+  color: var(--texte);
+  padding: 24px;
+  max-width: 520px;
+  width: 90vw;
+}
+.modale-signature::backdrop { background: rgba(26, 31, 43, .5); }
+.modale-signature h2 { margin-top: 0; font-family: var(--police-titre); }
+.modale-signature__canvas {
+  width: 100%;
+  height: 180px;
+  border: 1px dashed var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  touch-action: none;
+  cursor: crosshair;
+}
+.modale-signature__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 16px; }
+
+.signature-apercu { margin-top: 16px; }
+.signature-apercu__image {
+  display: block;
+  max-width: 280px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: #FFFFFF;
+}

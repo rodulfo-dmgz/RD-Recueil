@@ -44,8 +44,11 @@ export async function envoyerNote(noteId, demandeId) {
   if (erreurStatut) throw erreurStatut;
 }
 
-export async function validerNote(noteId) {
-  const { error } = await supabase.rpc('rpc_valider_cadrage', { p_note_id: noteId });
+export async function validerNote(noteId, signatureImage) {
+  const { error } = await supabase.rpc('rpc_valider_cadrage', {
+    p_note_id: noteId,
+    p_signature_image: signatureImage,
+  });
   if (error) throw error;
 }
 

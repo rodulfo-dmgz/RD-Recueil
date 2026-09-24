@@ -12,6 +12,7 @@ import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
 import { genererNoteCadrage } from '../../engine/template.js';
 import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
+import { rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { getProfil } from '../../store.js';
@@ -239,6 +240,8 @@ function rendreLecture(note) {
     blocGlossaire.innerHTML = rendreMarkdown(annexe);
     conteneur.appendChild(blocGlossaire);
   }
+
+  if (note.signature_image) conteneur.appendChild(rendreApercuSignature(note.signature_image));
 
   return conteneur;
 }

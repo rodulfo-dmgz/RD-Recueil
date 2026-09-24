@@ -10,6 +10,7 @@ import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
 import { rendreReponsesParSection, rendreJournal } from '../../components/lecture-demande.js';
 import { rendreMarkdown } from '../../components/markdown.js';
+import { rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 
@@ -91,6 +92,7 @@ function rendre({ demande, questionnaire, reponses, journal, visibilite, noteVal
     const rendu = document.createElement('div');
     rendu.innerHTML = rendreMarkdown(noteValidee.contenu_md);
     contenu.appendChild(rendu);
+    if (noteValidee.signature_image) contenu.appendChild(rendreApercuSignature(noteValidee.signature_image));
     imprimable.appendChild(contenu);
   } else {
     const aucune = document.createElement('p');
