@@ -1,7 +1,7 @@
 // Lecture et validation de la note de cadrage côté client - section 4.1.
 import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { listerVersions, validerNote, demanderModification } from '../../services/notes-cadrage.js';
-import { rendreMarkdown } from '../../components/markdown.js';
+import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
@@ -54,10 +54,19 @@ function rendre(demande, note) {
   actionsHaut.appendChild(boutonImprimer);
   main.appendChild(actionsHaut);
 
+  const { corps, annexe } = separerAnnexeGlossaire(note.contenu_md);
+
   const contenu = document.createElement('div');
   contenu.className = 'carte editeur-note__apercu';
-  contenu.innerHTML = rendreMarkdown(note.contenu_md);
+  contenu.innerHTML = rendreMarkdown(corps);
   main.appendChild(contenu);
+
+  if (annexe) {
+    const carteGlossaire = document.createElement('div');
+    carteGlossaire.className = 'carte editeur-note__apercu';
+    carteGlossaire.innerHTML = rendreMarkdown(annexe);
+    main.appendChild(carteGlossaire);
+  }
 
   if (note.statut === 'validee') {
     const info = document.createElement('p');

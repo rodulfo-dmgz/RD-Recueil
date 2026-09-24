@@ -11,7 +11,7 @@ import {
 import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
 import { genererNoteCadrage } from '../../engine/template.js';
-import { rendreMarkdown } from '../../components/markdown.js';
+import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { getProfil } from '../../store.js';
@@ -227,10 +227,18 @@ function rendreLecture(note) {
   statut.className = 'texte-doux';
   statut.textContent = `Version ${note.version} — ${LIBELLES_STATUT_NOTE[note.statut] || note.statut}`;
   bloc.appendChild(statut);
+  const { corps, annexe } = separerAnnexeGlossaire(note.contenu_md);
   const contenu = document.createElement('div');
-  contenu.innerHTML = rendreMarkdown(note.contenu_md);
+  contenu.innerHTML = rendreMarkdown(corps);
   bloc.appendChild(contenu);
   conteneur.appendChild(bloc);
+
+  if (annexe) {
+    const blocGlossaire = document.createElement('div');
+    blocGlossaire.className = 'carte editeur-note__apercu';
+    blocGlossaire.innerHTML = rendreMarkdown(annexe);
+    conteneur.appendChild(blocGlossaire);
+  }
 
   return conteneur;
 }
