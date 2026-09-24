@@ -30,26 +30,38 @@ const ICONES_SECTION = {
   'V-CER': 'award',
 };
 
+// Charge une demande, son questionnaire et ses réponses, puis hydrate le
+// store (store.js) - utilisé par toutes les vues d'une demande (accueil,
+// section, récapitulatif) pour fonctionner même sur un rechargement direct
+// d'une URL profonde (F5 sur #/d/:ref/s/:section), où le store est encore
+// vide puisque le passage par vueAccueilDemande n'a pas eu lieu.
+// Retourne null si la référence est introuvable.
+export async function chargerEtatDemande(reference) {
+  const demande = await obtenirDemandeParReference(reference);
+  if (!demande) return null;
+
+  const [questionnaire, glossaireTermes, reponses] = await Promise.all([
+    chargerQuestionnaire(demande.questionnaire_id),
+    chargerGlossaire(demande.questionnaire_id),
+    chargerReponses(demande.id),
+  ]);
+
+  const glossaireIndex = indexerGlossaire(glossaireTermes);
+  initialiserDemande({ demande, questionnaire, glossaireIndex, reponses });
+  initGlossaryTooltip(glossaireIndex);
+  return getEtatDemande();
+}
+
 export async function vueAccueilDemande(reference) {
   const app = document.getElementById('app');
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
 
   try {
-    const demande = await obtenirDemandeParReference(reference);
-    if (!demande) {
+    const etat = await chargerEtatDemande(reference);
+    if (!etat) {
       app.innerHTML = '<main class="conteneur"><h1>Demande introuvable</h1></main>';
       return;
     }
-
-    const [questionnaire, glossaireTermes, reponses] = await Promise.all([
-      chargerQuestionnaire(demande.questionnaire_id),
-      chargerGlossaire(demande.questionnaire_id),
-      chargerReponses(demande.id),
-    ]);
-
-    const glossaireIndex = indexerGlossaire(glossaireTermes);
-    initialiserDemande({ demande, questionnaire, glossaireIndex, reponses });
-    initGlossaryTooltip(glossaireIndex);
 
     rendre(reference);
   } catch (err) {

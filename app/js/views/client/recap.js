@@ -5,6 +5,7 @@ import { formaterReponse as formaterValeur } from '../../engine/formatage.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
+import { chargerEtatDemande } from './accueil.js';
 
 function estVide(reponse) {
   if (!reponse || reponse.nsp) return false;
@@ -12,11 +13,23 @@ function estVide(reponse) {
   return v == null || v === '' || (Array.isArray(v) && v.length === 0);
 }
 
-export function vueRecap(reference) {
-  const etat = getEtatDemande();
+export async function vueRecap(reference) {
+  let etat = getEtatDemande();
   if (!etat || etat.demande.reference !== reference) {
-    navigate(`/d/${reference}`);
-    return;
+    // Rechargement direct sur cette URL (F5) : le store n'a pas été hydraté
+    // par un passage préalable sur l'accueil de la demande.
+    try {
+      etat = await chargerEtatDemande(reference);
+    } catch (err) {
+      afficherToast(err.message, { type: 'erreur' });
+      navigate(`/d/${reference}`);
+      return;
+    }
+    if (!etat) {
+      afficherToast('Demande introuvable.', { type: 'erreur' });
+      navigate(`/d/${reference}`);
+      return;
+    }
   }
   rendre();
 

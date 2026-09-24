@@ -5,6 +5,7 @@ import { rechercherEntreprise } from '../../services/entreprises.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
+import { chargerEtatDemande } from './accueil.js';
 
 const LIBELLE_STATUT = {
   'en-attente': 'Modifications non enregistrées…',
@@ -37,11 +38,23 @@ function questionsVisiblesDeLaSection(etat, sectionId) {
     .sort((a, b) => a.ordre - b.ordre);
 }
 
-export function vueSection(reference, sectionId) {
-  const etatInitial = getEtatDemande();
+export async function vueSection(reference, sectionId) {
+  let etatInitial = getEtatDemande();
   if (!etatInitial || etatInitial.demande.reference !== reference) {
-    navigate(`/d/${reference}`);
-    return;
+    // Rechargement direct sur cette URL (F5) : le store n'a pas été hydraté
+    // par un passage préalable sur l'accueil de la demande.
+    try {
+      etatInitial = await chargerEtatDemande(reference);
+    } catch (err) {
+      afficherToast(err.message, { type: 'erreur' });
+      navigate(`/d/${reference}`);
+      return;
+    }
+    if (!etatInitial) {
+      afficherToast('Demande introuvable.', { type: 'erreur' });
+      navigate(`/d/${reference}`);
+      return;
+    }
   }
   if (!etatInitial.visibilite.sectionsVisibles.has(sectionId)) {
     navigate(`/d/${reference}`);

@@ -92,12 +92,12 @@ route('/d/:ref', async ({ ref }) => {
 
 route('/d/:ref/s/:section', async ({ ref, section }) => {
   if (!(await garantirProfilActif())) return;
-  vueSection(ref, section);
+  await vueSection(ref, section);
 });
 
 route('/d/:ref/recap', async ({ ref }) => {
   if (!(await garantirProfilActif())) return;
-  vueRecap(ref);
+  await vueRecap(ref);
 });
 
 route('/d/:ref/cadrage', async ({ ref }) => {
