@@ -1,15 +1,11 @@
 // Lecture et décision sur la proposition commerciale côté client.
 import { obtenirDemandeParReference } from '../../services/demandes.js';
+import { chargerReponses } from '../../services/reponses.js';
 import { obtenirProposition, listerLignes, accepterProposition, refuserProposition } from '../../services/propositions.js';
-import { calculerTotalDevis } from '../../engine/devis.js';
-import { rendreMarkdown } from '../../components/markdown.js';
+import { construireDevisImprimable } from '../../components/devis-imprimable.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
-
-function formaterMontant(montant) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(montant || 0);
-}
 
 export async function vuePropositionClient(reference) {
   const app = document.getElementById('app');
@@ -28,16 +24,16 @@ export async function vuePropositionClient(reference) {
         '<main class="conteneur"><h1>Proposition commerciale</h1><p>La proposition n’est pas encore disponible.</p></main>';
       return;
     }
-    const lignes = await listerLignes(proposition.id);
+    const [lignes, reponses] = await Promise.all([listerLignes(proposition.id), chargerReponses(demande.id)]);
 
-    rendre(demande, proposition, lignes);
+    rendre(demande, proposition, lignes, reponses);
   } catch (err) {
     afficherToast(err.message, { type: 'erreur' });
     app.innerHTML = '<main class="conteneur"><h1>Impossible de charger la proposition</h1></main>';
   }
 }
 
-function rendre(demande, proposition, lignes) {
+function rendre(demande, proposition, lignes, reponses) {
   const app = document.getElementById('app');
   app.innerHTML = '';
   const main = document.createElement('main');
@@ -59,30 +55,7 @@ function rendre(demande, proposition, lignes) {
   actionsHaut.appendChild(boutonImprimer);
   main.appendChild(actionsHaut);
 
-  const bloc = document.createElement('div');
-  bloc.className = 'carte imprimable';
-
-  const table = document.createElement('table');
-  table.innerHTML = '<thead><tr><th>Désignation</th><th>Quantité</th><th>Prix unitaire</th><th>Total</th></tr></thead>';
-  const tbody = document.createElement('tbody');
-  for (const ligne of lignes) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${ligne.designation}</td><td>${ligne.quantite}</td><td>${formaterMontant(ligne.prix_unitaire)}</td><td>${formaterMontant(ligne.total)}</td>`;
-    tbody.appendChild(tr);
-  }
-  table.appendChild(tbody);
-  bloc.appendChild(table);
-
-  const total = document.createElement('p');
-  total.className = 'devis-total';
-  total.textContent = `Total : ${formaterMontant(calculerTotalDevis(lignes))}`;
-  bloc.appendChild(total);
-
-  const justification = document.createElement('div');
-  justification.innerHTML = rendreMarkdown(proposition.justification_md);
-  bloc.appendChild(justification);
-
-  main.appendChild(bloc);
+  main.appendChild(construireDevisImprimable({ demande, reponses, proposition, lignes }));
 
   if (proposition.statut === 'envoyee') {
     main.appendChild(rendreActions(demande, proposition));

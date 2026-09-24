@@ -1,5 +1,6 @@
 // Éditeur de proposition commerciale (devis) - 01_ARCHITECTURE.md section 15.
 import { obtenirDemandeParReference } from '../../services/demandes.js';
+import { chargerReponsesStaff } from '../../services/reponses.js';
 import {
   obtenirProposition,
   listerLignes,
@@ -16,6 +17,7 @@ import {
   calculerLignesTarif,
 } from '../../engine/tarif.js';
 import { rendreMarkdown } from '../../components/markdown.js';
+import { construireDevisImprimable } from '../../components/devis-imprimable.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 
@@ -43,15 +45,16 @@ export async function vueEditeurProposition(reference) {
 
     const proposition = await obtenirProposition(demande.id);
     const lignes = proposition ? await listerLignes(proposition.id) : [];
+    const reponses = await chargerReponsesStaff(demande.id);
 
-    rendre({ demande, proposition, lignes });
+    rendre({ demande, proposition, lignes, reponses });
   } catch (err) {
     afficherToast(err.message, { type: 'erreur' });
     app.innerHTML = '<main class="conteneur"><h1>Impossible de charger la proposition</h1></main>';
   }
 }
 
-function rendre({ demande, proposition, lignes }) {
+function rendre({ demande, proposition, lignes, reponses }) {
   const app = document.getElementById('app');
   app.innerHTML = '';
   const main = document.createElement('main');
@@ -68,7 +71,7 @@ function rendre({ demande, proposition, lignes }) {
   } else if (proposition.statut === 'brouillon') {
     main.appendChild(rendreEditeur(demande, proposition, lignes));
   } else {
-    main.appendChild(rendreLecture(proposition, lignes));
+    main.appendChild(rendreLecture(demande, proposition, lignes, reponses));
   }
 
   app.appendChild(main);
@@ -426,7 +429,7 @@ function rendreEditeur(demande, proposition, lignesInitiales) {
   return bloc;
 }
 
-function rendreLecture(proposition, lignes) {
+function rendreLecture(demande, proposition, lignes, reponses) {
   const conteneur = document.createElement('div');
 
   const actionsHaut = document.createElement('div');
@@ -439,41 +442,19 @@ function rendreLecture(proposition, lignes) {
   actionsHaut.appendChild(boutonImprimer);
   conteneur.appendChild(actionsHaut);
 
-  const bloc = document.createElement('div');
-  bloc.className = 'carte imprimable';
-
   const statut = document.createElement('p');
   statut.className = 'texte-doux';
   statut.textContent = LIBELLES_STATUT_PROPOSITION[proposition.statut] || proposition.statut;
-  bloc.appendChild(statut);
+  conteneur.appendChild(statut);
 
-  const table = document.createElement('table');
-  table.innerHTML = '<thead><tr><th>Désignation</th><th>Quantité</th><th>Prix unitaire</th><th>Total</th></tr></thead>';
-  const tbody = document.createElement('tbody');
-  for (const ligne of lignes) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${ligne.designation}</td><td>${ligne.quantite}</td><td>${formaterMontant(ligne.prix_unitaire)}</td><td>${formaterMontant(ligne.total)}</td>`;
-    tbody.appendChild(tr);
-  }
-  table.appendChild(tbody);
-  bloc.appendChild(table);
-
-  const total = document.createElement('p');
-  total.className = 'devis-total';
-  total.textContent = `Total : ${formaterMontant(calculerTotalDevis(lignes))}`;
-  bloc.appendChild(total);
-
-  const justification = document.createElement('div');
-  justification.innerHTML = rendreMarkdown(proposition.justification_md);
-  bloc.appendChild(justification);
+  conteneur.appendChild(construireDevisImprimable({ demande, reponses, proposition, lignes }));
 
   if (proposition.statut === 'refusee' && proposition.commentaire_client) {
     const commentaire = document.createElement('p');
     commentaire.className = 'texte-doux';
     commentaire.textContent = `Motif du client : ${proposition.commentaire_client}`;
-    bloc.appendChild(commentaire);
+    conteneur.appendChild(commentaire);
   }
 
-  conteneur.appendChild(bloc);
   return conteneur;
 }
