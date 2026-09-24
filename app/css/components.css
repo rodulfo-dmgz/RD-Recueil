@@ -698,16 +698,66 @@
   line-height: 1.5;
 }
 .editeur-note__apercu {
+  font-size: 15px;
+  line-height: 1.6;
+}
+/* Hauteur limitée avec défilement uniquement dans l'aperçu à côté de
+   l'éditeur (colonne étroite) - la lecture seule affiche le document en
+   entier, sans le confiner dans une petite boîte qui défile. */
+.editeur-note__grille .editeur-note__apercu {
   max-height: 80vh;
   overflow-y: auto;
 }
-.editeur-note__apercu h1, .editeur-note__apercu h2, .editeur-note__apercu h3 { font-family: var(--police-titre); }
-.editeur-note__apercu table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-.editeur-note__apercu th, .editeur-note__apercu td {
-  border: 1px solid var(--bordure);
-  padding: 6px 8px;
-  text-align: left;
+.editeur-note__apercu h1 {
+  font-family: var(--police-titre);
+  font-size: 24px;
+  margin-bottom: 20px;
 }
+.editeur-note__apercu h2 {
+  font-family: var(--police-titre);
+  font-size: 16px;
+  color: var(--rd-bleu);
+  margin: 32px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--rd-turquoise);
+}
+.editeur-note__apercu h3 {
+  font-family: var(--police-titre);
+  font-size: 14px;
+  margin: 20px 0 8px;
+}
+.editeur-note__apercu p { margin: 0 0 10px; }
+.editeur-note__apercu blockquote {
+  margin: 12px 0;
+  padding: 10px 16px;
+  border-left: 3px solid var(--rd-turquoise);
+  background: var(--fond);
+  border-radius: 0 var(--rayon) var(--rayon) 0;
+  color: var(--texte-doux);
+}
+.editeur-note__apercu blockquote p { margin: 0; }
+
+/* Tables du document : traits horizontaux seulement, pas de grille -
+   rendu "document" plutôt que tableur. L'en-tête vide ("| | |") du bloc
+   d'identité en haut de la note se rend en <th> sans texte : on le
+   supprime visuellement plutôt que d'afficher une ligne creuse. */
+.editeur-note__apercu table { width: 100%; border-collapse: collapse; margin: 8px 0 24px; font-size: 14px; }
+.editeur-note__apercu th, .editeur-note__apercu td {
+  padding: 9px 12px;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid var(--bordure);
+}
+.editeur-note__apercu th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--texte-doux);
+  font-weight: 700;
+  border-bottom: 2px solid var(--bordure);
+}
+.editeur-note__apercu th:empty { padding: 0; border: none; }
+.editeur-note__apercu tr:last-child td { border-bottom: none; }
 .editeur-note__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 
 .cadrage-actions { display: flex; flex-direction: column; gap: 12px; }
