@@ -1,15 +1,55 @@
-// Choix d'un créneau d'entretien côté client.
+// Choix d'un créneau d'entretien côté client - réservation réelle sur
+// l'agenda du consultant via le widget Cal.com (rdformation/30min).
 import { obtenirDemandeParReference } from '../../services/demandes.js';
-import { listerCreneaux, choisirCreneau } from '../../services/creneaux.js';
+import { listerCreneaux, confirmerReservationCalcom } from '../../services/creneaux.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
+
+const LIEN_CALCOM = 'rdformation/30min';
+const NAMESPACE_CALCOM = 'entretien-cadrage';
 
 function formaterCreneau(creneau) {
   const options = { dateStyle: 'full', timeStyle: 'short' };
   const debut = new Date(creneau.debut).toLocaleString('fr-FR', options);
   const fin = new Date(creneau.fin).toLocaleTimeString('fr-FR', { timeStyle: 'short' });
   return `${debut} – ${fin}`;
+}
+
+// Chargeur officiel Cal.com (embed-snippet) - idempotent, sûr à rappeler.
+function chargerCalcom() {
+  (function (C, A, L) {
+    let p = function (a, ar) {
+      a.q.push(ar);
+    };
+    let d = C.document;
+    C.Cal =
+      C.Cal ||
+      function () {
+        let cal = C.Cal;
+        let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          d.head.appendChild(d.createElement('script')).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () {
+            p(api, arguments);
+          };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === 'string') {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ['initNamespace', namespace]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+  })(window, 'https://app.cal.com/embed/embed.js', 'init');
 }
 
 export async function vueCreneauxClient(reference) {
@@ -44,48 +84,50 @@ function rendre(demande, creneaux) {
 
   const confirme = creneaux.find((c) => c.choisi);
 
-  if (creneaux.length === 0) {
-    const p = document.createElement('p');
-    p.textContent = 'Aucun créneau proposé pour le moment.';
-    main.appendChild(p);
-  } else if (confirme) {
+  if (confirme) {
     const p = document.createElement('p');
     p.textContent = `Entretien confirmé : ${formaterCreneau(confirme)}.`;
     main.appendChild(p);
-  } else {
-    const p = document.createElement('p');
-    p.textContent = 'Choisissez le créneau qui vous convient :';
-    main.appendChild(p);
-
-    const liste = document.createElement('div');
-    liste.className = 'mes-demandes-liste';
-    for (const creneau of creneaux) {
-      const carte = document.createElement('div');
-      carte.className = 'carte relance-ligne';
-      const texte = document.createElement('span');
-      texte.textContent = formaterCreneau(creneau);
-      const bouton = document.createElement('button');
-      bouton.type = 'button';
-      bouton.className = 'btn btn--primaire';
-      bouton.textContent = 'Choisir ce créneau';
-      bouton.addEventListener('click', async () => {
-        if (!window.confirm('Confirmer ce créneau pour l’entretien ?')) return;
-        bouton.disabled = true;
-        try {
-          await choisirCreneau(creneau.id);
-          afficherToast('Créneau confirmé. Merci !', { type: 'succes' });
-          navigate(`/d/${demande.reference}`);
-        } catch (err) {
-          afficherToast(err.message, { type: 'erreur' });
-          bouton.disabled = false;
-        }
-      });
-      carte.append(texte, bouton);
-      liste.appendChild(carte);
-    }
-    main.appendChild(liste);
+    app.appendChild(main);
+    return;
   }
+
+  const p = document.createElement('p');
+  p.textContent = 'Choisissez un créneau disponible dans le calendrier ci-dessous.';
+  main.appendChild(p);
+
+  const conteneurWidget = document.createElement('div');
+  conteneurWidget.id = 'calcom-widget';
+  conteneurWidget.className = 'calcom-widget';
+  main.appendChild(conteneurWidget);
 
   app.appendChild(main);
   if (window.lucide) window.lucide.createIcons();
+
+  chargerCalcom();
+  window.Cal('init', NAMESPACE_CALCOM, { origin: 'https://cal.com' });
+  window.Cal.ns[NAMESPACE_CALCOM]('inline', {
+    elementOrSelector: '#calcom-widget',
+    calLink: LIEN_CALCOM,
+    config: { layout: 'month_view' },
+  });
+
+  let dejaTraite = false;
+  window.Cal.ns[NAMESPACE_CALCOM]('on', {
+    action: 'bookingSuccessfulV2',
+    callback: async (evt) => {
+      if (dejaTraite) return;
+      const { data } = evt.detail;
+      if (!data?.startTime || !data?.endTime) return;
+      dejaTraite = true;
+      try {
+        await confirmerReservationCalcom(demande.id, { debut: data.startTime, fin: data.endTime });
+        afficherToast('Rendez-vous confirmé. Merci !', { type: 'succes' });
+        navigate(`/d/${demande.reference}`);
+      } catch (err) {
+        afficherToast(err.message, { type: 'erreur' });
+        dejaTraite = false;
+      }
+    },
+  });
 }

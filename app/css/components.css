@@ -718,6 +718,9 @@
 /* Proposition commerciale (devis) */
 .devis-total { margin-top: 8px; font-weight: 600; text-align: right; }
 
+/* Widget de réservation Cal.com (entretien) */
+.calcom-widget { width: 100%; min-height: 650px; }
+
 @media (max-width: 768px) {
   .editeur-note__grille { grid-template-columns: 1fr; }
 }
