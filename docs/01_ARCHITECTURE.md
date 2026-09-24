@@ -476,7 +476,7 @@ create table evenements (
 | `fn_historiser_reponse()` trigger `after update on reponses` | Écrit dans `reponses_historique`. |
 | `fn_premiere_saisie()` trigger `after insert on reponses` | Passe la demande de `envoyee` à `en_saisie` si l'auteur est client. |
 | `rpc_changer_statut(demande_id, vers, commentaire)` `security definer` | Vérifie la transition (3.2) et le rôle, écrit dans `evenements`. Seul moyen de changer un statut. |
-| `rpc_soumettre(demande_id)` `security definer` | Revérifie côté serveur les obligatoires client visibles, puis passe à `soumise`. |
+| `rpc_soumettre(demande_id, ids_obligatoires)` `security definer` | `ids_obligatoires` : questions obligatoires actuellement visibles calculées côté client (seule implémentation de la visibilité conditionnelle, section 6.4). Vérifie que chacune a une réponse enregistrée, puis passe à `soumise`. |
 | `rpc_valider_cadrage(note_id)` | Client uniquement ; horodate, enregistre l'IP, passe la demande à `cadrage_valide`. |
 | `est_staff()`, `a_acces(demande_id)` | Fonctions utilitaires pour les politiques RLS. |
 

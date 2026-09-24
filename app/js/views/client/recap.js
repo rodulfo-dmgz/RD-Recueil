@@ -1,5 +1,6 @@
 import { getEtatDemande } from '../../store.js';
 import { soumettre } from '../../services/demandes.js';
+import { listerQuestionsPertinentes } from '../../engine/completion.js';
 import { formaterReponse as formaterValeur } from '../../engine/formatage.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
@@ -97,7 +98,8 @@ export function vueRecap(reference) {
     bouton.addEventListener('click', async () => {
       bouton.disabled = true;
       try {
-        await soumettre(etat.demande.id);
+        const idsObligatoires = listerQuestionsPertinentes(etat.questionnaire, etat.visibilite).map((q) => q.id);
+        await soumettre(etat.demande.id, idsObligatoires);
         afficherToast('Réponses envoyées. Merci !', { type: 'succes' });
         navigate(`/d/${reference}`);
       } catch (err) {

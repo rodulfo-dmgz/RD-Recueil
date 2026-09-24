@@ -54,8 +54,16 @@ export async function changerStatut(demandeId, vers, commentaire) {
   if (error) throw error;
 }
 
-export async function soumettre(demandeId) {
-  const { error } = await supabase.rpc('rpc_soumettre', { p_demande_id: demandeId });
+// idsObligatoires : questions obligatoires actuellement visibles côté client
+// (engine/completion.js), la seule source de vérité pour la visibilité
+// conditionnelle. Le serveur vérifie que chacune a bien une réponse - il ne
+// fait pas confiance à la simple absence d'erreur, seulement à cette liste
+// d'identifiants pour savoir lesquels vérifier.
+export async function soumettre(demandeId, idsObligatoires) {
+  const { error } = await supabase.rpc('rpc_soumettre', {
+    p_demande_id: demandeId,
+    p_ids_obligatoires: idsObligatoires,
+  });
   if (error) throw error;
 }
 

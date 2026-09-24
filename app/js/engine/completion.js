@@ -20,13 +20,22 @@ function ratio(liste, predicat) {
   return { total, renseignees, pourcentage: total === 0 ? 100 : Math.round((renseignees / total) * 100) };
 }
 
-export function calculerProgression(questionnaire, visibilite, reponses, { inclureFormateur = false } = {}) {
+// Questions obligatoires actuellement pertinentes (visibles compte tenu des
+// réponses déjà saisies) - sert au calcul de progression ci-dessous, et à
+// rpc_soumettre pour vérifier côté serveur exactement les mêmes questions
+// que celles utilisées côté client (la visibilité conditionnelle n'existe
+// que dans ce moteur JS, jamais dupliquée en SQL).
+export function listerQuestionsPertinentes(questionnaire, visibilite, { inclureFormateur = false } = {}) {
+  return questionnaire.questions.filter(
+    (q) => visibilite.questionsVisibles.has(q.id) && q.obligatoire && (inclureFormateur || q.rempli_par !== 'F')
+  );
+}
+
+export function calculerProgression(questionnaire, visibilite, reponses, options = {}) {
   const reponseParId = new Map(reponses.map((r) => [r.question_id, r]));
   const predicat = (q) => estRenseignee(reponseParId, q.id);
 
-  const pertinentes = questionnaire.questions.filter(
-    (q) => visibilite.questionsVisibles.has(q.id) && q.obligatoire && (inclureFormateur || q.rempli_par !== 'F')
-  );
+  const pertinentes = listerQuestionsPertinentes(questionnaire, visibilite, options);
 
   const global = ratio(pertinentes, predicat);
 
