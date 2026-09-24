@@ -12,7 +12,7 @@ function estVide(valeur) {
 // Rend une question complète : libellé (avec glossaire), champ de saisie du
 // type correspondant, case NSP le cas échéant, pastilles "Voir aussi" et
 // message d'erreur si une valeur déjà saisie est invalide.
-export function rendreChamp(question, reponse, { onChange, lectureSeule, indexGlossaire, televerser } = {}) {
+export function rendreChamp(question, reponse, { onChange, lectureSeule, indexGlossaire, televerser, onAutoRemplir } = {}) {
   const { valeur, nsp } = reponse || {};
   const module = modulesParType[question.type];
 
@@ -38,6 +38,7 @@ export function rendreChamp(question, reponse, { onChange, lectureSeule, indexGl
       lectureSeule: Boolean(lectureSeule) || Boolean(nsp),
       onChange: (nouvelleValeur) => onChange({ valeur: nouvelleValeur, nsp: false }),
       televerser,
+      onAutoRemplir,
     });
     conteneur.appendChild(entree);
   }

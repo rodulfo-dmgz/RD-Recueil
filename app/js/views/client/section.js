@@ -1,6 +1,7 @@
 import { getEtatDemande, mettreAJourReponse, surEtatDemande } from '../../store.js';
 import { rendreChamp, mettreAJourErreurChamp } from '../../components/champ.js';
 import { televerserFichier } from '../../services/fichiers.js';
+import { rechercherEntreprise } from '../../services/entreprises.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
@@ -11,6 +12,20 @@ const LIBELLE_STATUT = {
   enregistre: 'Enregistré',
   erreur: 'Échec de l’enregistrement',
 };
+
+// Depuis le SIRET saisi sur cette question, quels autres champs de la même
+// demande peuvent être pré-remplis (annuaire public des entreprises) -
+// jamais en écrasant une réponse déjà saisie par le client.
+const AUTO_REMPLISSAGE_SIRET = {
+  'TC-1.03': { raisonSociale: 'TC-1.01', codeNaf: 'TC-1.04', adresse: 'TC-1.06' },
+};
+
+function estVide(valeur) {
+  if (valeur == null || valeur === '') return true;
+  if (Array.isArray(valeur)) return valeur.length === 0;
+  if (typeof valeur === 'object') return Object.keys(valeur).length === 0;
+  return false;
+}
 
 function questionsVisiblesDeLaSection(etat, sectionId) {
   return etat.questionnaire.questions
@@ -75,6 +90,35 @@ export function vueSection(reference, sectionId) {
                 }
               }
             : undefined,
+        onAutoRemplir: AUTO_REMPLISSAGE_SIRET[question.id]
+          ? async (siret, statut, donneesPreChargees) => {
+              const donnees = donneesPreChargees || (await rechercherEntreprise(siret));
+              if (!donnees) {
+                statut.textContent = 'Aucun établissement trouvé pour ce SIRET.';
+                return;
+              }
+              const cibles = AUTO_REMPLISSAGE_SIRET[question.id];
+              const valeursTrouvees = { raisonSociale: donnees.raisonSociale, codeNaf: donnees.codeNaf, adresse: donnees.adresse };
+              let nbRemplis = 0;
+              for (const [cle, idCible] of Object.entries(cibles)) {
+                const valeurTrouvee = valeursTrouvees[cle];
+                if (!valeurTrouvee) continue;
+                const reponseExistante = etat.reponses.get(idCible);
+                if (reponseExistante && !estVide(reponseExistante.valeur)) continue;
+                mettreAJourReponse(idCible, { valeur: valeurTrouvee, nsp: false });
+                nbRemplis++;
+              }
+              const message =
+                nbRemplis > 0
+                  ? `${donnees.raisonSociale || 'Établissement trouvé'} - ${nbRemplis} champ(s) pré-rempli(s).`
+                  : `${donnees.raisonSociale || 'Établissement trouvé'} (champs déjà renseignés, non modifiés).`;
+              statut.textContent = message;
+              if (nbRemplis > 0) {
+                afficherToast(message, { type: 'succes' });
+                rendre();
+              }
+            }
+          : undefined,
       });
       main.appendChild(champ);
     }
@@ -107,6 +151,8 @@ export function vueSection(reference, sectionId) {
     // message d'erreur, lui, doit refléter la valeur actuelle - sinon une
     // erreur reste affichée après correction (ou l'inverse).
     for (const question of questionsVisiblesDeLaSection(etat, sectionId)) {
+      const conteneurQuestion = document.getElementById(`champ-${question.id}`);
+      if (conteneurQuestion?.contains(document.activeElement)) continue; // ne pas gêner la saisie en cours
       mettreAJourErreurChamp(question, etat.reponses.get(question.id));
     }
   });

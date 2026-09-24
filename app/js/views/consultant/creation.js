@@ -3,6 +3,8 @@ import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 import { getProfil } from '../../store.js';
+import { render as rendreChampSiret } from '../../components/fields/siret.js';
+import { rechercherEntreprise } from '../../services/entreprises.js';
 
 const TYPES = [
   { valeur: 'FOR', libelle: 'Formation' },
@@ -42,8 +44,35 @@ export function vueCreationDemande() {
   form.className = 'carte';
 
   const champRaisonSociale = champTexte('raison-sociale', 'Raison sociale', { obligatoire: true });
-  const champSiret = champTexte('siret', 'SIRET (optionnel)');
   const champDateLimite = champTexte('date-limite', 'Date limite (optionnel)', { type: 'date' });
+
+  const champSiret = document.createElement('label');
+  champSiret.className = 'champ';
+  const spanSiret = document.createElement('span');
+  spanSiret.textContent = 'SIRET (optionnel)';
+  champSiret.appendChild(spanSiret);
+  let valeurSiret = '';
+  champSiret.appendChild(
+    rendreChampSiret(null, '', {
+      onChange: (v) => {
+        valeurSiret = v;
+      },
+      lectureSeule: false,
+      onAutoRemplir: async (siret, statut, donneesPreChargees) => {
+        const donnees = donneesPreChargees || (await rechercherEntreprise(siret));
+        if (!donnees) {
+          statut.textContent = 'Aucun établissement trouvé pour ce SIRET.';
+          return;
+        }
+        const inputRaisonSociale = document.getElementById('raison-sociale');
+        const rempli = Boolean(donnees.raisonSociale) && !inputRaisonSociale.value.trim();
+        if (rempli) inputRaisonSociale.value = donnees.raisonSociale;
+        statut.textContent = rempli
+          ? `${donnees.raisonSociale} - raison sociale pré-remplie.`
+          : `${donnees.raisonSociale || 'Établissement trouvé'}${inputRaisonSociale.value.trim() ? ' (raison sociale déjà renseignée, non modifiée)' : ''}.`;
+      },
+    })
+  );
 
   const fieldsetTypes = document.createElement('fieldset');
   const legend = document.createElement('legend');
@@ -77,7 +106,7 @@ export function vueCreationDemande() {
       const types = [...fieldsetTypes.querySelectorAll('input:checked')].map((i) => i.value);
       const demande = await creerDemande({
         raisonSociale: document.getElementById('raison-sociale').value,
-        siret: document.getElementById('siret').value,
+        siret: valeurSiret,
         types,
         dateLimite: document.getElementById('date-limite').value || null,
         consultantId: getProfil()?.user_id,
