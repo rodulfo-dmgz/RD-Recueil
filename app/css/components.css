@@ -721,6 +721,13 @@
 /* Widget de réservation Cal.com (entretien) */
 .calcom-widget { width: 100%; min-height: 650px; }
 
+/* Outil de pré-remplissage tarifaire (proposition) */
+.outil-tarif summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+.outil-tarif label { display: block; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
+.outil-tarif label .champ-saisie { margin-top: 4px; font-weight: 400; }
+.outil-tarif__paire { display: flex; gap: 8px; margin-top: 4px; }
+.outil-tarif__paire .champ-saisie { margin-top: 0; }
+
 @media (max-width: 768px) {
   .editeur-note__grille { grid-template-columns: 1fr; }
 }

@@ -9,6 +9,12 @@ import {
   envoyerProposition,
 } from '../../services/propositions.js';
 import { calculerTotalLigne, calculerTotalDevis } from '../../engine/devis.js';
+import {
+  TYPES_PRESTATION,
+  NIVEAUX_EXPERTISE,
+  CORRESPONDANCE_TYPE_DEMANDE,
+  calculerLignesTarif,
+} from '../../engine/tarif.js';
 import { rendreMarkdown } from '../../components/markdown.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
@@ -67,6 +73,136 @@ function rendre({ demande, proposition, lignes }) {
 
   app.appendChild(main);
   if (window.lucide) window.lucide.createIcons();
+}
+
+// Grille tarifaire RD Formation (Simulateur de devis) : génère des lignes de
+// devis suggérées à partir du type de prestation, du niveau d'expertise
+// requis et du taux horaire - point de départ modifiable, pas un calcul figé.
+function rendreOutilTarif(demande, onGenerer) {
+  const details = document.createElement('details');
+  details.className = 'carte outil-tarif';
+  details.open = true;
+
+  const summary = document.createElement('summary');
+  summary.textContent = 'Pré-remplir depuis la grille tarifaire';
+  details.appendChild(summary);
+
+  const typeSuggere = CORRESPONDANCE_TYPE_DEMANDE[demande.types?.[0]] || 'module';
+
+  const champType = document.createElement('label');
+  champType.textContent = 'Type de prestation';
+  const selectType = document.createElement('select');
+  selectType.className = 'champ-saisie';
+  for (const [cle, preset] of Object.entries(TYPES_PRESTATION)) {
+    const option = document.createElement('option');
+    option.value = cle;
+    option.textContent = `${preset.libelle} (${preset.tauxHoraire} €/h)`;
+    if (cle === typeSuggere) option.selected = true;
+    selectType.appendChild(option);
+  }
+  champType.appendChild(selectType);
+  details.appendChild(champType);
+
+  const champTaux = document.createElement('label');
+  champTaux.textContent = 'Taux horaire (€)';
+  const inputTaux = document.createElement('input');
+  inputTaux.type = 'number';
+  inputTaux.min = '0';
+  inputTaux.step = 'any';
+  inputTaux.className = 'champ-saisie';
+  inputTaux.value = TYPES_PRESTATION[typeSuggere].tauxHoraire;
+  champTaux.appendChild(inputTaux);
+  details.appendChild(champTaux);
+
+  selectType.addEventListener('change', () => {
+    inputTaux.value = TYPES_PRESTATION[selectType.value].tauxHoraire;
+  });
+
+  const champNiveau = document.createElement('label');
+  champNiveau.textContent = "Niveau d'expertise requis";
+  const selectNiveau = document.createElement('select');
+  selectNiveau.className = 'champ-saisie';
+  NIVEAUX_EXPERTISE.forEach((niveau, index) => {
+    const option = document.createElement('option');
+    option.value = String(niveau.coefficient);
+    option.textContent = `Coefficient ${niveau.coefficient}`;
+    if (index === 0) option.selected = true;
+    selectNiveau.appendChild(option);
+  });
+  champNiveau.appendChild(selectNiveau);
+  details.appendChild(champNiveau);
+
+  const descriptionNiveau = document.createElement('p');
+  descriptionNiveau.className = 'texte-doux';
+  descriptionNiveau.textContent = NIVEAUX_EXPERTISE[0].description;
+  details.appendChild(descriptionNiveau);
+
+  selectNiveau.addEventListener('change', () => {
+    const niveau = NIVEAUX_EXPERTISE.find((n) => String(n.coefficient) === selectNiveau.value);
+    descriptionNiveau.textContent = niveau?.description || '';
+  });
+
+  const champsFrais = document.createElement('div');
+  champsFrais.className = 'editeur-note__grille';
+
+  const champKm = document.createElement('label');
+  champKm.append('Déplacement (km aller-retour × tarif au km)');
+  const paireKm = document.createElement('div');
+  paireKm.className = 'outil-tarif__paire';
+  const inputKm = document.createElement('input');
+  inputKm.type = 'number';
+  inputKm.min = '0';
+  inputKm.className = 'champ-saisie';
+  inputKm.placeholder = 'Kilomètres';
+  const inputTarifKm = document.createElement('input');
+  inputTarifKm.type = 'number';
+  inputTarifKm.min = '0';
+  inputTarifKm.step = 'any';
+  inputTarifKm.className = 'champ-saisie';
+  inputTarifKm.placeholder = 'Tarif au km (€)';
+  paireKm.append(inputKm, inputTarifKm);
+  champKm.appendChild(paireKm);
+
+  const champNuitees = document.createElement('label');
+  champNuitees.append('Nuitées (nombre × forfait par nuitée)');
+  const paireNuitees = document.createElement('div');
+  paireNuitees.className = 'outil-tarif__paire';
+  const inputNuitees = document.createElement('input');
+  inputNuitees.type = 'number';
+  inputNuitees.min = '0';
+  inputNuitees.className = 'champ-saisie';
+  inputNuitees.placeholder = 'Nombre de nuitées';
+  const inputForfaitNuitee = document.createElement('input');
+  inputForfaitNuitee.type = 'number';
+  inputForfaitNuitee.min = '0';
+  inputForfaitNuitee.step = 'any';
+  inputForfaitNuitee.className = 'champ-saisie';
+  inputForfaitNuitee.placeholder = 'Forfait par nuitée (€)';
+  paireNuitees.append(inputNuitees, inputForfaitNuitee);
+  champNuitees.appendChild(paireNuitees);
+
+  champsFrais.append(champKm, champNuitees);
+  details.appendChild(champsFrais);
+
+  const boutonGenerer = document.createElement('button');
+  boutonGenerer.type = 'button';
+  boutonGenerer.className = 'btn btn--primaire';
+  boutonGenerer.textContent = 'Générer les lignes';
+  boutonGenerer.addEventListener('click', () => {
+    const nouvellesLignes = calculerLignesTarif({
+      type: selectType.value,
+      coefficient: Number(selectNiveau.value),
+      tauxHoraire: Number(inputTaux.value) || TYPES_PRESTATION[selectType.value].tauxHoraire,
+      km: Number(inputKm.value) || 0,
+      tarifKm: Number(inputTarifKm.value) || 0,
+      nuitees: Number(inputNuitees.value) || 0,
+      forfaitNuitee: Number(inputForfaitNuitee.value) || 0,
+    });
+    onGenerer(nouvellesLignes);
+  });
+  details.appendChild(boutonGenerer);
+
+  return details;
 }
 
 function rendreGeneration(demande) {
@@ -212,6 +348,21 @@ function rendreEditeur(demande, proposition, lignesInitiales) {
   });
   sectionDevis.appendChild(boutonAjouter);
 
+  function appliquerLignesGenerees(nouvellesLignes) {
+    if (lignes.length > 0 && !window.confirm('Remplacer les lignes actuelles du devis par celles générées depuis le tarif ?')) {
+      return;
+    }
+    lignes.length = 0;
+    tbody.innerHTML = '';
+    for (const ligne of nouvellesLignes) {
+      lignes.push(ligne);
+      tbody.appendChild(rendreLigne(ligne));
+    }
+    rafraichirTotal();
+    sauvegarderLignes();
+  }
+
+  bloc.appendChild(rendreOutilTarif(demande, appliquerLignesGenerees));
   bloc.appendChild(sectionDevis);
 
   const grille = document.createElement('div');
