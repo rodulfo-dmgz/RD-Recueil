@@ -18,6 +18,11 @@ const TRANSITIONS = {
     { vers: 'en_saisie', libelle: 'Réouvrir la saisie' },
   ],
   en_analyse: [{ vers: 'reorientee', libelle: 'Passer en réorientée' }],
+  cadrage_valide: [{ vers: 'proposition_envoyee', libelle: 'Marquer la proposition envoyée' }],
+  proposition_envoyee: [
+    { vers: 'gagnee', libelle: 'Marquer gagnée' },
+    { vers: 'perdue', libelle: 'Marquer perdue' },
+  ],
 };
 const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
 const STATUTS_AVEC_CADRAGE = new Set([
