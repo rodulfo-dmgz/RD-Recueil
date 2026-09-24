@@ -11,6 +11,7 @@ import { calculerVisibilite } from '../../engine/conditions.js';
 import { rendreReponsesParSection, rendreJournal } from '../../components/lecture-demande.js';
 import { rendreMarkdown } from '../../components/markdown.js';
 import { afficherToast } from '../../components/toast.js';
+import { creerBoutonRetour } from '../../components/bouton-retour.js';
 
 export async function vuePreuves(reference) {
   const app = document.getElementById('app');
@@ -48,10 +49,7 @@ function rendre({ demande, questionnaire, reponses, journal, visibilite, noteVal
   const main = document.createElement('main');
   main.className = 'conteneur';
 
-  const retour = document.createElement('a');
-  retour.href = `#/demandes/${demande.reference}`;
-  retour.textContent = '← Retour à la demande';
-  main.appendChild(retour);
+  main.appendChild(creerBoutonRetour(`#/demandes/${demande.reference}`, 'Retour à la demande'));
 
   const actionsHaut = document.createElement('div');
   actionsHaut.className = 'editeur-note__actions';
@@ -105,4 +103,5 @@ function rendre({ demande, questionnaire, reponses, journal, visibilite, noteVal
 
   main.appendChild(imprimable);
   app.appendChild(main);
+  if (window.lucide) window.lucide.createIcons();
 }

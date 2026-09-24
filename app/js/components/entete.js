@@ -58,7 +58,10 @@ export function rendreEntete(profil) {
   entete.hidden = false;
   entete.innerHTML = `
     <div class="entete__conteneur">
-      <a href="#/" class="entete__logo">RD Recueil</a>
+      <a href="#/" class="entete__logo">
+        <img src="assets/images/logo.svg" alt="" class="entete__logo-image" />
+        <span>RD Recueil</span>
+      </a>
       <nav class="entete__nav" aria-label="Navigation principale">
         ${liens.map((l) => `<a href="${l.href}" class="entete__lien"><i data-lucide="${l.icone}"></i><span>${l.libelle}</span></a>`).join('')}
         ${lienCompte}

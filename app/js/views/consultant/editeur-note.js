@@ -13,6 +13,7 @@ import { calculerVisibilite } from '../../engine/conditions.js';
 import { genererNoteCadrage } from '../../engine/template.js';
 import { rendreMarkdown } from '../../components/markdown.js';
 import { afficherToast } from '../../components/toast.js';
+import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { getProfil } from '../../store.js';
 
 const LIBELLES_STATUT_NOTE = {
@@ -74,10 +75,7 @@ function rendre(contexte) {
   const main = document.createElement('main');
   main.className = 'conteneur';
 
-  const retour = document.createElement('a');
-  retour.href = `#/demandes/${demande.reference}`;
-  retour.textContent = '← Retour à la demande';
-  main.appendChild(retour);
+  main.appendChild(creerBoutonRetour(`#/demandes/${demande.reference}`, 'Retour à la demande'));
 
   const titre = document.createElement('h1');
   titre.textContent = `Note de cadrage — ${demande.reference}`;
@@ -101,6 +99,7 @@ function rendre(contexte) {
   }
 
   app.appendChild(main);
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function rendreGeneration(contexte) {

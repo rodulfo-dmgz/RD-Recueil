@@ -1,5 +1,6 @@
 import { creerDemande } from '../../services/demandes.js';
 import { afficherToast } from '../../components/toast.js';
+import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 import { getProfil } from '../../store.js';
 
@@ -31,10 +32,7 @@ export function vueCreationDemande() {
   const main = document.createElement('main');
   main.className = 'conteneur';
 
-  const retour = document.createElement('a');
-  retour.href = '#/tableau-de-bord';
-  retour.textContent = '← Retour au tableau de bord';
-  main.appendChild(retour);
+  main.appendChild(creerBoutonRetour('#/tableau-de-bord', 'Retour au tableau de bord'));
 
   const titre = document.createElement('h1');
   titre.textContent = 'Nouvelle demande';
@@ -70,6 +68,7 @@ export function vueCreationDemande() {
   form.append(champRaisonSociale, champSiret, fieldsetTypes, champDateLimite, bouton);
   main.appendChild(form);
   app.appendChild(main);
+  if (window.lucide) window.lucide.createIcons();
 
   form.addEventListener('submit', async (evt) => {
     evt.preventDefault();

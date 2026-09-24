@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { validerReponse, validerFichierDepot } from '../app/js/engine/validation.js';
+import { validerReponse, validerFichierDepot, urlAbsolue } from '../app/js/engine/validation.js';
 
 function q(overrides) {
   return { id: 'Q', type: 'texte', obligatoire: true, options: [], ...overrides };
@@ -108,10 +108,19 @@ test('siret : 14 chiffres + clé de Luhn', () => {
   assert.match(validerReponse(question, { valeur: '123' }), /14 chiffres/i);
 });
 
-test('url : http(s) uniquement', () => {
+test('url : http(s) uniquement, mais protocole manquant toléré si ça ressemble à un domaine', () => {
   const question = q({ type: 'url', obligatoire: false });
   assert.equal(validerReponse(question, { valeur: 'https://rd-formation.com' }), null);
+  assert.equal(validerReponse(question, { valeur: 'www.rd-formation.com' }), null);
+  assert.equal(validerReponse(question, { valeur: 'rd-formation.com' }), null);
   assert.match(validerReponse(question, { valeur: 'pas-une-url' }), /invalide/i);
+});
+
+test('urlAbsolue : complète le protocole manquant, rejette le texte sans domaine', () => {
+  assert.equal(urlAbsolue('https://rd-formation.com'), 'https://rd-formation.com/');
+  assert.equal(urlAbsolue('www.rd-formation.com'), 'https://www.rd-formation.com/');
+  assert.equal(urlAbsolue('pas-une-url'), null);
+  assert.equal(urlAbsolue(''), null);
 });
 
 test('fichier : dépôt - taille et extension', () => {

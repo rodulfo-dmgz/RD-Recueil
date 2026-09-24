@@ -1,6 +1,7 @@
 import { definirNouveauMotDePasse } from '../../auth.js';
 import { setProfil } from '../../store.js';
 import { afficherToast } from '../../components/toast.js';
+import { attacherToggleMotDePasse } from '../../components/mot-de-passe.js';
 import { navigate } from '../../router.js';
 
 export function vueChangerMotDePasse({ oblige = false } = {}) {
@@ -17,19 +18,34 @@ export function vueChangerMotDePasse({ oblige = false } = {}) {
         <form id="form-mot-de-passe" novalidate>
           <label class="champ">
             <span>Nouveau mot de passe</span>
-            <input type="password" name="motDePasse" required minlength="8" autocomplete="new-password" />
+            <div class="mdp-champ">
+              <input type="password" name="motDePasse" required minlength="8" autocomplete="new-password" />
+              <button type="button" class="mdp-toggle" aria-label="Afficher le mot de passe" aria-pressed="false">
+                <i data-lucide="eye"></i>
+              </button>
+            </div>
           </label>
           <label class="champ">
             <span>Confirmez le mot de passe</span>
-            <input type="password" name="confirmation" required minlength="8" autocomplete="new-password" />
+            <div class="mdp-champ">
+              <input type="password" name="confirmation" required minlength="8" autocomplete="new-password" />
+              <button type="button" class="mdp-toggle" aria-label="Afficher le mot de passe" aria-pressed="false">
+                <i data-lucide="eye"></i>
+              </button>
+            </div>
           </label>
           <button type="submit" class="btn btn--primaire">Valider</button>
         </form>
       </div>
     </main>
   `;
+  if (window.lucide) window.lucide.createIcons();
 
   const form = document.getElementById('form-mot-de-passe');
+  form.querySelectorAll('.mdp-champ').forEach((wrapper) => {
+    attacherToggleMotDePasse(wrapper.querySelector('.mdp-toggle'), wrapper.querySelector('input'));
+  });
+
   form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
     const donnees = new FormData(form);
@@ -39,7 +55,7 @@ export function vueChangerMotDePasse({ oblige = false } = {}) {
       afficherToast('Les deux mots de passe ne correspondent pas.', { type: 'erreur' });
       return;
     }
-    const bouton = form.querySelector('button');
+    const bouton = form.querySelector('button[type="submit"]');
     bouton.disabled = true;
     try {
       await definirNouveauMotDePasse(motDePasse);

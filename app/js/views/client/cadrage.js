@@ -3,6 +3,7 @@ import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { listerVersions, validerNote, demanderModification } from '../../services/notes-cadrage.js';
 import { rendreMarkdown } from '../../components/markdown.js';
 import { afficherToast } from '../../components/toast.js';
+import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 
 export async function vueCadrageClient(reference) {
@@ -37,10 +38,7 @@ function rendre(demande, note) {
   const main = document.createElement('main');
   main.className = 'conteneur';
 
-  const retour = document.createElement('a');
-  retour.href = `#/d/${demande.reference}`;
-  retour.textContent = '← Retour à la demande';
-  main.appendChild(retour);
+  main.appendChild(creerBoutonRetour(`#/d/${demande.reference}`, 'Retour à la demande'));
 
   const titre = document.createElement('h1');
   titre.textContent = 'Note de cadrage';
@@ -76,6 +74,7 @@ function rendre(demande, note) {
   }
 
   app.appendChild(main);
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function rendreActions(demande, note) {

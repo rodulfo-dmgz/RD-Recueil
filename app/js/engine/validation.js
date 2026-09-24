@@ -19,6 +19,32 @@ function estDateValide(texte) {
   return typeof texte === 'string' && DATE_RE.test(texte) && !Number.isNaN(Date.parse(texte));
 }
 
+// Beaucoup de gens saisissent un site web sans protocole ("www.site.fr").
+// On retente avec https:// si la valeur ressemble à un domaine (un point,
+// aucun espace), sans pour autant valider n'importe quel texte.
+const DOMAINE_RE = /^\S+\.\S+$/;
+
+export function urlAbsolue(valeur) {
+  if (typeof valeur !== 'string') return null;
+  const v = valeur.trim();
+  if (!v) return null;
+  try {
+    const u = new URL(v);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+  } catch {
+    // essai suivant ci-dessous
+  }
+  if (DOMAINE_RE.test(v)) {
+    try {
+      const u = new URL(`https://${v}`);
+      return u.href;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 function luhnValide(chiffres) {
   let somme = 0;
   for (let i = 0; i < chiffres.length; i++) {
@@ -109,14 +135,7 @@ const VALIDATEURS = {
     if (typeof v !== 'string' || !/^\d{14}$/.test(v)) return 'Le SIRET doit contenir 14 chiffres.';
     return luhnValide(v) ? null : 'SIRET invalide (clé de contrôle incorrecte).';
   },
-  url: (v) => {
-    try {
-      const u = new URL(v);
-      return u.protocol === 'http:' || u.protocol === 'https:' ? null : 'URL invalide.';
-    } catch {
-      return 'URL invalide.';
-    }
-  },
+  url: (v) => (urlAbsolue(v) ? null : 'URL invalide.'),
   fichier: (v, _question, { obligatoire }) => {
     if (!Array.isArray(v)) return 'Fichier(s) invalide(s).';
     if (obligatoire && v.length === 0) return 'Déposez au moins un fichier.';

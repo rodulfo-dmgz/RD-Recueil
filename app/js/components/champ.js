@@ -76,16 +76,28 @@ export function rendreChamp(question, reponse, { onChange, lectureSeule, indexGl
   // Les champs vides et obligatoires ne sont pas signalés ici : ils sont
   // listés au récapitulatif (§4.1). Seule une valeur déjà saisie mais mal
   // formée déclenche un message immédiat.
-  if (!nsp && !estVide(valeur)) {
-    const erreur = validerReponse(question, { valeur, nsp });
-    if (erreur) {
-      const erreurEl = document.createElement('p');
-      erreurEl.className = 'champ-question__erreur';
-      erreurEl.setAttribute('role', 'alert');
-      erreurEl.textContent = erreur;
-      conteneur.appendChild(erreurEl);
-    }
-  }
+  ajouterErreurSiBesoin(conteneur, question, { valeur, nsp });
 
   return conteneur;
+}
+
+function ajouterErreurSiBesoin(conteneur, question, { valeur, nsp }) {
+  if (nsp || estVide(valeur)) return;
+  const erreur = validerReponse(question, { valeur, nsp });
+  if (!erreur) return;
+  const erreurEl = document.createElement('p');
+  erreurEl.className = 'champ-question__erreur';
+  erreurEl.setAttribute('role', 'alert');
+  erreurEl.textContent = erreur;
+  conteneur.appendChild(erreurEl);
+}
+
+// Rafraîchit uniquement le message d'erreur d'une question déjà affichée,
+// sans reconstruire le champ de saisie (qui ferait perdre le focus clavier
+// pendant la frappe). À appeler à chaque mise à jour du store.
+export function mettreAJourErreurChamp(question, reponse) {
+  const conteneur = document.getElementById(`champ-${question.id}`);
+  if (!conteneur) return;
+  conteneur.querySelector('.champ-question__erreur')?.remove();
+  ajouterErreurSiBesoin(conteneur, question, reponse || {});
 }

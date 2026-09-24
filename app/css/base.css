@@ -1,5 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Garantit que [hidden] l'emporte toujours, même sur des éléments dont une
+   classe (.champ, .modal-fond, etc.) fixe déjà un display flex/grid. */
+[hidden] { display: none !important; }
+
 html, body { height: 100%; }
 
 body {

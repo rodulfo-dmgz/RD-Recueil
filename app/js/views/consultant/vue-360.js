@@ -10,6 +10,7 @@ import { calculerVisibilite } from '../../engine/conditions.js';
 import { afficherToast } from '../../components/toast.js';
 import { initGlossaryTooltip } from '../../components/glossary-tooltip.js';
 import { rendreReponsesParSection, rendreJournal } from '../../components/lecture-demande.js';
+import { creerBoutonRetour } from '../../components/bouton-retour.js';
 
 const TRANSITIONS = {
   soumise: [
@@ -65,10 +66,7 @@ function rendre({ demande, questionnaire, reponses, fichiers, commentaires, jour
   const main = document.createElement('main');
   main.className = 'conteneur';
 
-  const retour = document.createElement('a');
-  retour.href = '#/tableau-de-bord';
-  retour.textContent = '← Retour au tableau de bord';
-  main.appendChild(retour);
+  main.appendChild(creerBoutonRetour('#/tableau-de-bord', 'Retour au tableau de bord'));
 
   const titre = document.createElement('h1');
   titre.textContent = `${demande.reference} — ${demande.statut}`;
@@ -93,6 +91,7 @@ function rendre({ demande, questionnaire, reponses, fichiers, commentaires, jour
   main.appendChild(rendreJournal(journal));
 
   app.appendChild(main);
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function rendreActions(demande) {

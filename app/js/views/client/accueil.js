@@ -7,6 +7,29 @@ import { initGlossaryTooltip } from '../../components/glossary-tooltip.js';
 import { rendreProgression } from '../../components/progress.js';
 import { afficherToast } from '../../components/toast.js';
 
+// Icône Lucide par section (identifiants stables - 02_MODELE_RECUEIL_BESOINS.md).
+const ICONES_SECTION = {
+  'TC-0': 'clipboard-list',
+  'TC-1': 'building-2',
+  'TC-2': 'users',
+  'TC-3': 'message-square-text',
+  'TC-4': 'search',
+  'TC-5': 'user-check',
+  'TC-6': 'target',
+  'TC-7': 'layers',
+  'TC-8': 'settings-2',
+  'TC-9': 'clipboard-check',
+  'TC-10': 'euro',
+  'TC-11': 'scale',
+  'TC-12': 'compass',
+  'TC-13': 'send',
+  'V-FOR': 'graduation-cap',
+  'V-PON': 'briefcase',
+  'V-MOD': 'package',
+  'V-ING': 'route',
+  'V-CER': 'award',
+};
+
 export async function vueAccueilDemande(reference) {
   const app = document.getElementById('app');
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
@@ -53,18 +76,26 @@ function rendre(reference) {
 
   main.appendChild(rendreProgression(etat.progression, sectionsVisibles));
 
-  const listeSections = document.createElement('ul');
-  listeSections.className = 'liste-demandes';
+  const grilleSections = document.createElement('div');
+  grilleSections.className = 'section-grille';
   for (const section of sectionsVisibles) {
-    const li = document.createElement('li');
-    const lien = document.createElement('a');
-    lien.href = `#/d/${reference}/s/${section.id}`;
     const info = etat.progression.parSection.get(section.id);
-    lien.textContent = `${section.titre}${info ? ` — ${info.pourcentage}%` : ''}`;
-    li.appendChild(lien);
-    listeSections.appendChild(li);
+    const pourcentage = info ? info.pourcentage : 0;
+    const complete = pourcentage === 100;
+
+    const carte = document.createElement('a');
+    carte.href = `#/d/${reference}/s/${section.id}`;
+    carte.className = 'section-carte' + (complete ? ' section-carte--complete' : '');
+
+    carte.innerHTML = `
+      <span class="section-carte__icone"><i data-lucide="${ICONES_SECTION[section.id] || 'file-text'}"></i></span>
+      <span class="section-carte__titre">${section.titre}</span>
+      <span class="section-carte__barre"><span style="width:${pourcentage}%"></span></span>
+      <span class="section-carte__pourcentage">${pourcentage}%</span>
+    `;
+    grilleSections.appendChild(carte);
   }
-  main.appendChild(listeSections);
+  main.appendChild(grilleSections);
 
   const actions = document.createElement('div');
   actions.className = 'accueil-demande__actions';
@@ -97,4 +128,5 @@ function rendre(reference) {
   main.appendChild(actions);
 
   app.appendChild(main);
+  if (window.lucide) window.lucide.createIcons();
 }

@@ -27,7 +27,7 @@ Ne jamais modifier une question ou un terme ailleurs que dans ces `.md`. Toute m
 - Routage SPA par hash (`#/…`), déploiement GitHub Pages depuis `app/`.
 - Supabase (Postgres, Auth e-mail + mot de passe, Storage, RLS, Edge Functions) via `@supabase/supabase-js@2` en CDN.
 - Comptes créés uniquement via l'Edge Function `creer-compte` (mot de passe temporaire, changement obligatoire à la première connexion). Aucune inscription libre.
-- Icônes : Lucide uniquement. Polices : Space Grotesk (titres), Plus Jakarta Sans (texte), JetBrains Mono (code).
+- Icônes : Lucide (https://lucide.dev/) uniquement, via `data-lucide="…"` + `lucide.createIcons()`. La skill `.claude/skills/ui-ux-pro-max` (locale, non versionnée) propose des icônes Phosphor/Heroicons dans ses exemples : n'en suivre que la logique (taille, accessibilité, contexte), jamais la bibliothèque suggérée, ni la doc CLI (utilise React) — traduire systématiquement vers Lucide et du HTML/JS natif. Polices : Space Grotesk (titres), Plus Jakarta Sans (texte), JetBrains Mono (code).
 - Couleurs : `#1F4590` bleu, `#1CA098` turquoise, `#FF570A` orange, via `app/css/tokens.css` uniquement.
 - Scripts et tests : Node 20+, `node:test`, aucune dépendance npm sauf nécessité justifiée.
 

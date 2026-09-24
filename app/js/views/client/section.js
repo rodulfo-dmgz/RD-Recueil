@@ -1,7 +1,8 @@
 import { getEtatDemande, mettreAJourReponse, surEtatDemande } from '../../store.js';
-import { rendreChamp } from '../../components/champ.js';
+import { rendreChamp, mettreAJourErreurChamp } from '../../components/champ.js';
 import { televerserFichier } from '../../services/fichiers.js';
 import { afficherToast } from '../../components/toast.js';
+import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 
 const LIBELLE_STATUT = {
@@ -42,10 +43,7 @@ export function vueSection(reference, sectionId) {
     const main = document.createElement('main');
     main.className = 'conteneur';
 
-    const retour = document.createElement('a');
-    retour.href = `#/d/${reference}`;
-    retour.textContent = '← Retour à la demande';
-    main.appendChild(retour);
+    main.appendChild(creerBoutonRetour(`#/d/${reference}`, 'Retour à la demande'));
 
     const titre = document.createElement('h1');
     titre.textContent = section.titre;
@@ -88,6 +86,7 @@ export function vueSection(reference, sectionId) {
     main.appendChild(suivant);
 
     app.appendChild(main);
+    if (window.lucide) window.lucide.createIcons();
   }
 
   // Un changement de store ne redessine la section que si l'ensemble des
@@ -99,8 +98,16 @@ export function vueSection(reference, sectionId) {
       .join(',');
     if (nouveauxIds !== idsAffiches) {
       rendre();
-    } else if (elementStatut) {
+      return;
+    }
+    if (elementStatut) {
       elementStatut.textContent = LIBELLE_STATUT[etat.statutEnregistrement] || '';
+    }
+    // Le champ de saisie n'est pas reconstruit (focus préservé), mais le
+    // message d'erreur, lui, doit refléter la valeur actuelle - sinon une
+    // erreur reste affichée après correction (ou l'inverse).
+    for (const question of questionsVisiblesDeLaSection(etat, sectionId)) {
+      mettreAJourErreurChamp(question, etat.reponses.get(question.id));
     }
   });
 

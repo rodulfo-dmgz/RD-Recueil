@@ -2,6 +2,7 @@ import { getEtatDemande } from '../../store.js';
 import { soumettre } from '../../services/demandes.js';
 import { formaterReponse as formaterValeur } from '../../engine/formatage.js';
 import { afficherToast } from '../../components/toast.js';
+import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 
 function estVide(reponse) {
@@ -24,10 +25,7 @@ export function vueRecap(reference) {
     const main = document.createElement('main');
     main.className = 'conteneur';
 
-    const retour = document.createElement('a');
-    retour.href = `#/d/${reference}`;
-    retour.textContent = '← Retour à la demande';
-    main.appendChild(retour);
+    main.appendChild(creerBoutonRetour(`#/d/${reference}`, 'Retour à la demande'));
 
     const titre = document.createElement('h1');
     titre.textContent = 'Récapitulatif';
@@ -110,5 +108,6 @@ export function vueRecap(reference) {
     main.appendChild(bouton);
 
     app.appendChild(main);
+    if (window.lucide) window.lucide.createIcons();
   }
 }
