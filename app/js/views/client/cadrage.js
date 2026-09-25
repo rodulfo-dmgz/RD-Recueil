@@ -67,8 +67,13 @@ function rendre(demande, note) {
     info.className = 'texte-doux';
     info.textContent = `Note validée le ${new Date(note.validee_le).toLocaleDateString('fr-FR')}.`;
     main.appendChild(info);
-  } else if (note.statut === 'envoyee') {
+  } else if (note.statut === 'envoyee' && demande.statut === 'cadrage_envoye') {
     main.appendChild(rendreActions(demande, note));
+  } else if (note.statut === 'envoyee') {
+    const info = document.createElement('p');
+    info.className = 'texte-doux';
+    info.textContent = 'Cette note est en cours de traitement. Réessayez dans quelques instants ou contactez RD Formation.';
+    main.appendChild(info);
   } else if (note.statut === 'a_revoir') {
     const info = document.createElement('p');
     info.className = 'texte-doux';

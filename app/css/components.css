@@ -871,6 +871,19 @@
 }
 .modale-signature::backdrop { background: rgba(26, 31, 43, .5); }
 .modale-signature h2 { margin-top: 0; font-family: var(--police-titre); }
+.modale-signature__onglets { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--bordure); }
+.modale-signature__onglet {
+  border: none;
+  background: transparent;
+  padding: 8px 4px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--texte-doux);
+  font-weight: 600;
+  cursor: pointer;
+}
+.modale-signature__onglet--actif { color: var(--rd-bleu); border-bottom-color: var(--rd-bleu); }
+.modale-signature__champ-nom { margin-bottom: 12px; }
 .modale-signature__canvas {
   width: 100%;
   height: 180px;

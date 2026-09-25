@@ -1,5 +1,5 @@
-// Capture d'une signature électronique simple (tracé sur <canvas>) -
-// 01_ARCHITECTURE.md section 7 (notes_cadrage.signature_image).
+// Capture d'une signature électronique simple (tracé ou nom tapé, rendu sur
+// <canvas>) - 01_ARCHITECTURE.md section 7 (notes_cadrage.signature_image).
 export function ouvrirModaleSignature({ onValider }) {
   const dialog = document.createElement('dialog');
   dialog.className = 'modale-signature';
@@ -7,9 +7,27 @@ export function ouvrirModaleSignature({ onValider }) {
   const titre = document.createElement('h2');
   titre.textContent = 'Signature électronique';
 
-  const consigne = document.createElement('p');
-  consigne.className = 'texte-doux';
-  consigne.textContent = 'Dessinez votre signature ci-dessous avec la souris, le doigt ou un stylet.';
+  const onglets = document.createElement('div');
+  onglets.className = 'modale-signature__onglets';
+  const ongletDessiner = document.createElement('button');
+  ongletDessiner.type = 'button';
+  ongletDessiner.className = 'modale-signature__onglet modale-signature__onglet--actif';
+  ongletDessiner.textContent = 'Dessiner';
+  const ongletEcrire = document.createElement('button');
+  ongletEcrire.type = 'button';
+  ongletEcrire.className = 'modale-signature__onglet';
+  ongletEcrire.textContent = 'Écrire mon nom';
+  onglets.append(ongletDessiner, ongletEcrire);
+
+  const consigneDessiner = document.createElement('p');
+  consigneDessiner.className = 'texte-doux';
+  consigneDessiner.textContent = 'Dessinez votre signature ci-dessous avec la souris, le doigt ou un stylet.';
+
+  const champNom = document.createElement('input');
+  champNom.type = 'text';
+  champNom.className = 'champ-saisie modale-signature__champ-nom';
+  champNom.placeholder = 'Tapez votre nom';
+  champNom.hidden = true;
 
   const canvas = document.createElement('canvas');
   canvas.className = 'modale-signature__canvas';
@@ -21,8 +39,32 @@ export function ouvrirModaleSignature({ onValider }) {
   ctx.lineWidth = 2.5;
   ctx.lineCap = 'round';
 
+  let mode = 'dessiner';
   let dessine = false;
   let enCours = false;
+
+  function effacerCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function redessinerNom() {
+    effacerCanvas();
+    const nom = champNom.value.trim();
+    if (!nom) return;
+    ctx.font = 'italic 600 42px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.fillStyle = '#1F4590';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+    ctx.fillText(nom, canvas.width / 2, canvas.height / 2, canvas.width - 40);
+  }
+
+  function contenuPresent() {
+    return mode === 'dessiner' ? dessine : champNom.value.trim().length > 0;
+  }
+
+  function majBoutonValider() {
+    boutonValider.disabled = !contenuPresent();
+  }
 
   function position(evt) {
     const rect = canvas.getBoundingClientRect();
@@ -33,9 +75,10 @@ export function ouvrirModaleSignature({ onValider }) {
   }
 
   canvas.addEventListener('pointerdown', (evt) => {
+    if (mode !== 'dessiner') return;
     enCours = true;
     dessine = true;
-    boutonValider.disabled = false;
+    majBoutonValider();
     const { x, y } = position(evt);
     ctx.beginPath();
     ctx.moveTo(x, y);
@@ -50,6 +93,28 @@ export function ouvrirModaleSignature({ onValider }) {
   canvas.addEventListener('pointerup', () => { enCours = false; });
   canvas.addEventListener('pointerleave', () => { enCours = false; });
 
+  champNom.addEventListener('input', () => {
+    redessinerNom();
+    majBoutonValider();
+  });
+
+  function activerOnglet(nouveauMode) {
+    mode = nouveauMode;
+    effacerCanvas();
+    dessine = false;
+    champNom.value = '';
+    ongletDessiner.classList.toggle('modale-signature__onglet--actif', mode === 'dessiner');
+    ongletEcrire.classList.toggle('modale-signature__onglet--actif', mode === 'ecrire');
+    consigneDessiner.hidden = mode !== 'dessiner';
+    champNom.hidden = mode !== 'ecrire';
+    canvas.style.cursor = mode === 'dessiner' ? 'crosshair' : 'default';
+    majBoutonValider();
+    if (mode === 'ecrire') champNom.focus();
+  }
+
+  ongletDessiner.addEventListener('click', () => activerOnglet('dessiner'));
+  ongletEcrire.addEventListener('click', () => activerOnglet('ecrire'));
+
   const actions = document.createElement('div');
   actions.className = 'modale-signature__actions';
 
@@ -58,9 +123,10 @@ export function ouvrirModaleSignature({ onValider }) {
   boutonEffacer.className = 'btn btn--secondaire';
   boutonEffacer.textContent = 'Effacer';
   boutonEffacer.addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    effacerCanvas();
     dessine = false;
-    boutonValider.disabled = true;
+    champNom.value = '';
+    majBoutonValider();
   });
 
   const boutonAnnuler = document.createElement('button');
@@ -75,7 +141,7 @@ export function ouvrirModaleSignature({ onValider }) {
   boutonValider.textContent = 'Valider et signer';
   boutonValider.disabled = true;
   boutonValider.addEventListener('click', async () => {
-    if (!dessine) return;
+    if (!contenuPresent()) return;
     boutonValider.disabled = true;
     boutonEffacer.disabled = true;
     const succes = await onValider(canvas.toDataURL('image/png'));
@@ -88,7 +154,7 @@ export function ouvrirModaleSignature({ onValider }) {
   });
 
   actions.append(boutonEffacer, boutonAnnuler, boutonValider);
-  dialog.append(titre, consigne, canvas, actions);
+  dialog.append(titre, onglets, consigneDessiner, champNom, canvas, actions);
   dialog.addEventListener('close', () => dialog.remove());
   document.body.appendChild(dialog);
   dialog.showModal();
