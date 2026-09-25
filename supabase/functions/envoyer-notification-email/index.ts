@@ -38,36 +38,49 @@ const LOGO_URL = "https://www.rd-formation.com/assets/img/RDLOGO.png";
 const SITE_URL = "https://www.rd-formation.com";
 const TELEPHONE = "07 66 62 60 19";
 
-// Mise en page en tableaux et styles en ligne : c'est ce qui reste fiable
-// d'un client mail à l'autre (Outlook en particulier ignore une bonne part
-// du CSS moderne). Sobre à dessein : logo, message, un seul bouton d'action,
-// coordonnées - rien de plus.
+// Même gabarit (bandeau bleu, carte blanche, bouton centré dans sa propre
+// table) que celui de l'e-mail d'accès (creer-compte/mail.ts), pour une
+// identité visuelle cohérente entre les deux e-mails. Tableaux et styles en
+// ligne : ce qui reste fiable d'un client mail à l'autre (Outlook en
+// particulier ignore une bonne part du CSS moderne).
 function construireEmailHtml({ titre, reference, lien }: { titre: string; reference: string; lien: string }) {
   return `<!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#F7F8FA;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F8FA;padding:32px 16px;">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${titre}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#26364a;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f7fb;padding:40px 15px;">
     <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#FFFFFF;border-radius:12px;border:1px solid #E2E6ED;">
-        <tr><td style="padding:32px 32px 20px;text-align:center;">
-          <img src="${LOGO_URL}" width="48" height="48" alt="RD Formation" style="display:block;margin:0 auto 10px;border-radius:50%;">
-          <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5B6475;">RD Formation</div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(31,69,144,0.08);">
+
+        <tr><td align="center" style="padding:35px 30px 25px;">
+          <a href="${SITE_URL}" target="_blank" style="text-decoration:none;">
+            <img src="${LOGO_URL}" alt="RD Formation" width="130" style="display:block;max-width:130px;height:auto;border:0;">
+          </a>
         </td></tr>
-        <tr><td style="padding:0 32px;"><hr style="border:none;border-top:1px solid #E2E6ED;margin:0;"></td></tr>
-        <tr><td style="padding:28px 32px;">
-          <h1 style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:19px;color:#1A1F2B;">${titre}</h1>
-          <p style="margin:0 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#5B6475;">Concernant la demande <strong style="color:#1A1F2B;">${reference}</strong> sur RD Recueil.</p>
-          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:#1F4590;">
-            <a href="${lien}" style="display:inline-block;padding:12px 22px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#FFFFFF;text-decoration:none;">Consulter la demande</a>
-          </td></tr></table>
+
+        <tr><td style="background-color:#1f4590;padding:25px 35px;">
+          <h1 style="margin:0;color:#ffffff;font-size:22px;line-height:30px;font-weight:700;">${titre}</h1>
         </td></tr>
-        <tr><td style="padding:0 32px;"><hr style="border:none;border-top:1px solid #E2E6ED;margin:0;"></td></tr>
-        <tr><td style="padding:18px 32px 26px;text-align:center;">
-          <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#5B6475;">
-            <a href="${SITE_URL}" style="color:#1CA098;text-decoration:none;">${SITE_URL.replace("https://", "")}</a> &middot; ${TELEPHONE}
-          </p>
+
+        <tr><td style="padding:35px;text-align:center;">
+          <p style="margin:0 0 28px;font-size:15px;line-height:25px;color:#526274;">Concernant la demande <strong style="color:#1f4590;">${reference}</strong> sur RD Recueil.</p>
+
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center">
+              <a href="${lien}" target="_blank" style="display:inline-block;background-color:#1ba098;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:14px 28px;border-radius:9px;">Consulter la demande</a>
+            </td></tr>
+          </table>
         </td></tr>
+
+        <tr><td style="background-color:#f8fafc;padding:22px 35px;text-align:center;border-top:1px solid #edf1f6;">
+          <p style="margin:0 0 8px;font-size:12px;color:#94a3b8;">RD Formation, Montpellier</p>
+          <p style="margin:0;font-size:12px;"><a href="${SITE_URL}" target="_blank" style="color:#1f4590;text-decoration:none;">www.rd-formation.com</a> &middot; ${TELEPHONE}</p>
+        </td></tr>
+
       </table>
     </td></tr>
   </table>

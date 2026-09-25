@@ -3,6 +3,7 @@
 // clé service_role, jamais exposée côté navigateur (CLAUDE.md).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { genererEmailAcces } from "./mail.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ROLES_VALIDES = ["client", "consultant", "admin"];
@@ -149,6 +150,35 @@ Deno.serve(async (req: Request) => {
   );
   if (erreurProfil) {
     return reponseJson({ erreur: erreurProfil.message }, 400);
+  }
+
+  // Envoi de l'e-mail d'accès - best-effort : un souci du côté de Resend ne
+  // doit jamais empêcher la création du compte, qui a déjà réussi à ce
+  // stade (même logique que envoyer-notification-email : la fiabilité des
+  // e-mails transactionnels a déjà été un point de friction sur ce projet,
+  // 01_ARCHITECTURE.md section 8.1).
+  const resendCle = Deno.env.get("RESEND_API_KEY");
+  if (resendCle) {
+    try {
+      const appUrl = Deno.env.get("APP_URL") || "https://rodulfo-dmgz.github.io/RD-Recueil";
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendCle}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "RD Formation <notifications@mail.rd-formation.com>",
+          to: email,
+          subject: "Votre compte RD Recueil est prêt",
+          html: genererEmailAcces({
+            prenom: nom,
+            email,
+            password: motDePasseTemporaire,
+            lienConnexion: `${appUrl}/#/connexion`,
+          }),
+        }),
+      });
+    } catch {
+      // silencieux : la création du compte reste un succès.
+    }
   }
 
   return reponseJson({ email, motDePasseTemporaire, userId: nouvelUtilisateur.user.id, compteExistant: false });

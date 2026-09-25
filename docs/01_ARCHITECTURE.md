@@ -505,7 +505,7 @@ create table notifications (
 
 ### 8.1 Authentification
 
-- E-mail + mot de passe (Supabase Auth). Aucun mot de passe choisi librement par le titulaire à la création : un mot de passe temporaire est généré par une Edge Function (`creer-compte`, exécutée côté serveur avec la clé `service_role`, jamais exposée au navigateur) et communiqué par le consultant ou l'admin au titulaire du compte. Le compte est marqué `doit_changer_mot_de_passe = true` ; la première connexion redirige obligatoirement vers un écran de changement de mot de passe avant d'accéder au reste de l'application.
+- E-mail + mot de passe (Supabase Auth). Aucun mot de passe choisi librement par le titulaire à la création : un mot de passe temporaire est généré par une Edge Function (`creer-compte`, exécutée côté serveur avec la clé `service_role`, jamais exposée au navigateur). Le compte est marqué `doit_changer_mot_de_passe = true` ; la première connexion redirige obligatoirement vers un écran de changement de mot de passe avant d'accéder au reste de l'application. L'e-mail et le mot de passe sont envoyés automatiquement au titulaire (gabarit `creer-compte/mail.ts`, même mécanisme Resend best-effort que section 16) ; ils restent aussi affichés à l'écran pour le consultant, au cas où l'envoi échouerait.
 - L'invitation d'un client crée une ligne `demande_acces` ; la création du compte (Edge Function) rattache `user_id` et crée le profil `client`.
 - Les comptes `consultant` et `admin` sont créés par l'admin uniquement, via la même Edge Function ; l'inscription libre est désactivée.
 - Protection Supabase Auth contre les mots de passe compromis (vérification HaveIBeenPwned) activée au niveau du projet.
