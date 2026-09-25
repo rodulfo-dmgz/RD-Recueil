@@ -223,11 +223,11 @@ function rendreLecture(note) {
   const documents = document.createElement('div');
   documents.className = 'documents-cadrage carte';
   documents.appendChild(
-    creerLigneDocument({ titre: 'Note de cadrage', contenuHtml: rendreMarkdown(corpsAvecValidation) })
+    creerLigneDocument({ titre: 'Note de cadrage', icone: 'file-text', contenuHtml: rendreMarkdown(corpsAvecValidation) })
   );
   if (annexe) {
     documents.appendChild(
-      creerLigneDocument({ titre: 'Glossaire des termes utilisés', contenuHtml: rendreMarkdown(annexe) })
+      creerLigneDocument({ titre: 'Glossaire des termes utilisés', icone: 'book-open', contenuHtml: rendreMarkdown(annexe) })
     );
   }
   conteneur.appendChild(documents);

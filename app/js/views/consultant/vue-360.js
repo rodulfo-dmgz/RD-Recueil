@@ -5,29 +5,25 @@ import { listerFichiers } from '../../services/fichiers.js';
 import { chargerCommentaires, posterCommentaire } from '../../services/commentaires.js';
 import { chargerJournal } from '../../services/evenements.js';
 import { obtenirAcces } from '../../services/demande-acces.js';
+import { listerVersions } from '../../services/notes-cadrage.js';
+import { obtenirProposition, listerLignes } from '../../services/propositions.js';
 import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
 import { afficherToast } from '../../components/toast.js';
 import { initGlossaryTooltip } from '../../components/glossary-tooltip.js';
 import { rendreReponsesParSection, rendreJournal } from '../../components/lecture-demande.js';
+import { creerLigneNavigation, creerCarteListe } from '../../components/liste-navigation.js';
+import { creerLigneDocument } from '../../components/document-viewer.js';
+import { rendreMarkdown, separerAnnexeGlossaire, injecterValidationDansCorps } from '../../components/markdown.js';
+import { construireDevisImprimable } from '../../components/devis-imprimable.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
+import { LIBELLES_STATUT, categorieStatut } from '../../engine/statuts.js';
 
 const TRANSITIONS = {
   soumise: [{ vers: 'en_saisie', libelle: 'Réouvrir la saisie' }],
   en_analyse: [{ vers: 'reorientee', libelle: 'Passer en réorientée' }],
 };
 const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
-const STATUTS_AVEC_CADRAGE = new Set([
-  'en_analyse',
-  'cadrage_envoye',
-  'cadrage_a_revoir',
-  'cadrage_valide',
-  'proposition_envoyee',
-]);
-// proposition_envoyee/gagnee/perdue résultent désormais de la décision du
-// client sur une vraie proposition (devis + justification), jamais d'un
-// simple clic consultant - cf. editeur-proposition.js.
-const STATUTS_AVEC_PROPOSITION = new Set(['cadrage_valide', 'proposition_envoyee', 'gagnee', 'perdue']);
 // entretien_planifie résulte désormais du choix d'un créneau par le client
 // (cf. creneaux.js), plus d'un simple clic consultant.
 const STATUTS_AVEC_CRENEAUX = new Set(['soumise', 'entretien_planifie']);
@@ -43,28 +39,57 @@ export async function vueVue360(reference) {
       return;
     }
 
-    const [questionnaire, glossaireTermes, reponses, fichiers, commentaires, journal, acces] = await Promise.all([
-      chargerQuestionnaire(demande.questionnaire_id),
-      chargerGlossaire(demande.questionnaire_id),
-      chargerReponsesStaff(demande.id),
-      listerFichiers(demande.id),
-      chargerCommentaires(demande.id),
-      chargerJournal(demande.id),
-      obtenirAcces(demande.id),
-    ]);
+    const [questionnaire, glossaireTermes, reponses, fichiers, commentaires, journal, acces, versionsNote, proposition] =
+      await Promise.all([
+        chargerQuestionnaire(demande.questionnaire_id),
+        chargerGlossaire(demande.questionnaire_id),
+        chargerReponsesStaff(demande.id),
+        listerFichiers(demande.id),
+        chargerCommentaires(demande.id),
+        chargerJournal(demande.id),
+        obtenirAcces(demande.id),
+        listerVersions(demande.id),
+        obtenirProposition(demande.id),
+      ]);
+    const lignesProposition = proposition ? await listerLignes(proposition.id) : [];
 
     const glossaireIndex = indexerGlossaire(glossaireTermes);
     initGlossaryTooltip(glossaireIndex);
     const visibilite = calculerVisibilite(questionnaire, reponses);
+    const noteEnvoyee = (versionsNote[0]?.statut === 'brouillon' ? null : versionsNote[0]) ?? null;
 
-    rendre({ demande, questionnaire, reponses, fichiers, commentaires, journal, visibilite, acces });
+    rendre({
+      demande,
+      questionnaire,
+      reponses,
+      fichiers,
+      commentaires,
+      journal,
+      visibilite,
+      acces,
+      noteEnvoyee,
+      proposition,
+      lignesProposition,
+    });
   } catch (err) {
     afficherToast(err.message, { type: 'erreur' });
     app.innerHTML = '<main class="conteneur"><h1>Impossible de charger la demande</h1></main>';
   }
 }
 
-function rendre({ demande, questionnaire, reponses, fichiers, commentaires, journal, visibilite, acces }) {
+function rendre({
+  demande,
+  questionnaire,
+  reponses,
+  fichiers,
+  commentaires,
+  journal,
+  visibilite,
+  acces,
+  noteEnvoyee,
+  proposition,
+  lignesProposition,
+}) {
   const app = document.getElementById('app');
   app.innerHTML = '';
   const main = document.createElement('main');
@@ -72,11 +97,22 @@ function rendre({ demande, questionnaire, reponses, fichiers, commentaires, jour
 
   main.appendChild(creerBoutonRetour('#/tableau-de-bord', 'Retour au tableau de bord'));
 
+  const entete = document.createElement('div');
+  entete.className = 'entete-demande';
   const titre = document.createElement('h1');
-  titre.textContent = `${demande.reference} — ${demande.statut}`;
-  main.appendChild(titre);
+  titre.textContent = demande.reference;
+  const statut = document.createElement('span');
+  statut.className = `demande-carte__statut demande-carte__statut--${categorieStatut(demande.statut)}`;
+  statut.textContent = LIBELLES_STATUT[demande.statut] || demande.statut;
+  entete.append(titre, statut);
+  main.appendChild(entete);
 
-  main.appendChild(rendreActions(demande));
+  main.appendChild(
+    creerCarteListe(rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, lignesProposition }))
+  );
+
+  const actionsRapides = rendreActionsRapides(demande);
+  if (actionsRapides) main.appendChild(actionsRapides);
 
   if (demande.statut === 'brouillon') {
     main.appendChild(rendreInvitation(demande));
@@ -89,20 +125,105 @@ function rendre({ demande, questionnaire, reponses, fichiers, commentaires, jour
     main.appendChild(rendreListeAlerte(`${nsp.length} point(s) à définir en entretien`, nsp, questionnaire));
   }
 
-  main.appendChild(rendreReponsesParSection(questionnaire, reponses, visibilite));
   main.appendChild(rendreFichiers(fichiers));
   main.appendChild(rendreCommentaires(demande, commentaires));
-  main.appendChild(rendreJournal(journal));
+  main.appendChild(
+    rendreDetails('Réponses au questionnaire', rendreReponsesParSection(questionnaire, reponses, visibilite))
+  );
+  main.appendChild(rendreDetails('Journal des événements', rendreJournal(journal)));
 
   app.appendChild(main);
   if (window.lucide) window.lucide.createIcons();
 }
 
-function rendreActions(demande) {
+// Repliée par défaut : évite de dérouler d'un coup jusqu'à 187 réponses ou
+// un long historique d'événements sur une simple consultation de la
+// demande - <details> natif, sans JS supplémentaire.
+function rendreDetails(titreTexte, contenu) {
+  const details = document.createElement('details');
+  details.className = 'details-carte';
+  const summary = document.createElement('summary');
+  summary.textContent = titreTexte;
+  const corps = document.createElement('div');
+  corps.className = 'details-carte__corps';
+  corps.appendChild(contenu);
+  details.append(summary, corps);
+  return details;
+}
+
+// Chaque ligne est soit une navigation vers un outil interactif (planifier,
+// mener l'entretien, dossier de preuves complet), soit un document qu'on
+// peut consulter/imprimer sans quitter la page (note de cadrage, devis).
+function rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, lignesProposition }) {
+  const elements = [];
+
+  if (STATUTS_AVEC_CRENEAUX.has(demande.statut)) {
+    elements.push(
+      creerLigneNavigation({
+        href: `#/demandes/${demande.reference}/creneaux`,
+        icone: 'calendar-clock',
+        titre: "Planifier l'entretien",
+        sousTitre: 'Proposer des créneaux au client',
+      })
+    );
+  }
+
+  if (demande.statut === 'soumise' || demande.statut === 'entretien_planifie') {
+    elements.push(
+      creerLigneNavigation({
+        href: `#/demandes/${demande.reference}/entretien`,
+        icone: 'clipboard-check',
+        titre: 'Mode entretien',
+        sousTitre: "Mener l'entretien face au client",
+      })
+    );
+  }
+
+  if (noteEnvoyee) {
+    const { corps } = separerAnnexeGlossaire(noteEnvoyee.contenu_md);
+    elements.push(
+      creerLigneDocument({
+        titre: 'Note de cadrage',
+        sousTitre: `Version ${noteEnvoyee.version} — ${LIBELLES_STATUT[noteEnvoyee.statut] || noteEnvoyee.statut}`,
+        icone: 'file-text',
+        contenuHtml: rendreMarkdown(injecterValidationDansCorps(corps, noteEnvoyee)),
+      })
+    );
+  }
+
+  if (proposition && proposition.statut !== 'brouillon') {
+    const noeud = construireDevisImprimable({ demande, reponses, proposition, lignes: lignesProposition });
+    elements.push(
+      creerLigneDocument({
+        titre: 'Proposition commerciale',
+        icone: 'receipt',
+        contenuHtml: noeud.innerHTML,
+        classeCorps: 'devis-imprimable',
+      })
+    );
+  }
+
+  elements.push(
+    creerLigneNavigation({
+      href: `#/demandes/${demande.reference}/preuves`,
+      icone: 'shield-check',
+      titre: 'Dossier de preuves',
+      sousTitre: 'Qualiopi',
+    })
+  );
+
+  return elements;
+}
+
+function rendreActionsRapides(demande) {
+  const transitions = TRANSITIONS[demande.statut] || [];
+  const peutAbandonner = !STATUTS_FINAUX.has(demande.statut);
+  if (transitions.length === 0 && !peutAbandonner) return null;
+
   const actions = document.createElement('div');
   actions.className = 'vue360__actions';
 
-  for (const t of TRANSITIONS[demande.statut] || []) {
+  for (const t of transitions) {
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'btn btn--secondaire';
@@ -111,45 +232,7 @@ function rendreActions(demande) {
     actions.appendChild(bouton);
   }
 
-  if (STATUTS_AVEC_CRENEAUX.has(demande.statut)) {
-    const lienCreneaux = document.createElement('a');
-    lienCreneaux.className = 'btn btn--primaire';
-    lienCreneaux.href = `#/demandes/${demande.reference}/creneaux`;
-    lienCreneaux.textContent = 'Planifier l’entretien';
-    actions.appendChild(lienCreneaux);
-  }
-
-  if (demande.statut === 'soumise' || demande.statut === 'entretien_planifie') {
-    const lienEntretien = document.createElement('a');
-    lienEntretien.className = 'btn btn--primaire';
-    lienEntretien.href = `#/demandes/${demande.reference}/entretien`;
-    lienEntretien.textContent = 'Mode entretien';
-    actions.appendChild(lienEntretien);
-  }
-
-  if (STATUTS_AVEC_CADRAGE.has(demande.statut)) {
-    const lienNote = document.createElement('a');
-    lienNote.className = 'btn btn--primaire';
-    lienNote.href = `#/demandes/${demande.reference}/cadrage`;
-    lienNote.textContent = 'Note de cadrage';
-    actions.appendChild(lienNote);
-  }
-
-  if (STATUTS_AVEC_PROPOSITION.has(demande.statut)) {
-    const lienProposition = document.createElement('a');
-    lienProposition.className = 'btn btn--primaire';
-    lienProposition.href = `#/demandes/${demande.reference}/proposition`;
-    lienProposition.textContent = 'Proposition';
-    actions.appendChild(lienProposition);
-  }
-
-  const lienPreuves = document.createElement('a');
-  lienPreuves.className = 'btn btn--secondaire';
-  lienPreuves.href = `#/demandes/${demande.reference}/preuves`;
-  lienPreuves.textContent = 'Dossier de preuves';
-  actions.appendChild(lienPreuves);
-
-  if (!STATUTS_FINAUX.has(demande.statut)) {
+  if (peutAbandonner) {
     const abandonner = document.createElement('button');
     abandonner.type = 'button';
     abandonner.className = 'btn btn--secondaire';

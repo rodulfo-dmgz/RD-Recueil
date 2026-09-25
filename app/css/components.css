@@ -900,18 +900,18 @@
 }
 .modale-signature__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 16px; }
 
-/* Liste de documents (note de cadrage, glossaire) : un titre, voir/imprimer */
+/* Liste de documents (note de cadrage, glossaire, récapitulatif...) : icône,
+   titre, sous-titre optionnel, boutons voir/imprimer. Partage ses classes de
+   texte/icône avec .ligne-navigation pour rester visuellement cohérente
+   quand les deux types de ligne sont mélangés dans une même carte. */
 .documents-cadrage { display: flex; flex-direction: column; gap: 4px; }
 .ligne-document {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 4px;
+  gap: 14px;
+  padding: 14px 12px;
 }
-.ligne-document + .ligne-document { border-top: 1px solid var(--bordure); }
-.ligne-document__titre { font-weight: 600; }
-.ligne-document__actions { display: flex; gap: 4px; }
+.ligne-document__actions { display: flex; gap: 4px; flex-shrink: 0; }
 .btn-icone {
   display: inline-flex;
   align-items: center;
@@ -976,3 +976,70 @@
   color: var(--texte-doux);
   letter-spacing: .03em;
 }
+
+/* Liste de navigation (documents liés à une demande) */
+.liste-navigation { display: flex; flex-direction: column; padding: 4px; }
+.ligne-navigation {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 12px;
+  border-radius: var(--rayon);
+  text-decoration: none;
+  color: var(--texte);
+}
+.ligne-navigation:hover { background: var(--fond); }
+.ligne + .ligne { border-top: 1px solid var(--bordure); }
+.ligne-navigation__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--fond);
+  color: var(--rd-bleu);
+  flex-shrink: 0;
+}
+.ligne-navigation__icone svg { width: 20px; height: 20px; }
+.ligne-navigation__texte { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.ligne-navigation__titre { font-weight: 600; font-size: 15px; }
+.ligne-navigation__sous-titre { font-size: 13px; color: var(--texte-doux); }
+.ligne-navigation__chevron { flex-shrink: 0; color: var(--texte-doux); width: 18px; height: 18px; }
+
+/* En-tête de demande : référence + statut, remplace le texte brut */
+.entete-demande { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.entete-demande h1 { margin: 0; }
+
+/* Sections repliables (réponses, journal) - natif <details>, sans JS */
+.details-carte {
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.details-carte > summary {
+  padding: 16px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.details-carte > summary::-webkit-details-marker { display: none; }
+.details-carte > summary::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--texte-doux);
+  border-bottom: 2px solid var(--texte-doux);
+  transform: rotate(45deg);
+  transition: transform .15s ease;
+}
+.details-carte[open] > summary::after { transform: rotate(-135deg); }
+.details-carte[open] > summary { border-bottom: 1px solid var(--bordure); }
+.details-carte__corps { padding: 20px 24px; }
+.details-carte__corps .carte { border: none; box-shadow: none; padding: 0; margin-bottom: 20px; }
+.details-carte__corps .carte:last-child { margin-bottom: 0; }

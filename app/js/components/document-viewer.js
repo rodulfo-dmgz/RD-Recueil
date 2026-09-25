@@ -1,6 +1,7 @@
 // Visualisation en modal et impression isolée d'un document (note de
-// cadrage, glossaire) - chacun s'imprime seul, sans le reste de la page.
-export function ouvrirModaleDocument({ titre, contenuHtml }) {
+// cadrage, glossaire, récapitulatif, devis...) - chacun s'imprime seul,
+// sans le reste de la page.
+export function ouvrirModaleDocument({ titre, contenuHtml, classeCorps = 'editeur-note__apercu' }) {
   const dialog = document.createElement('dialog');
   dialog.className = 'modale-document';
 
@@ -17,7 +18,7 @@ export function ouvrirModaleDocument({ titre, contenuHtml }) {
   entete.append(h2, boutonFermer);
 
   const corps = document.createElement('div');
-  corps.className = 'modale-document__corps editeur-note__apercu';
+  corps.className = `modale-document__corps ${classeCorps}`.trim();
   corps.innerHTML = contenuHtml;
 
   dialog.append(entete, corps);
@@ -27,7 +28,7 @@ export function ouvrirModaleDocument({ titre, contenuHtml }) {
   if (window.lucide) window.lucide.createIcons();
 }
 
-export function imprimerHtml({ titre, contenuHtml }) {
+export function imprimerHtml({ titre, contenuHtml, classeCorps = 'editeur-note__apercu' }) {
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
   iframe.style.right = '0';
@@ -51,10 +52,10 @@ export function imprimerHtml({ titre, contenuHtml }) {
   body { margin: 0; padding: 0; background: var(--surface); }
   .editeur-note__apercu h2 { break-before: page; page-break-before: always; }
   .editeur-note__apercu h1 { break-before: avoid; page-break-before: avoid; }
-  .editeur-note__apercu table { break-inside: avoid; page-break-inside: avoid; }
+  .editeur-note__apercu table, .devis-imprimable__table { break-inside: avoid; page-break-inside: avoid; }
 </style>
 </head>
-<body><div class="editeur-note__apercu">${contenuHtml}</div></body>
+<body><div class="${classeCorps}">${contenuHtml}</div></body>
 </html>`);
   doc.close();
 
@@ -71,13 +72,30 @@ export function imprimerHtml({ titre, contenuHtml }) {
   };
 }
 
-export function creerLigneDocument({ titre, contenuHtml }) {
+export function creerLigneDocument({ titre, sousTitre, icone, contenuHtml, classeCorps }) {
   const ligne = document.createElement('div');
-  ligne.className = 'ligne-document';
+  ligne.className = 'ligne ligne-document';
 
+  if (icone) {
+    const iconeEl = document.createElement('span');
+    iconeEl.className = 'ligne-navigation__icone';
+    iconeEl.innerHTML = `<i data-lucide="${icone}"></i>`;
+    ligne.appendChild(iconeEl);
+  }
+
+  const texte = document.createElement('span');
+  texte.className = 'ligne-navigation__texte';
   const nom = document.createElement('span');
-  nom.className = 'ligne-document__titre';
+  nom.className = 'ligne-navigation__titre';
   nom.textContent = titre;
+  texte.appendChild(nom);
+  if (sousTitre) {
+    const sous = document.createElement('span');
+    sous.className = 'ligne-navigation__sous-titre';
+    sous.textContent = sousTitre;
+    texte.appendChild(sous);
+  }
+  ligne.appendChild(texte);
 
   const boutons = document.createElement('div');
   boutons.className = 'ligne-document__actions';
@@ -88,7 +106,7 @@ export function creerLigneDocument({ titre, contenuHtml }) {
   boutonVoir.title = 'Voir';
   boutonVoir.setAttribute('aria-label', `Voir : ${titre}`);
   boutonVoir.innerHTML = '<i data-lucide="eye"></i>';
-  boutonVoir.addEventListener('click', () => ouvrirModaleDocument({ titre, contenuHtml }));
+  boutonVoir.addEventListener('click', () => ouvrirModaleDocument({ titre, contenuHtml, classeCorps }));
 
   const boutonImprimer = document.createElement('button');
   boutonImprimer.type = 'button';
@@ -96,9 +114,9 @@ export function creerLigneDocument({ titre, contenuHtml }) {
   boutonImprimer.title = 'Imprimer';
   boutonImprimer.setAttribute('aria-label', `Imprimer : ${titre}`);
   boutonImprimer.innerHTML = '<i data-lucide="printer"></i>';
-  boutonImprimer.addEventListener('click', () => imprimerHtml({ titre, contenuHtml }));
+  boutonImprimer.addEventListener('click', () => imprimerHtml({ titre, contenuHtml, classeCorps }));
 
   boutons.append(boutonVoir, boutonImprimer);
-  ligne.append(nom, boutons);
+  ligne.appendChild(boutons);
   return ligne;
 }

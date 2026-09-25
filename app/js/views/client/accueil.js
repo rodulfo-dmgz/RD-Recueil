@@ -1,12 +1,18 @@
 import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { chargerQuestionnaire, chargerGlossaire } from '../../services/questionnaire.js';
 import { chargerReponses } from '../../services/reponses.js';
+import { listerVersions } from '../../services/notes-cadrage.js';
+import { obtenirProposition, listerLignes } from '../../services/propositions.js';
 import { initialiserDemande, getEtatDemande } from '../../store.js';
 import { indexerGlossaire } from '../../engine/glossary.js';
 import { initGlossaryTooltip } from '../../components/glossary-tooltip.js';
 import { rendreProgression } from '../../components/progress.js';
+import { creerLigneNavigation, creerCarteListe } from '../../components/liste-navigation.js';
+import { creerLigneDocument } from '../../components/document-viewer.js';
+import { rendreMarkdown, separerAnnexeGlossaire, injecterValidationDansCorps } from '../../components/markdown.js';
+import { construireDevisImprimable } from '../../components/devis-imprimable.js';
 import { afficherToast } from '../../components/toast.js';
-import { STATUTS_MODIFIABLES_CLIENT } from '../../engine/statuts.js';
+import { STATUTS_MODIFIABLES_CLIENT, LIBELLES_STATUT, categorieStatut } from '../../engine/statuts.js';
 
 // Icône Lucide par section (identifiants stables - 02_MODELE_RECUEIL_BESOINS.md).
 const ICONES_SECTION = {
@@ -64,14 +70,21 @@ export async function vueAccueilDemande(reference) {
       return;
     }
 
-    rendre(reference);
+    const [versionsNote, proposition] = await Promise.all([
+      listerVersions(etat.demande.id),
+      obtenirProposition(etat.demande.id),
+    ]);
+    const noteEnvoyee = (versionsNote[0]?.statut === 'brouillon' ? null : versionsNote[0]) ?? null;
+    const lignesProposition = proposition ? await listerLignes(proposition.id) : [];
+
+    rendre(reference, { noteEnvoyee, proposition, lignesProposition });
   } catch (err) {
     afficherToast(err.message, { type: 'erreur' });
     app.innerHTML = '<main class="conteneur"><h1>Impossible de charger la demande</h1></main>';
   }
 }
 
-function rendre(reference) {
+function rendre(reference, { noteEnvoyee, proposition, lignesProposition }) {
   const app = document.getElementById('app');
   const etat = getEtatDemande();
   app.innerHTML = '';
@@ -79,10 +92,16 @@ function rendre(reference) {
   const main = document.createElement('main');
   main.className = 'conteneur';
 
+  const entete = document.createElement('div');
+  entete.className = 'entete-demande';
   const titre = document.createElement('h1');
   titre.className = 'accueil-demande__titre';
   titre.textContent = `Demande ${etat.demande.reference}`;
-  main.appendChild(titre);
+  const statut = document.createElement('span');
+  statut.className = `demande-carte__statut demande-carte__statut--${categorieStatut(etat.demande.statut)}`;
+  statut.textContent = LIBELLES_STATUT[etat.demande.statut] || etat.demande.statut;
+  entete.append(titre, statut);
+  main.appendChild(entete);
 
   const sectionsVisibles = etat.questionnaire.sections
     .filter((s) => etat.visibilite.sectionsVisibles.has(s.id) && s.partie !== 3)
@@ -125,14 +144,13 @@ function rendre(reference) {
   }
   main.appendChild(grilleSections);
 
-  const actions = document.createElement('div');
-  actions.className = 'accueil-demande__actions';
-
   if (modifiable) {
     const premiereIncomplete =
       sectionsVisibles.find((s) => (etat.progression.parSection.get(s.id)?.pourcentage ?? 100) < 100) ||
       sectionsVisibles[0];
 
+    const actions = document.createElement('div');
+    actions.className = 'accueil-demande__actions';
     const boutonReprendre = document.createElement('a');
     boutonReprendre.className = 'btn btn--primaire';
     boutonReprendre.href = premiereIncomplete
@@ -140,43 +158,75 @@ function rendre(reference) {
       : `#/d/${reference}/recap`;
     boutonReprendre.textContent = 'Reprendre la saisie';
     actions.appendChild(boutonReprendre);
+    main.appendChild(actions);
   }
 
-  const lienRecap = document.createElement('a');
-  lienRecap.className = modifiable ? 'btn btn--secondaire' : 'btn btn--primaire';
-  lienRecap.href = `#/d/${reference}/recap`;
-  lienRecap.textContent = 'Voir le récapitulatif';
-  actions.appendChild(lienRecap);
-
-  const STATUTS_AVEC_CRENEAUX = new Set(['soumise', 'entretien_planifie']);
-  if (STATUTS_AVEC_CRENEAUX.has(etat.demande.statut)) {
-    const lienCreneaux = document.createElement('a');
-    lienCreneaux.className = 'btn btn--secondaire';
-    lienCreneaux.href = `#/d/${reference}/creneaux`;
-    lienCreneaux.textContent = "Rendez-vous d'entretien";
-    actions.appendChild(lienCreneaux);
-  }
-
-  const STATUTS_AVEC_CADRAGE = new Set(['cadrage_envoye', 'cadrage_a_revoir', 'cadrage_valide', 'proposition_envoyee']);
-  if (STATUTS_AVEC_CADRAGE.has(etat.demande.statut)) {
-    const lienCadrage = document.createElement('a');
-    lienCadrage.className = 'btn btn--secondaire';
-    lienCadrage.href = `#/d/${reference}/cadrage`;
-    lienCadrage.textContent = 'Note de cadrage';
-    actions.appendChild(lienCadrage);
-  }
-
-  const STATUTS_AVEC_PROPOSITION = new Set(['proposition_envoyee', 'gagnee', 'perdue']);
-  if (STATUTS_AVEC_PROPOSITION.has(etat.demande.statut)) {
-    const lienProposition = document.createElement('a');
-    lienProposition.className = 'btn btn--secondaire';
-    lienProposition.href = `#/d/${reference}/proposition`;
-    lienProposition.textContent = 'Proposition';
-    actions.appendChild(lienProposition);
-  }
-
-  main.appendChild(actions);
+  main.appendChild(
+    creerCarteListe(
+      rendreLignesDocuments({
+        reference,
+        demande: etat.demande,
+        reponses: [...etat.reponses.values()],
+        noteEnvoyee,
+        proposition,
+        lignesProposition,
+      })
+    )
+  );
 
   app.appendChild(main);
   if (window.lucide) window.lucide.createIcons();
+}
+
+const STATUTS_AVEC_CRENEAUX = new Set(['soumise', 'entretien_planifie']);
+
+// Le récapitulatif reste un lien de navigation (pas voir/imprimer) : tant
+// que la demande est modifiable, cette page sert à soumettre les réponses
+// (bouton d'envoi, liens vers les questions manquantes), pas seulement à
+// les consulter.
+function rendreLignesDocuments({ reference, demande, reponses, noteEnvoyee, proposition, lignesProposition }) {
+  const elements = [
+    creerLigneNavigation({
+      href: `#/d/${reference}/recap`,
+      icone: 'clipboard-list',
+      titre: 'Récapitulatif',
+      sousTitre: 'Toutes vos réponses',
+    }),
+  ];
+
+  if (STATUTS_AVEC_CRENEAUX.has(demande.statut)) {
+    elements.push(
+      creerLigneNavigation({
+        href: `#/d/${reference}/creneaux`,
+        icone: 'calendar-clock',
+        titre: "Rendez-vous d'entretien",
+      })
+    );
+  }
+
+  if (noteEnvoyee) {
+    const { corps } = separerAnnexeGlossaire(noteEnvoyee.contenu_md);
+    elements.push(
+      creerLigneDocument({
+        titre: 'Note de cadrage',
+        sousTitre: `Version ${noteEnvoyee.version} — ${LIBELLES_STATUT[noteEnvoyee.statut] || noteEnvoyee.statut}`,
+        icone: 'file-text',
+        contenuHtml: rendreMarkdown(injecterValidationDansCorps(corps, noteEnvoyee)),
+      })
+    );
+  }
+
+  if (proposition && proposition.statut !== 'brouillon') {
+    const noeud = construireDevisImprimable({ demande, reponses, proposition, lignes: lignesProposition });
+    elements.push(
+      creerLigneDocument({
+        titre: 'Proposition commerciale',
+        icone: 'receipt',
+        contenuHtml: noeud.innerHTML,
+        classeCorps: 'devis-imprimable',
+      })
+    );
+  }
+
+  return elements;
 }
