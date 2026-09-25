@@ -145,9 +145,14 @@ function rendre(reference, { noteEnvoyee, proposition, lignesProposition }) {
   main.appendChild(grilleSections);
 
   if (modifiable) {
-    const premiereIncomplete =
-      sectionsVisibles.find((s) => (etat.progression.parSection.get(s.id)?.pourcentage ?? 100) < 100) ||
-      sectionsVisibles[0];
+    // Une fois toutes les sections visibles complètes, le bouton principal
+    // mène directement au récapitulatif (revue + envoi) plutôt que de
+    // renvoyer vers une section déjà remplie : le client n'a pas à deviner
+    // qu'il doit aller chercher le lien "Récapitulatif" plus bas pour
+    // trouver le bouton d'envoi.
+    const premiereIncomplete = sectionsVisibles.find(
+      (s) => (etat.progression.parSection.get(s.id)?.pourcentage ?? 100) < 100
+    );
 
     const actions = document.createElement('div');
     actions.className = 'accueil-demande__actions';
@@ -156,7 +161,7 @@ function rendre(reference, { noteEnvoyee, proposition, lignesProposition }) {
     boutonReprendre.href = premiereIncomplete
       ? `#/d/${reference}/s/${premiereIncomplete.id}`
       : `#/d/${reference}/recap`;
-    boutonReprendre.textContent = 'Reprendre la saisie';
+    boutonReprendre.textContent = premiereIncomplete ? 'Reprendre la saisie' : 'Vérifier et envoyer mes réponses';
     actions.appendChild(boutonReprendre);
     main.appendChild(actions);
   }
