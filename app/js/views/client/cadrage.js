@@ -2,6 +2,7 @@
 import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { listerVersions, validerNote, demanderModification } from '../../services/notes-cadrage.js';
 import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
+import { creerLigneDocument } from '../../components/document-viewer.js';
 import { ouvrirModaleSignature, rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
@@ -45,38 +46,21 @@ function rendre(demande, note) {
   titre.textContent = 'Note de cadrage';
   main.appendChild(titre);
 
-  const actionsHaut = document.createElement('div');
-  actionsHaut.className = 'editeur-note__actions';
-  const boutonImprimer = document.createElement('button');
-  boutonImprimer.type = 'button';
-  boutonImprimer.className = 'btn btn--secondaire';
-  boutonImprimer.textContent = 'Exporter en PDF';
-  boutonImprimer.addEventListener('click', () => window.print());
-  actionsHaut.appendChild(boutonImprimer);
-  main.appendChild(actionsHaut);
-
   const { corps, annexe } = separerAnnexeGlossaire(note.contenu_md);
 
-  const documentNote = document.createElement('div');
-  documentNote.className = 'editeur-note__document';
-
-  const contenu = document.createElement('div');
-  contenu.className = 'carte editeur-note__apercu';
-  contenu.innerHTML = rendreMarkdown(corps);
-  documentNote.appendChild(contenu);
-
+  const documents = document.createElement('div');
+  documents.className = 'documents-cadrage carte';
+  documents.appendChild(creerLigneDocument({ titre: 'Note de cadrage', contenuHtml: rendreMarkdown(corps) }));
   if (annexe) {
-    const carteGlossaire = document.createElement('div');
-    carteGlossaire.className = 'carte editeur-note__apercu';
-    carteGlossaire.innerHTML = rendreMarkdown(annexe);
-    documentNote.appendChild(carteGlossaire);
+    documents.appendChild(
+      creerLigneDocument({ titre: 'Glossaire des termes utilisés', contenuHtml: rendreMarkdown(annexe) })
+    );
   }
+  main.appendChild(documents);
 
   if (note.statut === 'validee' && note.signature_image) {
-    documentNote.appendChild(rendreApercuSignature(note.signature_image));
+    main.appendChild(rendreApercuSignature(note.signature_image));
   }
-
-  main.appendChild(documentNote);
 
   if (note.statut === 'validee') {
     const info = document.createElement('p');

@@ -12,6 +12,7 @@ import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
 import { genererNoteCadrage } from '../../engine/template.js';
 import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
+import { creerLigneDocument } from '../../components/document-viewer.js';
 import { rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
@@ -212,41 +213,23 @@ function rendreEditeur(contexte, note) {
 function rendreLecture(note) {
   const conteneur = document.createElement('div');
 
-  const actionsHaut = document.createElement('div');
-  actionsHaut.className = 'editeur-note__actions';
-  const boutonImprimer = document.createElement('button');
-  boutonImprimer.type = 'button';
-  boutonImprimer.className = 'btn btn--secondaire';
-  boutonImprimer.textContent = 'Exporter en PDF';
-  boutonImprimer.addEventListener('click', () => window.print());
-  actionsHaut.appendChild(boutonImprimer);
-  conteneur.appendChild(actionsHaut);
-
-  const documentNote = document.createElement('div');
-  documentNote.className = 'editeur-note__document';
-
-  const bloc = document.createElement('div');
-  bloc.className = 'carte editeur-note__apercu';
   const statut = document.createElement('p');
   statut.className = 'texte-doux';
   statut.textContent = `Version ${note.version} — ${LIBELLES_STATUT_NOTE[note.statut] || note.statut}`;
-  bloc.appendChild(statut);
+  conteneur.appendChild(statut);
+
   const { corps, annexe } = separerAnnexeGlossaire(note.contenu_md);
-  const contenu = document.createElement('div');
-  contenu.innerHTML = rendreMarkdown(corps);
-  bloc.appendChild(contenu);
-  documentNote.appendChild(bloc);
-
+  const documents = document.createElement('div');
+  documents.className = 'documents-cadrage carte';
+  documents.appendChild(creerLigneDocument({ titre: 'Note de cadrage', contenuHtml: rendreMarkdown(corps) }));
   if (annexe) {
-    const blocGlossaire = document.createElement('div');
-    blocGlossaire.className = 'carte editeur-note__apercu';
-    blocGlossaire.innerHTML = rendreMarkdown(annexe);
-    documentNote.appendChild(blocGlossaire);
+    documents.appendChild(
+      creerLigneDocument({ titre: 'Glossaire des termes utilisés', contenuHtml: rendreMarkdown(annexe) })
+    );
   }
+  conteneur.appendChild(documents);
 
-  if (note.signature_image) documentNote.appendChild(rendreApercuSignature(note.signature_image));
-
-  conteneur.appendChild(documentNote);
+  if (note.signature_image) conteneur.appendChild(rendreApercuSignature(note.signature_image));
 
   return conteneur;
 }

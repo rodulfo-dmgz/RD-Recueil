@@ -1,6 +1,8 @@
 /* Export PDF - 01_ARCHITECTURE.md section 10.3. Utilise window.print() sur
-   le contenu marqué .imprimable (note de cadrage : .editeur-note__apercu ;
-   dossier de preuves : .imprimable, Lot 5). */
+   le contenu marqué .imprimable (dossier de preuves, devis). La note de
+   cadrage et son glossaire s'impriment isolément chacun dans leur propre
+   iframe (app/js/components/document-viewer.js) : ils ne passent pas par
+   ce mécanisme de visibilité globale. */
 
 @page {
   size: A4;
@@ -11,29 +13,16 @@ body * {
   visibility: hidden;
 }
 
-.editeur-note__document,
-.editeur-note__document *,
-.editeur-note__apercu,
-.editeur-note__apercu *,
 .imprimable,
 .imprimable * {
   visibility: visible;
 }
 
-/* Positionné une seule fois sur le conteneur commun : la note de cadrage
-   peut désormais être scindée en plusieurs cartes .editeur-note__apercu
-   (note, glossaire, signature) - les positionner chacune en absolute les
-   superposerait toutes au même endroit au lieu de les enchaîner. */
-.editeur-note__document,
 .imprimable {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-}
-
-.editeur-note__apercu,
-.imprimable {
   max-height: none;
   overflow: visible;
   border: none;
@@ -52,18 +41,15 @@ a[href^="#"] {
   display: none !important;
 }
 
-.editeur-note__apercu h2,
 .imprimable h2 {
   break-before: page;
   page-break-before: always;
 }
-.editeur-note__apercu h1,
 .imprimable h1 {
   break-before: avoid;
   page-break-before: avoid;
 }
 
-.editeur-note__apercu table,
 .imprimable table {
   break-inside: avoid;
   page-break-inside: avoid;

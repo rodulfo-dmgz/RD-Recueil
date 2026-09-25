@@ -882,6 +882,67 @@
 }
 .modale-signature__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 16px; }
 
+/* Liste de documents (note de cadrage, glossaire) : un titre, voir/imprimer */
+.documents-cadrage { display: flex; flex-direction: column; gap: 4px; }
+.ligne-document {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 4px;
+}
+.ligne-document + .ligne-document { border-top: 1px solid var(--bordure); }
+.ligne-document__titre { font-weight: 600; }
+.ligne-document__actions { display: flex; gap: 4px; }
+.btn-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  color: var(--rd-bleu);
+  cursor: pointer;
+}
+.btn-icone:hover { background: var(--fond); }
+.btn-icone i { width: 18px; height: 18px; }
+
+/* Modale de lecture d'un document */
+.modale-document {
+  border: none;
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  background: var(--surface);
+  color: var(--texte);
+  padding: 0;
+  max-width: 720px;
+  width: 90vw;
+  max-height: 85vh;
+}
+.modale-document::backdrop { background: rgba(26, 31, 43, .5); }
+.modale-document__entete {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--surface);
+}
+.modale-document__entete h2 { margin: 0; font-family: var(--police-titre); font-size: 18px; }
+.modale-document__fermer {
+  border: none;
+  background: transparent;
+  color: var(--texte-doux);
+  cursor: pointer;
+  padding: 4px;
+}
+.modale-document__corps { padding: 24px; overflow-y: auto; max-height: calc(85vh - 64px); }
+
 .signature-apercu { margin-top: 16px; }
 .signature-apercu__image {
   display: block;
