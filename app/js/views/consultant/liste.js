@@ -59,11 +59,17 @@ export function vueListeDemandes() {
     '<option value="">Tous types</option>' +
     TYPES.map((t) => `<option value="${t.valeur}">${t.libelle}</option>`).join('');
 
+  const labelArchivees = document.createElement('label');
+  labelArchivees.className = 'champ-question__nsp';
+  const caseArchivees = document.createElement('input');
+  caseArchivees.type = 'checkbox';
+  labelArchivees.append(caseArchivees, ' Afficher les demandes archivées');
+
   const boutonExporter = document.createElement('button');
   boutonExporter.type = 'button';
   boutonExporter.className = 'btn btn--secondaire';
   boutonExporter.textContent = 'Exporter en CSV';
-  filtres.append(selectStatut, selectType, boutonExporter);
+  filtres.append(selectStatut, selectType, labelArchivees, boutonExporter);
   main.appendChild(filtres);
 
   const liste = document.createElement('ul');
@@ -87,6 +93,7 @@ export function vueListeDemandes() {
       const demandes = await listerDemandes({
         statut: selectStatut.value || undefined,
         type: selectType.value || undefined,
+        inclureArchivees: caseArchivees.checked,
       });
       dernieresDemandes = demandes;
       liste.innerHTML = '';
@@ -98,7 +105,7 @@ export function vueListeDemandes() {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = `#/demandes/${d.reference}`;
-        a.textContent = `${d.reference} — ${d.clients?.raison_sociale ?? 'Sans nom'} — ${d.statut}`;
+        a.textContent = `${d.reference} · ${d.clients?.raison_sociale ?? 'Sans nom'} · ${d.statut}${d.archivee ? ' (archivée)' : ''}`;
         li.appendChild(a);
         liste.appendChild(li);
       }
@@ -109,6 +116,7 @@ export function vueListeDemandes() {
 
   selectStatut.addEventListener('change', rafraichir);
   selectType.addEventListener('change', rafraichir);
+  caseArchivees.addEventListener('change', rafraichir);
   rafraichir();
 
   app.appendChild(main);

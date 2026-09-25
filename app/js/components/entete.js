@@ -4,6 +4,7 @@ import { deconnecter } from '../auth.js';
 import { setProfil, getApercuRole, setApercuRole } from '../store.js';
 import { navigate } from '../router.js';
 import { listerNotifications, compterNonLues, marquerLue, marquerToutesLues } from '../services/notifications.js';
+import { listerDemandes } from '../services/demandes.js';
 
 const LIENS_CLIENT = [
   { href: '#/mes-demandes', icone: 'layout-list', libelle: 'Mes demandes' },
@@ -29,7 +30,10 @@ export function rendreEntete(profil) {
   const liens = roleEffectif === 'client' ? LIENS_CLIENT : LIENS_STAFF;
   const lienCompte =
     roleEffectif === 'admin'
-      ? '<a href="#/comptes/nouveau" class="entete__lien"><i data-lucide="user-plus"></i><span>Créer un compte</span></a>'
+      ? `
+        <a href="#/comptes/nouveau" class="entete__lien"><i data-lucide="user-plus"></i><span>Créer un compte</span></a>
+        <a href="#/admin/utilisateurs" class="entete__lien"><i data-lucide="users"></i><span>Comptes</span></a>
+      `
       : '';
 
   const selecteurApercu = estAdminReel
@@ -44,6 +48,18 @@ export function rendreEntete(profil) {
       </label>
     `
     : '';
+
+  const selecteurDemandeApercu =
+    estAdminReel && roleApercu === 'client'
+      ? `
+        <label class="entete__apercu">
+          <span class="entete__apercu-etiquette">Demande</span>
+          <select id="select-apercu-demande" class="entete__apercu-select">
+            <option value="">Choisir une demande…</option>
+          </select>
+        </label>
+      `
+      : '';
 
   const banniereApercu =
     estAdminReel && roleApercu
@@ -69,6 +85,7 @@ export function rendreEntete(profil) {
       </nav>
       <div class="entete__compte">
         ${selecteurApercu}
+        ${selecteurDemandeApercu}
         <span class="entete__nom">${profil.nom || profil.email}</span>
         <div class="entete__notifications">
           <button type="button" id="bouton-notifications" class="entete__theme" aria-label="Notifications" aria-expanded="false">
@@ -116,10 +133,42 @@ export function rendreEntete(profil) {
     });
   }
 
+  const selectApercuDemande = document.getElementById('select-apercu-demande');
+  if (selectApercuDemande) {
+    initialiserSelecteurDemandeApercu(selectApercuDemande);
+  }
+
   initialiserNotifications(profil);
 
   if (window.lucide) window.lucide.createIcons();
   if (window.gestionnaireTheme) window.gestionnaireTheme.mettreAJourBoutons();
+}
+
+// Mise en cache pour le module : la liste des demandes ne change pas assez
+// souvent pour justifier un rechargement à chaque navigation en aperçu client.
+let demandesApercuCache = null;
+
+async function initialiserSelecteurDemandeApercu(select) {
+  if (!demandesApercuCache) {
+    try {
+      demandesApercuCache = await listerDemandes();
+    } catch {
+      demandesApercuCache = [];
+    }
+  }
+  const refCourante = (location.hash.match(/^#\/d\/([^/]+)/) || [])[1] || '';
+  select.innerHTML =
+    '<option value="">Choisir une demande…</option>' +
+    demandesApercuCache
+      .map(
+        (d) =>
+          `<option value="${d.reference}" ${d.reference === refCourante ? 'selected' : ''}>${d.reference} · ${d.clients?.raison_sociale ?? 'Sans nom'}</option>`
+      )
+      .join('');
+
+  select.addEventListener('change', () => {
+    if (select.value) navigate(`/d/${select.value}`);
+  });
 }
 
 function formaterRelatif(date) {

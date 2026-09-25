@@ -10,17 +10,29 @@ export async function obtenirDemandeParReference(reference) {
   return data;
 }
 
-export async function listerDemandes({ statut, type } = {}) {
+export async function listerDemandes({ statut, type, inclureArchivees = false } = {}) {
   let requete = supabase
     .from('demandes')
-    .select('id, reference, statut, date_limite, types, created_at, clients(raison_sociale)')
+    .select('id, reference, statut, date_limite, types, created_at, archivee, clients(raison_sociale)')
     .order('created_at', { ascending: false });
   if (statut) requete = requete.eq('statut', statut);
   if (type) requete = requete.contains('types', [type]);
+  if (!inclureArchivees) requete = requete.eq('archivee', false);
 
   const { data, error } = await requete;
   if (error) throw error;
   return data;
+}
+
+// RPC dediee plutot qu'un update direct (CLAUDE.md) : trace l'action dans
+// evenements sans declencher les notifications de changement de statut
+// (01_ARCHITECTURE.md section 4.2, migration 0025).
+export async function archiverDemande(demandeId, archiver) {
+  const { error } = await supabase.rpc('rpc_archiver_demande', {
+    p_demande_id: demandeId,
+    p_archiver: archiver,
+  });
+  if (error) throw error;
 }
 
 export async function creerDemande({ raisonSociale, siret, types, dateLimite, consultantId }) {
@@ -96,7 +108,8 @@ export async function listerDemandesInactives() {
   const { data: demandes, error } = await supabase
     .from('demandes')
     .select('id, reference, statut, created_at, clients(raison_sociale)')
-    .in('statut', ['envoyee', 'en_saisie']);
+    .in('statut', ['envoyee', 'en_saisie'])
+    .eq('archivee', false);
   if (error) throw error;
   if (demandes.length === 0) return [];
 

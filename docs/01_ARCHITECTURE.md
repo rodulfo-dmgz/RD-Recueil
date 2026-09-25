@@ -74,6 +74,8 @@ Toute transition est journalisée dans `evenements` (qui, quand, depuis, vers, c
 Le consultant peut **réouvrir** la saisie client depuis `soumise` ou `cadrage_a_revoir` : retour à `en_saisie` (si la demande de modification remet en cause les réponses au questionnaire).
 Depuis `cadrage_a_revoir`, le consultant peut aussi créer une nouvelle version de la note et la renvoyer directement, sans repasser par la saisie client : retour à `cadrage_envoye`.
 
+L'**archivage** (`demandes.archivee`) est orthogonal au statut : il masque une demande des listes staff par défaut sans changer son cycle de vie, réversible via `rpc_archiver_demande` (staff, tout statut). À distinguer de la suppression d'un compte utilisateur (section 8.1), qui supprime définitivement ses demandes.
+
 ---
 
 ## 4. Architecture fonctionnelle
@@ -103,7 +105,7 @@ Depuis `cadrage_a_revoir`, le consultant peut aussi créer une nouvelle version 
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
 | `#/admin/questionnaire` | Versions | Import des `.md`, prévisualisation, publication. |
 | `#/admin/glossaire` | Glossaire | Consultation de la version publiée. |
-| `#/admin/utilisateurs` | Comptes | Consultants et clients invités. |
+| `#/admin/utilisateurs` | Comptes | Consultants et clients invités ; suppression définitive d'un compte (admin uniquement, voir section 8.1). |
 
 ### 4.3 Mode entretien
 
@@ -391,6 +393,8 @@ create table demandes (
   consultant_id uuid references profils(user_id),
   date_limite date,                    -- copie de TC-13.02
   soumise_le timestamptz,
+  archivee boolean not null default false,   -- masquage reversible, distinct du statut
+  archivee_le timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -514,6 +518,7 @@ create table notifications (
 - L'invitation d'un client crée une ligne `demande_acces` ; la création du compte (Edge Function) rattache `user_id` et crée le profil `client`.
 - Les comptes `consultant` et `admin` sont créés par l'admin uniquement, via la même Edge Function ; l'inscription libre est désactivée.
 - Protection Supabase Auth contre les mots de passe compromis (vérification HaveIBeenPwned) activée au niveau du projet.
+- La suppression d'un compte (Edge Function `supprimer-utilisateur`, `service_role`, réservée au rôle `admin`, contrairement à `creer-compte` ouverte aussi aux consultants) est définitive et irréversible. Pour un compte `client`, elle supprime aussi toutes les demandes accessibles via `demande_acces.user_id` (et leurs données dépendantes, en cascade) : l'écran `#/admin/utilisateurs` liste ces demandes avant confirmation. Pour un compte `consultant`/`admin`, seul le compte est supprimé ; les demandes qu'il a traitées restent (colonnes d'auteur mises à `null`, voir section 7).
 
 > Choix initial (V1.0) : lien magique par e-mail. Abandonné en cours de développement au profit d'un mot de passe temporaire généré par le consultant, la fiabilité de livraison des e-mails transactionnels s'étant révélée un point de friction récurrent en usage réel.
 

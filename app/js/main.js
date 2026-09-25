@@ -22,6 +22,7 @@ import { vueEditeurProposition } from './views/consultant/editeur-proposition.js
 import { vueCreneaux } from './views/consultant/creneaux.js';
 import { vuePreuves } from './views/consultant/preuves.js';
 import { vueCreationCompte } from './views/consultant/creation-compte.js';
+import { vueComptes } from './views/consultant/comptes.js';
 
 async function garantirProfil() {
   if (getProfil()) return getProfil();
@@ -173,6 +174,16 @@ route('/comptes/nouveau', async () => {
     return;
   }
   vueCreationCompte();
+});
+
+route('/admin/utilisateurs', async () => {
+  const profil = await garantirStaff();
+  if (!profil) return;
+  if (profil.role !== 'admin') {
+    navigate('/tableau-de-bord');
+    return;
+  }
+  vueComptes();
 });
 
 route('/', async () => {

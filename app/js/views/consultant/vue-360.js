@@ -1,4 +1,4 @@
-import { obtenirDemandeParReference, changerStatut, inviterClient, relancerClient } from '../../services/demandes.js';
+import { obtenirDemandeParReference, changerStatut, inviterClient, relancerClient, archiverDemande } from '../../services/demandes.js';
 import { chargerQuestionnaire, chargerGlossaire } from '../../services/questionnaire.js';
 import { chargerReponsesStaff } from '../../services/reponses.js';
 import { listerFichiers } from '../../services/fichiers.js';
@@ -105,6 +105,12 @@ function rendre({
   statut.className = `demande-carte__statut demande-carte__statut--${categorieStatut(demande.statut)}`;
   statut.textContent = LIBELLES_STATUT[demande.statut] || demande.statut;
   entete.append(titre, statut);
+  if (demande.archivee) {
+    const badgeArchivee = document.createElement('span');
+    badgeArchivee.className = 'demande-carte__statut demande-carte__statut--neutre';
+    badgeArchivee.textContent = 'Archivée';
+    entete.appendChild(badgeArchivee);
+  }
   main.appendChild(entete);
 
   main.appendChild(
@@ -218,7 +224,6 @@ function rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, li
 function rendreActionsRapides(demande) {
   const transitions = TRANSITIONS[demande.statut] || [];
   const peutAbandonner = !STATUTS_FINAUX.has(demande.statut);
-  if (transitions.length === 0 && !peutAbandonner) return null;
 
   const actions = document.createElement('div');
   actions.className = 'vue360__actions';
@@ -242,6 +247,23 @@ function rendreActionsRapides(demande) {
     });
     actions.appendChild(abandonner);
   }
+
+  const boutonArchiver = document.createElement('button');
+  boutonArchiver.type = 'button';
+  boutonArchiver.className = 'btn btn--secondaire';
+  boutonArchiver.textContent = demande.archivee ? 'Désarchiver' : 'Archiver';
+  boutonArchiver.addEventListener('click', async () => {
+    boutonArchiver.disabled = true;
+    try {
+      await archiverDemande(demande.id, !demande.archivee);
+      afficherToast(demande.archivee ? 'Demande désarchivée.' : 'Demande archivée.', { type: 'succes' });
+      vueVue360(demande.reference);
+    } catch (err) {
+      afficherToast(err.message, { type: 'erreur' });
+      boutonArchiver.disabled = false;
+    }
+  });
+  actions.appendChild(boutonArchiver);
 
   return actions;
 }
