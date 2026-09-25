@@ -3,7 +3,7 @@
 // une demande (demande_acces) ; les comptes consultant/admin n'ont pas ce
 // besoin.
 import { creerCompte } from '../../services/comptes.js';
-import { listerDemandes } from '../../services/demandes.js';
+import { listerDemandes, inviterClient } from '../../services/demandes.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 
@@ -97,17 +97,20 @@ export async function vueCreationCompte() {
   resultat.hidden = true;
   main.appendChild(resultat);
 
+  let demandesParId = new Map();
+
   form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
     bouton.disabled = true;
     try {
-      const { email, motDePasseTemporaire, compteExistant } = await creerCompte({
-        email: inputEmail.value,
-        role: selectRole.value,
-        nom: inputNom.value,
-        demandeId: selectRole.value === 'client' ? selectDemande.value : undefined,
-        droit: selectRole.value === 'client' ? selectDroit.value : undefined,
-      });
+      const estClient = selectRole.value === 'client';
+      const { email, motDePasseTemporaire, compteExistant } = estClient
+        ? await inviterClient(selectDemande.value, inputEmail.value, {
+            droit: selectDroit.value,
+            nom: inputNom.value,
+            statutActuel: demandesParId.get(selectDemande.value)?.statut,
+          })
+        : await creerCompte({ email: inputEmail.value, role: selectRole.value, nom: inputNom.value });
       resultat.hidden = false;
       resultat.innerHTML = compteExistant
         ? `<h2>Accès accordé</h2><p>${email} avait déjà un compte : accès à la demande accordé, aucun nouveau mot de passe à communiquer.</p>`
@@ -132,7 +135,8 @@ export async function vueCreationCompte() {
   if (window.lucide) window.lucide.createIcons();
 
   try {
-    const demandes = await listerDemandes();
+    const demandes = await listerDemandes({ inclureArchivees: true });
+    demandesParId = new Map(demandes.map((d) => [d.id, d]));
     selectDemande.innerHTML =
       '<option value="" disabled hidden selected>Sélectionner</option>' +
       demandes

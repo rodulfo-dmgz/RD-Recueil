@@ -99,7 +99,7 @@ L'**archivage** (`demandes.archivee`) est orthogonal au statut : il masque une d
 |---|---|---|
 | `#/tableau-de-bord` | Tableau de bord | Demandes par statut, échéances TC-13.02, demandes sans réponse depuis 7 jours. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation, consultant, date. |
-| `#/demandes/nouvelle` | Création | Raison sociale, contact principal, types pressentis (pré-coche TC-0.01), date limite. |
+| `#/demandes/nouvelle` | Création | Client existant (liste déroulante) ou nouveau (raison sociale, SIRET), types pressentis (pré-coche TC-0.01), date limite. |
 | `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. |
 | `#/demandes/:ref/entretien` | Mode entretien | Voir 4.3. |
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
@@ -515,7 +515,7 @@ create table notifications (
 ### 8.1 Authentification
 
 - E-mail + mot de passe (Supabase Auth). Aucun mot de passe choisi librement par le titulaire à la création : un mot de passe temporaire est généré par une Edge Function (`creer-compte`, exécutée côté serveur avec la clé `service_role`, jamais exposée au navigateur). Le compte est marqué `doit_changer_mot_de_passe = true` ; la première connexion redirige obligatoirement vers un écran de changement de mot de passe avant d'accéder au reste de l'application. L'e-mail et le mot de passe sont envoyés automatiquement au titulaire (gabarit `creer-compte/mail.ts`, même mécanisme Resend best-effort que section 16) ; ils restent aussi affichés à l'écran pour le consultant, au cas où l'envoi échouerait.
-- L'invitation d'un client crée une ligne `demande_acces` ; la création du compte (Edge Function) rattache `user_id` et crée le profil `client`.
+- L'invitation d'un client crée une ligne `demande_acces` ; la création du compte (Edge Function) rattache `user_id` et crée le profil `client`. Si la demande est encore `brouillon`, cette invitation la fait passer à `envoyee` (sinon, ex. un deuxième contact ajouté à une demande déjà en cours, seul l'accès est créé). Les deux écrans qui peuvent créer cet accès (« Inviter le client » sur la vue 360, et « Créer un compte » pour un client déjà existant) passent tous les deux par `inviterClient` (`services/demandes.js`) pour garantir cette transition.
 - Les comptes `consultant` et `admin` sont créés par l'admin uniquement, via la même Edge Function ; l'inscription libre est désactivée.
 - Protection Supabase Auth contre les mots de passe compromis (vérification HaveIBeenPwned) activée au niveau du projet.
 - La suppression d'un compte (Edge Function `supprimer-utilisateur`, `service_role`, réservée au rôle `admin`, contrairement à `creer-compte` ouverte aussi aux consultants) est définitive et irréversible. Pour un compte `client`, elle supprime aussi toutes les demandes accessibles via `demande_acces.user_id` (et leurs données dépendantes, en cascade) : l'écran `#/admin/utilisateurs` liste ces demandes avant confirmation. Pour un compte `consultant`/`admin`, seul le compte est supprimé ; les demandes qu'il a traitées restent (colonnes d'auteur mises à `null`, voir section 7).

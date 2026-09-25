@@ -35,15 +35,17 @@ export async function archiverDemande(demandeId, archiver) {
   if (error) throw error;
 }
 
-export async function creerDemande({ raisonSociale, siret, types, dateLimite, consultantId }) {
-  const client = await creerClient({ raisonSociale, siret });
+// clientId : rattache la demande a un client existant plutot que d'en créer
+// un nouveau (raisonSociale/siret alors ignorés).
+export async function creerDemande({ clientId, raisonSociale, siret, types, dateLimite, consultantId }) {
+  const idClient = clientId || (await creerClient({ raisonSociale, siret })).id;
   const questionnaireId = await obtenirVersionPublieeCourante();
   if (!questionnaireId) throw new Error('Aucune version du questionnaire publiée.');
 
   const { data, error } = await supabase
     .from('demandes')
     .insert({
-      client_id: client.id,
+      client_id: idClient,
       questionnaire_id: questionnaireId,
       types,
       date_limite: dateLimite || null,
@@ -81,14 +83,20 @@ export async function soumettre(demandeId, idsObligatoires) {
 
 // Crée l'accès client (demande_acces) et le compte (e-mail + mot de passe
 // temporaire via l'Edge Function creer-compte) - fait passer la demande de
-// brouillon à envoyee (01_ARCHITECTURE.md section 8.1).
-export async function inviterClient(demandeId, email, droit = 'editeur') {
-  const resultat = await creerCompte({ email, role: 'client', demandeId, droit });
-  await changerStatut(
-    demandeId,
-    'envoyee',
-    resultat.compteExistant ? `Accès donné à ${email} (compte existant)` : `Compte créé pour ${email}`
-  );
+// brouillon à envoyee (01_ARCHITECTURE.md section 8.1). statutActuel : ne
+// transitionne que si la demande est encore au statut brouillon (sa toute
+// première invitation) - sinon (ex. deuxième contact ajouté à une demande
+// déjà en cours), on se contente de l'accès sans toucher au statut, car
+// rpc_changer_statut refuse toute transition vers "envoyee" hors brouillon.
+export async function inviterClient(demandeId, email, { droit = 'editeur', nom, statutActuel = 'brouillon' } = {}) {
+  const resultat = await creerCompte({ email, role: 'client', demandeId, droit, nom });
+  if (statutActuel === 'brouillon') {
+    await changerStatut(
+      demandeId,
+      'envoyee',
+      resultat.compteExistant ? `Accès donné à ${email} (compte existant)` : `Compte créé pour ${email}`
+    );
+  }
   return resultat; // { email, motDePasseTemporaire, compteExistant, userId }
 }
 

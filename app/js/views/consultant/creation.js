@@ -1,4 +1,5 @@
 import { creerDemande } from '../../services/demandes.js';
+import { listerClients } from '../../services/clients.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
@@ -27,7 +28,7 @@ function champTexte(id, label, { obligatoire = false, type = 'text' } = {}) {
   return wrapper;
 }
 
-export function vueCreationDemande() {
+export async function vueCreationDemande() {
   const app = document.getElementById('app');
   app.innerHTML = '';
 
@@ -42,6 +43,14 @@ export function vueCreationDemande() {
 
   const form = document.createElement('form');
   form.className = 'carte';
+
+  const champClientExistant = document.createElement('label');
+  champClientExistant.className = 'champ';
+  champClientExistant.innerHTML = '<span>Client existant</span>';
+  const selectClientExistant = document.createElement('select');
+  selectClientExistant.className = 'champ-saisie';
+  selectClientExistant.innerHTML = '<option value="">Nouveau client…</option>';
+  champClientExistant.appendChild(selectClientExistant);
 
   const champRaisonSociale = champTexte('raison-sociale', 'Raison sociale', { obligatoire: true });
   const champDateLimite = champTexte('date-limite', 'Date limite (optionnel)', { type: 'date' });
@@ -94,7 +103,15 @@ export function vueCreationDemande() {
   bouton.className = 'btn btn--primaire';
   bouton.textContent = 'Créer la demande';
 
-  form.append(champRaisonSociale, champSiret, fieldsetTypes, champDateLimite, bouton);
+  function basculerChampsClient() {
+    const clientExistant = Boolean(selectClientExistant.value);
+    champRaisonSociale.hidden = clientExistant;
+    champSiret.hidden = clientExistant;
+    document.getElementById('raison-sociale').required = !clientExistant;
+  }
+  selectClientExistant.addEventListener('change', basculerChampsClient);
+
+  form.append(champClientExistant, champRaisonSociale, champSiret, fieldsetTypes, champDateLimite, bouton);
   main.appendChild(form);
   app.appendChild(main);
   if (window.lucide) window.lucide.createIcons();
@@ -105,6 +122,7 @@ export function vueCreationDemande() {
     try {
       const types = [...fieldsetTypes.querySelectorAll('input:checked')].map((i) => i.value);
       const demande = await creerDemande({
+        clientId: selectClientExistant.value || undefined,
         raisonSociale: document.getElementById('raison-sociale').value,
         siret: valeurSiret,
         types,
@@ -118,4 +136,13 @@ export function vueCreationDemande() {
       bouton.disabled = false;
     }
   });
+
+  try {
+    const clients = await listerClients();
+    selectClientExistant.innerHTML =
+      '<option value="">Nouveau client…</option>' +
+      clients.map((c) => `<option value="${c.id}">${c.raison_sociale}</option>`).join('');
+  } catch (err) {
+    afficherToast(err.message, { type: 'erreur' });
+  }
 }
