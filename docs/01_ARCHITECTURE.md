@@ -63,13 +63,16 @@ brouillon ──► envoyee ──► en_saisie ──► soumise ──► entr
                                           ▲                                                  │     │
                                           │ (réouverture consultant)                          │     ▼
                                           └──────────────────────────────── cadrage_a_revoir ◄┘  cadrage_valide ──► proposition_envoyee ──► gagnee | perdue
+                                                            │
+                                                            └──► cadrage_envoye (nouvelle version de la note renvoyée par le consultant)
 en_analyse ──► reorientee
 tout statut non final ──► abandonnee
 ```
 
 Statuts finaux : `gagnee`, `perdue`, `reorientee`, `abandonnee`.
 Toute transition est journalisée dans `evenements` (qui, quand, depuis, vers, commentaire).
-Le consultant peut **réouvrir** la saisie client depuis `soumise` ou `cadrage_a_revoir` : retour à `en_saisie`.
+Le consultant peut **réouvrir** la saisie client depuis `soumise` ou `cadrage_a_revoir` : retour à `en_saisie` (si la demande de modification remet en cause les réponses au questionnaire).
+Depuis `cadrage_a_revoir`, le consultant peut aussi créer une nouvelle version de la note et la renvoyer directement, sans repasser par la saisie client : retour à `cadrage_envoye`.
 
 ---
 
