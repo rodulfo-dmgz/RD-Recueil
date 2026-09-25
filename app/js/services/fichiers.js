@@ -1,13 +1,25 @@
 import { supabase } from '../supabase.js';
 import { validerFichierDepot } from '../engine/validation.js';
+import { slug } from '../engine/conditions.js';
 
-// Chemin de stockage : {reference}/{question_id}/{horodatage}-{nom} dans le
-// bucket 'demandes' - cf. politiques RLS de storage.objects (0003_rls.sql).
+// Chemin de stockage : {client}/{reference}/{question_id}/{horodatage}-{nom}
+// dans le bucket 'demandes' - le dossier client regroupe visuellement les
+// fichiers de toutes ses demandes dans Supabase Storage. C'est la référence
+// (2e segment) qui reste la clé d'accès RLS (0003_rls.sql, migration 0027) :
+// un client renommé plus tard garde l'accès à ses anciens fichiers, seul le
+// libellé du dossier devient incohérent avec le nom courant.
 export async function televerserFichier({ demandeId, reference, questionId, fichier }) {
   const erreur = validerFichierDepot({ nom: fichier.name, taille: fichier.size });
   if (erreur) throw new Error(erreur);
 
-  const chemin = `${reference}/${questionId}/${Date.now()}-${fichier.name}`;
+  const { data: demande } = await supabase
+    .from('demandes')
+    .select('clients(raison_sociale)')
+    .eq('id', demandeId)
+    .maybeSingle();
+  const dossierClient = slug(demande?.clients?.raison_sociale || '') || 'client';
+
+  const chemin = `${dossierClient}/${reference}/${questionId}/${Date.now()}-${fichier.name}`;
 
   const { error: erreurDepot } = await supabase.storage.from('demandes').upload(chemin, fichier);
   if (erreurDepot) throw erreurDepot;

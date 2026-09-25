@@ -529,7 +529,7 @@ create table notifications (
 | `questionnaires`, `questions`, `glossaire` | Lecture | Lecture (questions : uniquement sections `visible_client`) |
 | `demandes` | Lecture et écriture | Lecture si `a_acces()` |
 | `reponses` | Tout | Lecture si `a_acces()` et question non `F` ; écriture si droit `editeur`, question `C` ou `C/F`, statut `envoyee` ou `en_saisie`. Colonne `annotation_consultant` masquée par une vue `v_reponses_client`. |
-| `fichiers` + bucket Storage `demandes` | Tout | Lecture et dépôt dans `demandes/{reference}/…` si `a_acces()` |
+| `fichiers` + bucket Storage `demandes` | Tout | Lecture et dépôt dans `demandes/{client}/{reference}/…` si `a_acces()` (le 2e segment, `reference`, est la clé vérifiée par la RLS - le 1er, un slug du nom du client, ne sert qu'à regrouper visuellement les fichiers par client dans Supabase Storage) |
 | `commentaires` | Tout | Lecture et écriture si `interne = false` |
 | `notes_cadrage` | Tout | Lecture si statut ≠ `brouillon` |
 | `evenements` | Lecture | Aucun accès |
