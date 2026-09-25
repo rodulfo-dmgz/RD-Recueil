@@ -1,7 +1,7 @@
 // Lecture et validation de la note de cadrage côté client - section 4.1.
 import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { listerVersions, validerNote, demanderModification } from '../../services/notes-cadrage.js';
-import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
+import { rendreMarkdown, separerAnnexeGlossaire, injecterValidationDansCorps } from '../../components/markdown.js';
 import { creerLigneDocument } from '../../components/document-viewer.js';
 import { ouvrirModaleSignature, rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
@@ -47,10 +47,13 @@ function rendre(demande, note) {
   main.appendChild(titre);
 
   const { corps, annexe } = separerAnnexeGlossaire(note.contenu_md);
+  const corpsAvecValidation = injecterValidationDansCorps(corps, note);
 
   const documents = document.createElement('div');
   documents.className = 'documents-cadrage carte';
-  documents.appendChild(creerLigneDocument({ titre: 'Note de cadrage', contenuHtml: rendreMarkdown(corps) }));
+  documents.appendChild(
+    creerLigneDocument({ titre: 'Note de cadrage', contenuHtml: rendreMarkdown(corpsAvecValidation) })
+  );
   if (annexe) {
     documents.appendChild(
       creerLigneDocument({ titre: 'Glossaire des termes utilisés', contenuHtml: rendreMarkdown(annexe) })

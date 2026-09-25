@@ -11,7 +11,7 @@ import {
 import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
 import { genererNoteCadrage } from '../../engine/template.js';
-import { rendreMarkdown, separerAnnexeGlossaire } from '../../components/markdown.js';
+import { rendreMarkdown, separerAnnexeGlossaire, injecterValidationDansCorps } from '../../components/markdown.js';
 import { creerLigneDocument } from '../../components/document-viewer.js';
 import { rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
@@ -219,9 +219,12 @@ function rendreLecture(note) {
   conteneur.appendChild(statut);
 
   const { corps, annexe } = separerAnnexeGlossaire(note.contenu_md);
+  const corpsAvecValidation = injecterValidationDansCorps(corps, note);
   const documents = document.createElement('div');
   documents.className = 'documents-cadrage carte';
-  documents.appendChild(creerLigneDocument({ titre: 'Note de cadrage', contenuHtml: rendreMarkdown(corps) }));
+  documents.appendChild(
+    creerLigneDocument({ titre: 'Note de cadrage', contenuHtml: rendreMarkdown(corpsAvecValidation) })
+  );
   if (annexe) {
     documents.appendChild(
       creerLigneDocument({ titre: 'Glossaire des termes utilisés', contenuHtml: rendreMarkdown(annexe) })
@@ -229,7 +232,9 @@ function rendreLecture(note) {
   }
   conteneur.appendChild(documents);
 
-  if (note.signature_image) conteneur.appendChild(rendreApercuSignature(note.signature_image));
+  if (note.signature_image) {
+    conteneur.appendChild(rendreApercuSignature(note.signature_image, note.signature_credential));
+  }
 
   return conteneur;
 }

@@ -9,7 +9,7 @@ import { listerVersions } from '../../services/notes-cadrage.js';
 import { indexerGlossaire } from '../../engine/glossary.js';
 import { calculerVisibilite } from '../../engine/conditions.js';
 import { rendreReponsesParSection, rendreJournal } from '../../components/lecture-demande.js';
-import { rendreMarkdown } from '../../components/markdown.js';
+import { rendreMarkdown, injecterValidationDansCorps } from '../../components/markdown.js';
 import { rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
@@ -90,9 +90,11 @@ function rendre({ demande, questionnaire, reponses, journal, visibilite, noteVal
     infoValidation.textContent = `Version ${noteValidee.version} — validée le ${new Date(noteValidee.validee_le).toLocaleDateString('fr-FR')}`;
     contenu.appendChild(infoValidation);
     const rendu = document.createElement('div');
-    rendu.innerHTML = rendreMarkdown(noteValidee.contenu_md);
+    rendu.innerHTML = rendreMarkdown(injecterValidationDansCorps(noteValidee.contenu_md, noteValidee));
     contenu.appendChild(rendu);
-    if (noteValidee.signature_image) contenu.appendChild(rendreApercuSignature(noteValidee.signature_image));
+    if (noteValidee.signature_image) {
+      contenu.appendChild(rendreApercuSignature(noteValidee.signature_image, noteValidee.signature_credential));
+    }
     imprimable.appendChild(contenu);
   } else {
     const aucune = document.createElement('p');

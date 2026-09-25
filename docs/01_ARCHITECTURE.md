@@ -19,7 +19,7 @@
 5. conserve l'ensemble comme preuve Qualiopi (indicateurs 4 et 5 notamment).
 
 **Périmètre V1** : questionnaire, espace client, espace consultant, mode entretien, note de cadrage, export PDF.
-**Hors périmètre V1** : devis et facturation, signature électronique qualifiée, CRM complet, génération par IA. La validation de la note de cadrage inclut une signature électronique simple (dessin capturé sur `<canvas>`, stockée en image ; voir `notes_cadrage.signature_image` section 7 et `rpc_valider_cadrage` section 7.1) : ce n'est pas une signature qualifiée au sens eIDAS, mais un tracé graphique associé à l'horodatage, l'IP et l'identité déjà enregistrés à la validation.
+**Hors périmètre V1** : devis et facturation, signature électronique qualifiée, CRM complet, génération par IA. La validation de la note de cadrage inclut une signature électronique simple (dessin ou nom tapé, capturé sur `<canvas>`, stocké en image, accompagné d'un code de vérification généré côté serveur ; voir `notes_cadrage.signature_image`/`signature_credential` section 7 et `rpc_valider_cadrage` section 7.1) : ce n'est pas une signature qualifiée au sens eIDAS, mais un tracé graphique associé à l'horodatage, l'IP et l'identité déjà enregistrés à la validation. Côté RD Formation, la signature est une image fixe (`app/assets/images/signature.png`), la même sur toutes les notes : il n'existe pas de flux de capture dédié pour le consultant.
 
 ---
 
@@ -456,7 +456,8 @@ create table notes_cadrage (
   validee_le timestamptz,
   validee_par uuid references auth.users,
   validation_ip inet,
-  signature_image text,                -- tracé du client au format data URL (image/png), signature électronique simple
+  signature_image text,                -- tracé ou nom tapé du client au format data URL (image/png)
+  signature_credential text,           -- code de vérification numérique généré à la validation (ex. 123456-789012)
   unique (demande_id, version)
 );
 
@@ -482,7 +483,7 @@ create table evenements (
 | `fn_premiere_saisie()` trigger `after insert on reponses` | Passe la demande de `envoyee` à `en_saisie` si l'auteur est client. |
 | `rpc_changer_statut(demande_id, vers, commentaire)` `security definer` | Vérifie la transition (3.2) et le rôle, écrit dans `evenements`. Seul moyen de changer un statut. |
 | `rpc_soumettre(demande_id, ids_obligatoires)` `security definer` | `ids_obligatoires` : questions obligatoires actuellement visibles calculées côté client (seule implémentation de la visibilité conditionnelle, section 6.4). Vérifie que chacune a une réponse enregistrée, puis passe à `soumise`. |
-| `rpc_valider_cadrage(note_id, signature_image)` | Client uniquement ; enregistre le tracé de signature, horodate, enregistre l'IP, passe la demande à `cadrage_valide`. |
+| `rpc_valider_cadrage(note_id, signature_image)` | Client uniquement ; enregistre le tracé de signature et un code de vérification généré côté serveur (`signature_credential`), horodate, enregistre l'IP, passe la demande à `cadrage_valide`. |
 | `est_staff()`, `a_acces(demande_id)` | Fonctions utilitaires pour les politiques RLS. |
 
 ---

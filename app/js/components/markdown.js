@@ -17,3 +17,31 @@ export function separerAnnexeGlossaire(contenuMd) {
     annexe: contenuMd.slice(index).trim(),
   };
 }
+
+const SIGNATURE_RD_FORMATION = 'assets/images/signature.png';
+
+// Remplit les cases Date/Signature du tableau de validation (section 16 du
+// gabarit) avec les valeurs réelles - restées vides à la génération, car la
+// validation client intervient après coup. RD Formation : signature fixe,
+// dès l'envoi de la note. Client : uniquement une fois la note validée.
+export function injecterValidationDansCorps(corps, note) {
+  const dateClient =
+    note.statut === 'validee' && note.validee_le ? new Date(note.validee_le).toLocaleDateString('fr-FR') : '';
+  const dateRd = note.envoyee_le ? new Date(note.envoyee_le).toLocaleDateString('fr-FR') : '';
+
+  let resultat = corps.replace('| Date : | Date : |', `| Date : ${dateClient} | Date : ${dateRd} |`);
+
+  const signatureClient =
+    note.statut === 'validee' && note.signature_image
+      ? `![Signature client](${note.signature_image})` +
+        (note.signature_credential ? `<br><small>Code : ${note.signature_credential}</small>` : '')
+      : '';
+  const signatureRd = note.envoyee_le ? `![Signature RD Formation](${SIGNATURE_RD_FORMATION})` : '';
+
+  resultat = resultat.replace(
+    '| Signature : | Signature : |',
+    `| Signature : ${signatureClient} | Signature : ${signatureRd} |`
+  );
+
+  return resultat;
+}

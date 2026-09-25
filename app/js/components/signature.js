@@ -160,7 +160,7 @@ export function ouvrirModaleSignature({ onValider }) {
   dialog.showModal();
 }
 
-export function rendreApercuSignature(signatureImage) {
+export function rendreApercuSignature(signatureImage, signatureCredential) {
   const bloc = document.createElement('div');
   bloc.className = 'signature-apercu';
   const legende = document.createElement('p');
@@ -171,5 +171,11 @@ export function rendreApercuSignature(signatureImage) {
   image.src = signatureImage;
   image.alt = 'Signature manuscrite du client';
   bloc.append(legende, image);
+  if (signatureCredential) {
+    const code = document.createElement('p');
+    code.className = 'signature-apercu__credential';
+    code.textContent = `Code de vérification : ${signatureCredential}`;
+    bloc.appendChild(code);
+  }
   return bloc;
 }
