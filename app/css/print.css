@@ -11,6 +11,8 @@ body * {
   visibility: hidden;
 }
 
+.editeur-note__document,
+.editeur-note__document *,
 .editeur-note__apercu,
 .editeur-note__apercu *,
 .imprimable,
@@ -18,12 +20,20 @@ body * {
   visibility: visible;
 }
 
-.editeur-note__apercu,
+/* Positionné une seule fois sur le conteneur commun : la note de cadrage
+   peut désormais être scindée en plusieurs cartes .editeur-note__apercu
+   (note, glossaire, signature) - les positionner chacune en absolute les
+   superposerait toutes au même endroit au lieu de les enchaîner. */
+.editeur-note__document,
 .imprimable {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
+}
+
+.editeur-note__apercu,
+.imprimable {
   max-height: none;
   overflow: visible;
   border: none;

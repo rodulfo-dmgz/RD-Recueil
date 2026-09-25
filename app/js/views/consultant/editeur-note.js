@@ -222,6 +222,9 @@ function rendreLecture(note) {
   actionsHaut.appendChild(boutonImprimer);
   conteneur.appendChild(actionsHaut);
 
+  const documentNote = document.createElement('div');
+  documentNote.className = 'editeur-note__document';
+
   const bloc = document.createElement('div');
   bloc.className = 'carte editeur-note__apercu';
   const statut = document.createElement('p');
@@ -232,16 +235,18 @@ function rendreLecture(note) {
   const contenu = document.createElement('div');
   contenu.innerHTML = rendreMarkdown(corps);
   bloc.appendChild(contenu);
-  conteneur.appendChild(bloc);
+  documentNote.appendChild(bloc);
 
   if (annexe) {
     const blocGlossaire = document.createElement('div');
     blocGlossaire.className = 'carte editeur-note__apercu';
     blocGlossaire.innerHTML = rendreMarkdown(annexe);
-    conteneur.appendChild(blocGlossaire);
+    documentNote.appendChild(blocGlossaire);
   }
 
-  if (note.signature_image) conteneur.appendChild(rendreApercuSignature(note.signature_image));
+  if (note.signature_image) documentNote.appendChild(rendreApercuSignature(note.signature_image));
+
+  conteneur.appendChild(documentNote);
 
   return conteneur;
 }

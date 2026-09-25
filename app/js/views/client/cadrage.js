@@ -57,24 +57,32 @@ function rendre(demande, note) {
 
   const { corps, annexe } = separerAnnexeGlossaire(note.contenu_md);
 
+  const documentNote = document.createElement('div');
+  documentNote.className = 'editeur-note__document';
+
   const contenu = document.createElement('div');
   contenu.className = 'carte editeur-note__apercu';
   contenu.innerHTML = rendreMarkdown(corps);
-  main.appendChild(contenu);
+  documentNote.appendChild(contenu);
 
   if (annexe) {
     const carteGlossaire = document.createElement('div');
     carteGlossaire.className = 'carte editeur-note__apercu';
     carteGlossaire.innerHTML = rendreMarkdown(annexe);
-    main.appendChild(carteGlossaire);
+    documentNote.appendChild(carteGlossaire);
   }
+
+  if (note.statut === 'validee' && note.signature_image) {
+    documentNote.appendChild(rendreApercuSignature(note.signature_image));
+  }
+
+  main.appendChild(documentNote);
 
   if (note.statut === 'validee') {
     const info = document.createElement('p');
     info.className = 'texte-doux';
     info.textContent = `Note validée le ${new Date(note.validee_le).toLocaleDateString('fr-FR')}.`;
     main.appendChild(info);
-    if (note.signature_image) main.appendChild(rendreApercuSignature(note.signature_image));
   } else if (note.statut === 'envoyee') {
     main.appendChild(rendreActions(demande, note));
   } else if (note.statut === 'a_revoir') {
