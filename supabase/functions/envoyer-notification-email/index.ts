@@ -34,6 +34,47 @@ const TITRES: Record<string, string> = {
 };
 const VERS_STAFF = new Set(["soumise", "cadrage_a_revoir", "cadrage_valide", "gagnee", "perdue", "entretien_planifie"]);
 
+const LOGO_URL = "https://www.rd-formation.com/assets/img/RDLOGO.png";
+const SITE_URL = "https://www.rd-formation.com";
+const TELEPHONE = "07 66 62 60 19";
+
+// Mise en page en tableaux et styles en ligne : c'est ce qui reste fiable
+// d'un client mail à l'autre (Outlook en particulier ignore une bonne part
+// du CSS moderne). Sobre à dessein : logo, message, un seul bouton d'action,
+// coordonnées - rien de plus.
+function construireEmailHtml({ titre, reference, lien }: { titre: string; reference: string; lien: string }) {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F7F8FA;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F8FA;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#FFFFFF;border-radius:12px;border:1px solid #E2E6ED;">
+        <tr><td style="padding:32px 32px 20px;text-align:center;">
+          <img src="${LOGO_URL}" width="48" height="48" alt="RD Formation" style="display:block;margin:0 auto 10px;border-radius:50%;">
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5B6475;">RD Formation</div>
+        </td></tr>
+        <tr><td style="padding:0 32px;"><hr style="border:none;border-top:1px solid #E2E6ED;margin:0;"></td></tr>
+        <tr><td style="padding:28px 32px;">
+          <h1 style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:19px;color:#1A1F2B;">${titre}</h1>
+          <p style="margin:0 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#5B6475;">Concernant la demande <strong style="color:#1A1F2B;">${reference}</strong> sur RD Recueil.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:#1F4590;">
+            <a href="${lien}" style="display:inline-block;padding:12px 22px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#FFFFFF;text-decoration:none;">Consulter la demande</a>
+          </td></tr></table>
+        </td></tr>
+        <tr><td style="padding:0 32px;"><hr style="border:none;border-top:1px solid #E2E6ED;margin:0;"></td></tr>
+        <tr><td style="padding:18px 32px 26px;text-align:center;">
+          <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#5B6475;">
+            <a href="${SITE_URL}" style="color:#1CA098;text-decoration:none;">${SITE_URL.replace("https://", "")}</a> &middot; ${TELEPHONE}
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -99,19 +140,24 @@ Deno.serve(async (req: Request) => {
   const lien = `${appUrl}/#/${chemin}`;
 
   let envoyes = 0;
+  const erreurs: string[] = [];
   for (const email of emails) {
     const reponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendCle}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "RD Recueil <onboarding@resend.dev>",
+        from: "RD Formation <notifications@mail.rd-formation.com>",
         to: email,
         subject: `${titre} - ${reference}`,
-        html: `<p>${titre} pour la demande <strong>${reference}</strong>.</p><p><a href="${lien}">Consulter sur RD Recueil</a></p>`,
+        html: construireEmailHtml({ titre, reference, lien }),
       }),
     });
-    if (reponse.ok) envoyes += 1;
+    if (reponse.ok) {
+      envoyes += 1;
+    } else {
+      erreurs.push(await reponse.text());
+    }
   }
 
-  return reponseJson({ envoyes });
+  return reponseJson({ envoyes, erreurs: erreurs.length ? erreurs : undefined });
 });
