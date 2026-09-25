@@ -83,7 +83,7 @@ export function rendreEntete(profil) {
             <div id="liste-notifications" class="panneau-notifications__liste"></div>
           </div>
         </div>
-        <button type="button" class="theme-toggle entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
+        <button type="button" class="entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
           <i data-lucide="moon"></i>
         </button>
         <button type="button" id="bouton-deconnexion" class="btn btn--secondaire entete__deconnexion" title="Déconnexion">

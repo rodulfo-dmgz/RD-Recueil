@@ -51,7 +51,7 @@
 .entete__compte {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   margin-left: auto;
 }
 .entete__nom {
@@ -61,13 +61,26 @@
 }
 .entete__deconnexion { min-height: 40px; padding: 0 14px; }
 .entete__deconnexion svg { width: 16px; height: 16px; }
+/* Bouton rond (lune, cloche) - propriétés visuelles propres à l'en-tête :
+   .theme-toggle (login.css) est en position: absolute, pensée pour flotter
+   dans un coin de l'écran de connexion, pas pour un bouton en flux dans une
+   barre de navigation - ne pas la référencer ici, même par erreur. */
 .entete__theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
-  min-height: 40px;
-  position: static;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--bordure);
+  background: var(--fond);
+  color: var(--texte);
+  cursor: pointer;
 }
-.entete__notifications { position: relative; }
+.entete__theme:hover { background: var(--bordure); }
+.entete__theme svg { width: 18px; height: 18px; }
+.entete__notifications { position: relative; display: flex; }
 .entete__badge-notifications {
   position: absolute;
   top: -4px;
