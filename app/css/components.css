@@ -927,8 +927,15 @@
 .btn-icone:hover { background: var(--fond); }
 .btn-icone i { width: 18px; height: 18px; }
 
-/* Modale de lecture d'un document */
+/* Modale de lecture d'un document - flex colonne : l'en-tête garde sa
+   taille, seul .modale-document__corps défile. Sans le overflow:hidden ni
+   le flex ici, un <dialog> sans hauteur définie laisse son contenu déborder
+   et c'est la page entière qui défile derrière (barre de défilement collée
+   au bord de l'écran, pas à la modale). */
 .modale-document {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: none;
   border-radius: var(--rayon);
   box-shadow: var(--ombre);
@@ -941,15 +948,13 @@
 }
 .modale-document::backdrop { background: rgba(26, 31, 43, .5); }
 .modale-document__entete {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 16px 24px;
   border-bottom: 1px solid var(--bordure);
-  background: var(--surface);
 }
 .modale-document__entete h2 { margin: 0; font-family: var(--police-titre); font-size: 18px; }
 .modale-document__fermer {
@@ -959,7 +964,7 @@
   cursor: pointer;
   padding: 4px;
 }
-.modale-document__corps { padding: 24px; overflow-y: auto; max-height: calc(85vh - 64px); }
+.modale-document__corps { flex: 1; min-height: 0; overflow-y: auto; padding: 24px; }
 
 .signature-apercu { margin-top: 16px; }
 .signature-apercu__image {
