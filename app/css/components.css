@@ -816,8 +816,12 @@
 .devis-imprimable__conditions h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--texte-doux); margin-bottom: 6px; font-weight: 700; }
 
 .devis-imprimable__signature { display: flex; justify-content: flex-end; margin-top: 20px; }
+.devis-imprimable__signature > div { text-align: right; }
 .devis-imprimable__signature p { font-size: 12px; color: var(--texte-doux); margin-bottom: 6px; }
 .devis-imprimable__case-signature { width: 220px; height: 56px; border: 1px solid var(--bordure); border-radius: var(--rayon); }
+.devis-imprimable__accord { color: var(--succes) !important; font-weight: 600; }
+.devis-imprimable__signature-image { max-width: 140px; max-height: 60px; border: 1px solid var(--bordure); border-radius: var(--rayon); background: #FFFFFF; }
+.devis-imprimable__credential { font-family: var(--police-code); font-size: 11px !important; margin-top: 4px !important; }
 
 .devis-imprimable__pied { margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--bordure); font-size: 10px; color: var(--texte-doux); text-align: center; }
 

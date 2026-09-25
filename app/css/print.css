@@ -9,6 +9,13 @@
   margin: 18mm;
 }
 
+/* Le bloc imprimable ne couvre que sa propre hauteur (position: absolute) ;
+   sans ceci, le gris de fond de la page (var(--fond)) reste visible sous un
+   contenu plus court qu'une page. */
+body {
+  background: #FFFFFF;
+}
+
 body * {
   visibility: hidden;
 }

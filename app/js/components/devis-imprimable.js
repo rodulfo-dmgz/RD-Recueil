@@ -123,7 +123,13 @@ ${EMETTEUR.adresse}</div>
     <div class="devis-imprimable__signature">
       <div>
         <p>Bon pour accord, date et signature du client :</p>
-        <div class="devis-imprimable__case-signature"></div>
+        ${
+          proposition.statut === 'acceptee' && proposition.signature_image
+            ? `<p class="devis-imprimable__accord">Accepté le ${formaterDate(new Date(proposition.decidee_le))}</p>
+               <img class="devis-imprimable__signature-image" src="${proposition.signature_image}" alt="Signature du client" />
+               ${proposition.signature_credential ? `<p class="devis-imprimable__credential">Code de vérification : ${proposition.signature_credential}</p>` : ''}`
+            : '<div class="devis-imprimable__case-signature"></div>'
+        }
       </div>
     </div>
 

@@ -75,8 +75,11 @@ export async function envoyerProposition(propositionId, demandeId) {
   if (erreurStatut) throw erreurStatut;
 }
 
-export async function accepterProposition(propositionId) {
-  const { error } = await supabase.rpc('rpc_accepter_proposition', { p_proposition_id: propositionId });
+export async function accepterProposition(propositionId, signatureImage) {
+  const { error } = await supabase.rpc('rpc_accepter_proposition', {
+    p_proposition_id: propositionId,
+    p_signature_image: signatureImage,
+  });
   if (error) throw error;
 }
 

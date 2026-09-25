@@ -3,6 +3,7 @@ import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { chargerReponses } from '../../services/reponses.js';
 import { obtenirProposition, listerLignes, accepterProposition, refuserProposition } from '../../services/propositions.js';
 import { construireDevisImprimable } from '../../components/devis-imprimable.js';
+import { ouvrirModaleSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
@@ -83,17 +84,20 @@ function rendreActions(demande, proposition) {
   boutonAccepter.type = 'button';
   boutonAccepter.className = 'btn btn--primaire';
   boutonAccepter.textContent = 'Accepter la proposition';
-  boutonAccepter.addEventListener('click', async () => {
-    if (!window.confirm('Confirmer l’acceptation de cette proposition ?')) return;
-    boutonAccepter.disabled = true;
-    try {
-      await accepterProposition(proposition.id);
-      afficherToast('Proposition acceptée. Merci !', { type: 'succes' });
-      navigate(`/d/${demande.reference}`);
-    } catch (err) {
-      afficherToast(err.message, { type: 'erreur' });
-      boutonAccepter.disabled = false;
-    }
+  boutonAccepter.addEventListener('click', () => {
+    ouvrirModaleSignature({
+      onValider: async (signatureImage) => {
+        try {
+          await accepterProposition(proposition.id, signatureImage);
+          afficherToast('Proposition acceptée. Merci !', { type: 'succes' });
+          navigate(`/d/${demande.reference}`);
+          return true;
+        } catch (err) {
+          afficherToast(err.message, { type: 'erreur' });
+          return false;
+        }
+      },
+    });
   });
 
   const formRefus = document.createElement('form');
