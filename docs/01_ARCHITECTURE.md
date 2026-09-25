@@ -395,10 +395,15 @@ create table demandes (
   updated_at timestamptz default now()
 );
 
+-- Les colonnes "qui a fait cette action" (user_id, saisi_par, depose_par,
+-- auteur, validee_par, decidee_par) référencent toutes auth.users avec
+-- on delete set null, jamais cascade ni la valeur par défaut (no action) :
+-- supprimer un compte ne doit ni bloquer sur ces tables, ni effacer
+-- l'historique métier - seule la référence à l'auteur devient vide.
 create table demande_acces (
   demande_id uuid references demandes on delete cascade,
   email text not null,
-  user_id uuid references auth.users,
+  user_id uuid references auth.users on delete set null,
   droit text not null default 'editeur' check (droit in ('editeur','lecteur')),
   invite_le timestamptz default now(),
   primary key (demande_id, email)
@@ -411,7 +416,7 @@ create table reponses (
   valeur jsonb,
   nsp boolean default false,
   annotation_consultant text,          -- jamais visible du client
-  saisi_par uuid references auth.users,
+  saisi_par uuid references auth.users on delete set null,
   updated_at timestamptz default now(),
   primary key (demande_id, question_id)
 );
@@ -431,7 +436,7 @@ create table fichiers (
   nom text not null,
   taille integer not null,
   mime text not null,
-  depose_par uuid references auth.users,
+  depose_par uuid references auth.users on delete set null,
   created_at timestamptz default now()
 );
 
@@ -439,7 +444,7 @@ create table commentaires (
   id uuid primary key default gen_random_uuid(),
   demande_id uuid references demandes on delete cascade,
   cible text not null,                 -- ID de question ou 'cadrage:section-3'
-  auteur uuid references auth.users,
+  auteur uuid references auth.users on delete set null,
   texte text not null,
   interne boolean default false,       -- true = invisible pour le client
   created_at timestamptz default now()
@@ -454,7 +459,7 @@ create table notes_cadrage (
   statut text not null check (statut in ('brouillon','envoyee','a_revoir','validee')),
   envoyee_le timestamptz,
   validee_le timestamptz,
-  validee_par uuid references auth.users,
+  validee_par uuid references auth.users on delete set null,
   validation_ip inet,
   signature_image text,                -- tracé ou nom tapé du client au format data URL (image/png)
   signature_credential text,           -- code de vérification numérique généré à la validation (ex. 123456-789012)
@@ -467,7 +472,7 @@ create table evenements (
   demande_id uuid references demandes on delete cascade,
   type text not null,                  -- 'statut', 'invitation', 'soumission', 'cadrage'…
   de text, vers text,
-  auteur uuid references auth.users,
+  auteur uuid references auth.users on delete set null,
   commentaire text,
   created_at timestamptz default now()
 );
