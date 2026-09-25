@@ -3,6 +3,7 @@ import { soumettre } from '../../services/demandes.js';
 import { listerQuestionsPertinentes } from '../../engine/completion.js';
 import { formaterReponse as formaterValeur } from '../../engine/formatage.js';
 import { afficherToast } from '../../components/toast.js';
+import { envoyerEmailEtape } from '../../services/notifications.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 import { chargerEtatDemande } from './accueil.js';
@@ -113,6 +114,7 @@ export async function vueRecap(reference) {
       try {
         const idsObligatoires = listerQuestionsPertinentes(etat.questionnaire, etat.visibilite).map((q) => q.id);
         await soumettre(etat.demande.id, idsObligatoires);
+        envoyerEmailEtape(reference, 'soumise');
         afficherToast('Réponses envoyées. Merci !', { type: 'succes' });
         navigate(`/d/${reference}`);
       } catch (err) {

@@ -15,6 +15,7 @@ import { rendreMarkdown, separerAnnexeGlossaire, injecterValidationDansCorps } f
 import { creerLigneDocument } from '../../components/document-viewer.js';
 import { rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
+import { envoyerEmailEtape } from '../../services/notifications.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { getProfil } from '../../store.js';
 
@@ -196,6 +197,7 @@ function rendreEditeur(contexte, note) {
     try {
       await mettreAJourContenu(note.id, textarea.value);
       await envoyerNote(note.id, contexte.demande.id);
+      envoyerEmailEtape(contexte.demande.reference, 'cadrage_envoye');
       afficherToast('Note envoyée au client.', { type: 'succes' });
       vueEditeurNote(contexte.demande.reference);
     } catch (err) {

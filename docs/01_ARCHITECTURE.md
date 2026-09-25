@@ -471,6 +471,19 @@ create table evenements (
   commentaire text,
   created_at timestamptz default now()
 );
+
+-- Notification interne (section 16) - alimentée par le trigger
+-- fn_notifier_evenement sur evenements, jamais par un insert direct.
+create table notifications (
+  id uuid primary key default gen_random_uuid(),
+  destinataire uuid not null references auth.users on delete cascade,
+  demande_id uuid references demandes on delete cascade,
+  reference text not null,
+  type text not null,                  -- le statut ('vers') qui a déclenché la notification
+  titre text not null,
+  lu boolean not null default false,
+  created_at timestamptz not null default now()
+);
 ```
 
 **Fonctions et triggers** (`0002_functions.sql`)
@@ -652,3 +665,28 @@ Export « Dossier de preuves » (V2) : un PDF par demande regroupant réponses, 
 - Aide à la rédaction des objectifs 3C à partir des réponses TC-4 et TC-6 (IA), toujours validée par le consultant.
 - Génération de la proposition technique et financière à partir de la note validée.
 - Modèles de questionnaire allégés par famille de prestation (par exemple un recueil court pour une prestation ponctuelle simple).
+
+---
+
+## 16. Notifications
+
+À chaque étape validée par le client ou le consultant, les deux parties concernées sont notifiées : en interne (cloche dans l'en-tête) et par e-mail.
+
+**Étapes notifiées** (les autres transitions, à la seule initiative interne du consultant - `en_analyse`, `reorientee`, `abandonnee` - n'en génèrent pas) :
+
+| Transition | Notifie |
+|---|---|
+| `soumise` | Staff |
+| `entretien_planifie` | Staff |
+| `cadrage_envoye` | Client |
+| `cadrage_a_revoir` | Staff |
+| `cadrage_valide` | Staff |
+| `proposition_envoyee` | Client |
+| `gagnee` | Staff |
+| `perdue` | Staff |
+
+« Staff » = tous les comptes `admin`/`consultant` (pas d'affectation par demande). « Client » = les comptes de `demande_acces` pour la demande concernée.
+
+**Notification interne** - table `notifications` (`destinataire`, `demande_id`, `reference`, `type`, `titre`, `lu`) alimentée par un unique trigger `fn_notifier_evenement` sur `evenements` (`AFTER INSERT`) : toute transition passe déjà par `rpc_changer_statut`, qui écrit dans `evenements` - un seul trigger centralisé suffit, sans modifier chaque RPC. RLS : un compte ne voit et ne marque comme lues que ses propres notifications.
+
+**E-mail** - envoyé à part par le client juste après l'action réussie (`app/js/services/notifications.js`, fonction `envoyerEmailEtape`), via l'Edge Function `envoyer-notification-email` (Resend, secret `RESEND_API_KEY` côté serveur uniquement, jamais dans la base - CLAUDE.md). Volontairement non bloquant : un échec d'envoi n'annule jamais l'action ni ne remonte d'erreur à l'utilisateur, la fiabilité des e-mails transactionnels ayant déjà été un point de friction sur ce projet (section 8.1). Secret `APP_URL` optionnel pour le lien inclus dans l'e-mail (URL GitHub Pages par défaut si absent).

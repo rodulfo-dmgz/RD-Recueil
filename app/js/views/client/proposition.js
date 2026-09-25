@@ -6,6 +6,7 @@ import { construireDevisImprimable } from '../../components/devis-imprimable.js'
 import { ouvrirModaleSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
+import { envoyerEmailEtape } from '../../services/notifications.js';
 import { navigate } from '../../router.js';
 
 export async function vuePropositionClient(reference) {
@@ -89,6 +90,7 @@ function rendreActions(demande, proposition) {
       onValider: async (signatureImage) => {
         try {
           await accepterProposition(proposition.id, signatureImage);
+          envoyerEmailEtape(demande.reference, 'gagnee');
           afficherToast('Proposition acceptée. Merci !', { type: 'succes' });
           navigate(`/d/${demande.reference}`);
           return true;
@@ -115,6 +117,7 @@ function rendreActions(demande, proposition) {
     boutonRefuser.disabled = true;
     try {
       await refuserProposition(proposition.id, texte.value || null);
+      envoyerEmailEtape(demande.reference, 'perdue');
       afficherToast('Proposition refusée.', { type: 'succes' });
       navigate(`/d/${demande.reference}`);
     } catch (err) {

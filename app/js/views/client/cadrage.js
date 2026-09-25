@@ -6,6 +6,7 @@ import { creerLigneDocument } from '../../components/document-viewer.js';
 import { ouvrirModaleSignature, rendreApercuSignature } from '../../components/signature.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
+import { envoyerEmailEtape } from '../../services/notifications.js';
 import { navigate } from '../../router.js';
 
 export async function vueCadrageClient(reference) {
@@ -101,6 +102,7 @@ function rendreActions(demande, note) {
       onValider: async (signatureImage) => {
         try {
           await validerNote(note.id, signatureImage);
+          envoyerEmailEtape(demande.reference, 'cadrage_valide');
           afficherToast('Note validée. Merci !', { type: 'succes' });
           navigate(`/d/${demande.reference}`);
           return true;
@@ -127,6 +129,7 @@ function rendreActions(demande, note) {
     boutonModifier.disabled = true;
     try {
       await demanderModification(note.id, texte.value);
+      envoyerEmailEtape(demande.reference, 'cadrage_a_revoir');
       afficherToast('Demande de modification envoyée.', { type: 'succes' });
       navigate(`/d/${demande.reference}`);
     } catch (err) {

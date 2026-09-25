@@ -4,6 +4,7 @@ import { obtenirDemandeParReference } from '../../services/demandes.js';
 import { listerCreneaux, confirmerReservationCalcom } from '../../services/creneaux.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
+import { envoyerEmailEtape } from '../../services/notifications.js';
 import { navigate } from '../../router.js';
 import { genererLienGoogleCalendar, genererIcs } from '../../engine/calendrier.js';
 
@@ -182,6 +183,7 @@ function rendre(demande, creneaux) {
       dejaTraite = true;
       try {
         await confirmerReservationCalcom(demande.id, { debut: data.startTime, fin: data.endTime });
+        envoyerEmailEtape(demande.reference, 'entretien_planifie');
         afficherToast('Rendez-vous confirmé. Merci !', { type: 'succes' });
         navigate(`/d/${demande.reference}`);
       } catch (err) {

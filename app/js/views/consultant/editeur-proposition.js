@@ -19,6 +19,7 @@ import {
 import { rendreMarkdown } from '../../components/markdown.js';
 import { construireDevisImprimable } from '../../components/devis-imprimable.js';
 import { afficherToast } from '../../components/toast.js';
+import { envoyerEmailEtape } from '../../services/notifications.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 
 const LIBELLES_STATUT_PROPOSITION = {
@@ -416,6 +417,7 @@ function rendreEditeur(demande, proposition, lignesInitiales) {
       await mettreAJourJustification(proposition.id, textarea.value);
       await remplacerLignes(proposition.id, lignes);
       await envoyerProposition(proposition.id, demande.id);
+      envoyerEmailEtape(demande.reference, 'proposition_envoyee');
       afficherToast('Proposition envoyée au client.', { type: 'succes' });
       vueEditeurProposition(demande.reference);
     } catch (err) {
