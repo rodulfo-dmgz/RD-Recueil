@@ -1,5 +1,5 @@
 import { supabase } from '../supabase.js';
-import { SUPABASE_URL } from '../config.js';
+import { appelerEdgeFunction } from './edge-functions.js';
 
 export async function listerNotifications(limite = 20) {
   const { data, error } = await supabase
@@ -37,12 +37,5 @@ export async function marquerToutesLues() {
 // remontée d'erreur à l'appelant - CLAUDE.md / 01_ARCHITECTURE.md notent
 // déjà la fiabilité des e-mails transactionnels comme point de friction.
 export function envoyerEmailEtape(reference, vers) {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (!session) return;
-    fetch(`${SUPABASE_URL}/functions/v1/envoyer-notification-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ reference, vers }),
-    }).catch(() => {});
-  });
+  appelerEdgeFunction('envoyer-notification-email', { method: 'POST', body: { reference, vers } }).catch(() => {});
 }

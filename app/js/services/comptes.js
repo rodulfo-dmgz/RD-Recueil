@@ -1,29 +1,15 @@
 import { supabase } from '../supabase.js';
-import { SUPABASE_URL } from '../config.js';
+import { appelerEdgeFunction } from './edge-functions.js';
 
 // Seul point de création de compte (client, consultant, admin) : appelle
 // l'Edge Function creer-compte, qui seule détient la clé service_role
 // (01_ARCHITECTURE.md section 8.1, CLAUDE.md).
 export async function creerCompte({ email, role, nom, demandeId, droit }) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) throw new Error('Non authentifié.');
-
-  const reponse = await fetch(`${SUPABASE_URL}/functions/v1/creer-compte`, {
+  return appelerEdgeFunction('creer-compte', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({ email, role, nom, demandeId, droit }),
-  });
-
-  const resultat = await reponse.json();
-  if (!reponse.ok) {
-    throw new Error(resultat.erreur || 'Échec de la création du compte.');
-  }
-  return resultat; // { email, motDePasseTemporaire, userId }
+    body: { email, role, nom, demandeId, droit },
+    messageErreur: 'Échec de la création du compte.',
+  }); // { email, motDePasseTemporaire, userId }
 }
 
 // Liste des comptes (RLS profils_staff : tout le staff peut lire, la
@@ -57,23 +43,9 @@ export async function listerDemandesDuCompte(userId) {
 // demandes (via demande_acces) sont supprimées avec toutes leurs données
 // dépendantes (cascade), pas seulement l'accès.
 export async function supprimerUtilisateur(userId) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) throw new Error('Non authentifié.');
-
-  const reponse = await fetch(`${SUPABASE_URL}/functions/v1/supprimer-utilisateur`, {
+  return appelerEdgeFunction('supprimer-utilisateur', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({ userId }),
-  });
-
-  const resultat = await reponse.json();
-  if (!reponse.ok) {
-    throw new Error(resultat.erreur || 'Échec de la suppression du compte.');
-  }
-  return resultat; // { demandesSupprimees }
+    body: { userId },
+    messageErreur: 'Échec de la suppression du compte.',
+  }); // { demandesSupprimees }
 }
