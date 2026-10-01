@@ -1,4 +1,9 @@
-import { estCodeRncp, verifierCodeRncp } from '../../services/certifications.js';
+import {
+  estCodeRncp,
+  verifierCodeRncp,
+  rechercherCertifInfo,
+  obtenirCertifInfo,
+} from '../../services/certifications.js';
 
 function formaterDate(iso) {
   if (!iso) return null;
@@ -98,24 +103,115 @@ function construireResultat(resultat) {
   return bloc;
 }
 
+const LIBELLES_ACCESSIBILITE = {
+  formationInitiale: 'Formation initiale',
+  apprentissage: 'Apprentissage',
+  formationContinue: 'Formation continue',
+  contratPro: 'Contrat de professionnalisation',
+  vae: 'VAE',
+  individuelle: 'Demande individuelle',
+};
+
+// Fiche Certif Info (intercariforef.org) - référentiel plus large que le
+// seul RNCP, choisie via la recherche par intitulé (cf. render ci-dessous).
+function construireResultatCertifInfo(resultat) {
+  const bloc = document.createElement('div');
+  bloc.className = 'champ-code-rncp__resultat';
+
+  if (!resultat.trouve) {
+    bloc.textContent = 'Certification introuvable dans Certif Info.';
+    return bloc;
+  }
+
+  const entete = document.createElement('p');
+  entete.className = 'champ-code-rncp__intitule';
+  entete.textContent = resultat.intitule;
+  bloc.appendChild(entete);
+
+  if (resultat.actif) {
+    const statut = document.createElement('p');
+    statut.className = 'champ-code-rncp__badge champ-code-rncp__badge--actif';
+    statut.textContent = resultat.actif;
+    bloc.appendChild(statut);
+  }
+
+  if (resultat.objectif) {
+    const titre = document.createElement('p');
+    titre.className = 'champ-code-rncp__section-titre';
+    titre.textContent = 'Objectif :';
+    bloc.appendChild(titre);
+    const texte = document.createElement('p');
+    texte.className = 'texte-doux';
+    texte.textContent = resultat.objectif;
+    bloc.appendChild(texte);
+  }
+
+  const codesLies = [
+    ...(resultat.rncp || []).map((r) => `RNCP ${r.code}`),
+    ...(resultat.rs || []).map((r) => `RS ${r.code}`),
+  ];
+  if (codesLies.length) {
+    const titre = document.createElement('p');
+    titre.className = 'champ-code-rncp__section-titre';
+    titre.textContent = 'Codes liés :';
+    bloc.appendChild(titre);
+    const texte = document.createElement('p');
+    texte.className = 'texte-doux';
+    texte.textContent = codesLies.join(', ');
+    bloc.appendChild(texte);
+  }
+
+  const voiesAcces = Object.entries(resultat.accessibilite || {})
+    .filter(([, actif]) => actif)
+    .map(([cle]) => LIBELLES_ACCESSIBILITE[cle] || cle);
+  if (voiesAcces.length) {
+    const titre = document.createElement('p');
+    titre.className = 'champ-code-rncp__section-titre';
+    titre.textContent = "Voies d'accès :";
+    bloc.appendChild(titre);
+    const texte = document.createElement('p');
+    texte.className = 'texte-doux';
+    texte.textContent = voiesAcces.join(', ');
+    bloc.appendChild(texte);
+  }
+
+  return bloc;
+}
+
 // Champ libre (titre, code RNCP ou RS) - seul un code RNCP au format
 // "RNCP12345" peut être vérifié auprès de France Compétences (l'API ne
-// couvre pas le Répertoire Spécifique). Pour tout autre contenu, le champ se
-// comporte comme un texte simple. La vérification n'est jamais persistée :
-// elle est donc relancée à chaque affichage du champ (retour sur la section,
-// rechargement) pour que le résultat reste visible plutôt que de disparaître
-// dès que le composant est reconstruit.
+// couvre pas le Répertoire Spécifique). Pour tout autre texte d'au moins 3
+// caractères, une recherche par intitulé dans Certif Info (référentiel plus
+// large, intercariforef.org) propose des suggestions ; en choisir une
+// affiche sa fiche complète. La vérification/recherche n'est jamais
+// persistée : elle est relancée à chaque affichage du champ pour que le
+// résultat reste visible plutôt que de disparaître dès que le composant est
+// reconstruit.
 export function render(question, valeur, { onChange, lectureSeule }) {
   const conteneur = document.createElement('div');
   conteneur.className = 'champ-code-rncp';
 
+  const champRecherche = document.createElement('div');
+  champRecherche.className = 'champ-code-rncp__recherche';
+
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'champ-saisie';
-  input.placeholder = 'Ex. RNCP12345';
+  input.placeholder = 'Ex. RNCP12345 ou "Chef de projet digital"';
   input.value = valeur ?? '';
   input.disabled = Boolean(lectureSeule);
-  conteneur.appendChild(input);
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-expanded', 'false');
+  input.setAttribute('aria-autocomplete', 'list');
+  champRecherche.appendChild(input);
+
+  const suggestions = document.createElement('ul');
+  suggestions.className = 'champ-code-rncp__suggestions';
+  suggestions.hidden = true;
+  suggestions.setAttribute('role', 'listbox');
+  champRecherche.appendChild(suggestions);
+
+  conteneur.appendChild(champRecherche);
 
   const statut = document.createElement('p');
   statut.className = 'texte-doux champ-code-rncp__statut';
@@ -123,8 +219,19 @@ export function render(question, valeur, { onChange, lectureSeule }) {
   conteneur.appendChild(statut);
 
   let dernierCodeVerifie = null;
+  let minuterieRecherche = null;
 
-  async function lancerVerification(code) {
+  function effacerResultat() {
+    conteneur.querySelector('.champ-code-rncp__resultat')?.remove();
+  }
+
+  function masquerSuggestions() {
+    suggestions.hidden = true;
+    suggestions.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  async function lancerVerificationRncp(code) {
     if (!estCodeRncp(code) || code === dernierCodeVerifie) return;
     dernierCodeVerifie = code;
     statut.hidden = false;
@@ -132,15 +239,69 @@ export function render(question, valeur, { onChange, lectureSeule }) {
     try {
       const resultat = await verifierCodeRncp(code);
       statut.hidden = true;
-      conteneur.querySelector('.champ-code-rncp__resultat')?.remove();
+      effacerResultat();
       conteneur.appendChild(construireResultat(resultat));
     } catch {
       statut.hidden = true;
     }
   }
 
+  async function choisirSuggestion(suggestion) {
+    masquerSuggestions();
+    input.value = suggestion.intitule;
+    onChange(input.value);
+    statut.hidden = false;
+    statut.textContent = 'Chargement de la fiche Certif Info…';
+    try {
+      const resultat = await obtenirCertifInfo(suggestion.certifinfoCode);
+      statut.hidden = true;
+      effacerResultat();
+      conteneur.appendChild(construireResultatCertifInfo(resultat));
+    } catch {
+      statut.hidden = true;
+    }
+  }
+
+  function afficherSuggestions(liste) {
+    suggestions.innerHTML = '';
+    if (liste.length === 0) {
+      masquerSuggestions();
+      return;
+    }
+    for (const s of liste) {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      li.textContent = s.rncpCode ? `${s.intitule} (${s.rncpCode})` : s.intitule;
+      // mousedown (pas click) : se déclenche avant le blur de l'input, qui
+      // sinon masquerait les suggestions avant que le choix soit enregistré.
+      li.addEventListener('mousedown', (evt) => {
+        evt.preventDefault();
+        choisirSuggestion(s);
+      });
+      suggestions.appendChild(li);
+    }
+    suggestions.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  function lancerRechercheCertifInfo(texte) {
+    clearTimeout(minuterieRecherche);
+    if (estCodeRncp(texte) || texte.trim().length < 3) {
+      masquerSuggestions();
+      return;
+    }
+    minuterieRecherche = setTimeout(async () => {
+      try {
+        const resultats = await rechercherCertifInfo(texte.trim());
+        afficherSuggestions(resultats);
+      } catch {
+        masquerSuggestions();
+      }
+    }, 400);
+  }
+
   if (estCodeRncp(valeur)) {
-    lancerVerification(valeur.trim());
+    lancerVerificationRncp(valeur.trim());
   }
 
   if (lectureSeule) {
@@ -151,10 +312,14 @@ export function render(question, valeur, { onChange, lectureSeule }) {
     onChange(input.value);
     dernierCodeVerifie = null;
     statut.hidden = true;
-    conteneur.querySelector('.champ-code-rncp__resultat')?.remove();
+    effacerResultat();
+    lancerRechercheCertifInfo(input.value);
   });
 
-  input.addEventListener('blur', () => lancerVerification(input.value.trim()));
+  input.addEventListener('blur', () => {
+    lancerVerificationRncp(input.value.trim());
+    setTimeout(masquerSuggestions, 150);
+  });
 
   return conteneur;
 }

@@ -271,7 +271,7 @@ Les questions et le glossaire sont **rédigés dans les fichiers Markdown**, pui
 | `siret` | input masqué | `"12345678900012"` | 14 chiffres + clé de Luhn |
 | `url` | input URL | `"https://…"` | URL valide |
 | `fichier` | dépôt multiple | `["demandes/RDF-2026-0001/TC-4.09/fiche.pdf"]` | 20 Mo max par fichier ; PDF, DOCX, XLSX, PPTX, PNG, JPG |
-| `code_rncp` | input texte + vérification officielle (RNCP/CFD) | `"RNCP12345"` | libre ; si le code correspond au format RNCP/CFD, l'intitulé officiel est vérifié via l'API France Compétences (Edge Function `rncp-lookup`) |
+| `code_rncp` | input texte + vérification officielle (RNCP/CFD) | `"RNCP12345"` | libre ; si le code correspond au format RNCP/CFD, l'intitulé officiel est vérifié via l'API France Compétences (Edge Function `rncp-lookup`). Sinon (texte libre d'au moins 3 caractères), une recherche par intitulé dans Certif Info (intercariforef.org, référentiel plus large, Edge Function `certifinfo-lookup`) propose des suggestions ; en choisir une affiche sa fiche complète |
 
 **Réponse « Je ne sais pas / à définir ensemble »**
 Stockée dans la colonne `nsp = true` (la valeur peut rester vide). Elle compte comme **renseignée** pour la soumission et alimente la liste des points d'entretien.
