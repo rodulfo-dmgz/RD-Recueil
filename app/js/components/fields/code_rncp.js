@@ -257,8 +257,8 @@ export function render(question, valeur, { onChange, lectureSeule }) {
       statut.hidden = true;
       effacerResultat();
       conteneur.appendChild(construireResultatCertifInfo(resultat));
-    } catch {
-      statut.hidden = true;
+    } catch (err) {
+      statut.textContent = err.message || 'Fiche Certif Info indisponible pour le moment.';
     }
   }
 
@@ -291,11 +291,16 @@ export function render(question, valeur, { onChange, lectureSeule }) {
       return;
     }
     minuterieRecherche = setTimeout(async () => {
+      statut.hidden = false;
+      statut.textContent = 'Recherche dans Certif Info…';
       try {
         const resultats = await rechercherCertifInfo(texte.trim());
+        statut.hidden = true;
         afficherSuggestions(resultats);
-      } catch {
+      } catch (err) {
         masquerSuggestions();
+        statut.hidden = false;
+        statut.textContent = err.message || 'Recherche Certif Info indisponible pour le moment.';
       }
     }, 400);
   }
