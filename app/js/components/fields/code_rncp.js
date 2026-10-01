@@ -16,6 +16,16 @@ function texteDe(valeur) {
   return valeur?.texte ?? '';
 }
 
+// Reconnaît un code RNCP même sans le préfixe "RNCP" (le consultant tape
+// souvent juste les chiffres) pour déclencher la vérification en direct
+// pendant la frappe, comme pour la recherche Certif Info par intitulé.
+function normaliserCandidatRncp(texte) {
+  const propre = (texte || '').trim();
+  if (estCodeRncp(propre)) return propre.toUpperCase();
+  if (/^\d{3,5}$/.test(propre)) return `RNCP${propre}`;
+  return null;
+}
+
 // Champ libre (titre, code RNCP ou RS) - seul un code RNCP au format
 // "RNCP12345" peut être vérifié auprès de France Compétences (l'API ne
 // couvre pas le Répertoire Spécifique). Pour tout autre texte d'au moins 3
@@ -126,9 +136,20 @@ export function render(question, valeur, { onChange, lectureSeule }) {
     input.setAttribute('aria-expanded', 'true');
   }
 
-  function lancerRechercheCertifInfo(texte) {
+  // Pendant la frappe : un code RNCP (avec ou sans préfixe) déclenche sa
+  // vérification en direct dès 3 chiffres, exactement comme la recherche
+  // Certif Info par intitulé pour tout autre texte.
+  function lancerRecherche(texte) {
     clearTimeout(minuterieRecherche);
-    if (estCodeRncp(texte) || texte.trim().length < 3) {
+
+    const candidatRncp = normaliserCandidatRncp(texte);
+    if (candidatRncp) {
+      masquerSuggestions();
+      minuterieRecherche = setTimeout(() => lancerVerificationRncp(candidatRncp), 400);
+      return;
+    }
+
+    if (texte.trim().length < 3) {
       masquerSuggestions();
       return;
     }
@@ -168,11 +189,11 @@ export function render(question, valeur, { onChange, lectureSeule }) {
     dernierCodeVerifie = null;
     statut.hidden = true;
     effacerResultat();
-    lancerRechercheCertifInfo(input.value);
+    lancerRecherche(input.value);
   });
 
   input.addEventListener('blur', () => {
-    lancerVerificationRncp(input.value.trim());
+    lancerVerificationRncp(normaliserCandidatRncp(input.value) || input.value.trim());
     setTimeout(masquerSuggestions, 150);
   });
 
