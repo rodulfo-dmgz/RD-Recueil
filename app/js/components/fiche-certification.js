@@ -163,6 +163,25 @@ export function construireFicheCertifInfo(resultat) {
     bloc.appendChild(texte);
   }
 
+  // Métiers (ROME) et domaines (NSF) auxquels mène la certification - mêmes
+  // référentiels que la fiche RNCP ci-dessus, mais absents jusqu'ici de la
+  // fiche Certif Info alors que l'Edge Function les récupère déjà.
+  const metiers = [...(resultat.rome || []), ...(resultat.nsf || [])];
+  if (metiers.length) {
+    const titre = document.createElement('p');
+    titre.className = 'fiche-certification__section-titre';
+    titre.textContent = 'Métiers (ROME) et domaines :';
+    bloc.appendChild(titre);
+    const liste = document.createElement('ul');
+    liste.className = 'fiche-certification__liste';
+    for (const m of metiers) {
+      const li = document.createElement('li');
+      li.textContent = m.libelle;
+      liste.appendChild(li);
+    }
+    bloc.appendChild(liste);
+  }
+
   const voiesAcces = Object.entries(resultat.accessibilite || {})
     .filter(([, actif]) => actif)
     .map(([cle]) => LIBELLES_ACCESSIBILITE[cle] || cle);
