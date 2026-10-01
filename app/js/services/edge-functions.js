@@ -2,19 +2,31 @@ import { supabase } from '../supabase.js';
 import { SUPABASE_URL } from '../config.js';
 
 // Centralise l'appel aux Edge Functions : s'assure que le jeton de session
-// est à jour avant chaque appel. getSession() seul peut renvoyer un jeton
-// déjà expiré si l'onglet est resté inactif longtemps (le rafraîchissement
-// automatique en arrière-plan n'a pas eu l'occasion de se déclencher), ce
-// qui provoquait des échecs "Non authentifié" côté Edge Function alors que
-// l'utilisateur restait bien connecté dans l'interface.
+// est valide avant chaque appel. getSession() seul renvoie le jeton stocké
+// localement sans le vérifier - il peut sembler valide selon l'horloge du
+// navigateur (expires_at pas encore atteint) tout en étant déjà rejeté par
+// le serveur Auth (session invalidée entre-temps, par ex. après une longue
+// inactivité ou une rotation du refresh token sur un autre onglet). getUser()
+// fait le même aller-retour serveur que l'Edge Function elle-même : si ça
+// échoue ici, ça aurait échoué là-bas aussi, donc on rafraîchit avant d'y
+// arriver plutôt que de se fier à un calcul de date côté client.
 async function obtenirJetonValide() {
   const {
-    data: { session },
+    data: { session: sessionInitiale },
   } = await supabase.auth.getSession();
-  if (!session) throw new Error('Non authentifié.');
+  if (!sessionInitiale) throw new Error('Non authentifié.');
 
-  const expireBientot = session.expires_at && session.expires_at * 1000 < Date.now() + 30000;
-  if (!expireBientot) return session.access_token;
+  const { error: erreurValidation } = await supabase.auth.getUser();
+  if (!erreurValidation) {
+    // Toujours relire la session après getUser() plutôt que de renvoyer le
+    // jeton capturé avant : un rafraîchissement a pu se produire entre
+    // temps (minuterie d'auto-refresh de supabase-js, ou en coulisse dans
+    // getUser() lui-même), ce qui invaliderait le jeton capturé plus haut.
+    const {
+      data: { session: sessionActuelle },
+    } = await supabase.auth.getSession();
+    if (sessionActuelle) return sessionActuelle.access_token;
+  }
 
   const { data, error } = await supabase.auth.refreshSession();
   if (error || !data.session) throw new Error('Session expirée, reconnectez-vous.');
