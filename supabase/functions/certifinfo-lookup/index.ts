@@ -33,6 +33,15 @@ function extraireSuggestion(c: any) {
   };
 }
 
+// Les champs textuels (objectif, débouchés...) contiennent du HTML
+// (<p>, <ul>...) dans la réponse de l'API - retiré ici pour un affichage en
+// texte brut simple, plutôt que d'injecter du HTML non fiable côté client.
+function retirerBalisesHtml(valeur: string | null | undefined): string | null {
+  if (!valeur) return null;
+  const texte = valeur.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return texte || null;
+}
+
 // deno-lint-ignore no-explicit-any
 function extraireDetail(c: any) {
   return {
@@ -54,11 +63,11 @@ function extraireDetail(c: any) {
       vae: Boolean(c.acc_vae),
       individuelle: Boolean(c.acc_ind),
     },
-    objectif: c.objectif || null,
-    programme: c.programme || null,
-    admission: c.admission || null,
-    poursuite: c.poursuite || null,
-    debouches: c.debouches || null,
+    objectif: retirerBalisesHtml(c.objectif),
+    programme: retirerBalisesHtml(c.programme),
+    admission: retirerBalisesHtml(c.admission),
+    poursuite: retirerBalisesHtml(c.poursuite),
+    debouches: retirerBalisesHtml(c.debouches),
   };
 }
 
@@ -126,7 +135,12 @@ Deno.serve(async (req: Request) => {
     if (!reponseApi.ok) {
       return reponseJson({ erreur: "Service Certif Info indisponible." }, 502);
     }
-    const certification = await reponseApi.json();
+    // La réponse enveloppe la fiche dans un tableau : {"certification": [{...}]}.
+    const resultatBrut = await reponseApi.json();
+    const certification = resultatBrut.certification?.[0];
+    if (!certification) {
+      return reponseJson({ trouve: false });
+    }
     return reponseJson(extraireDetail(certification));
   }
 
