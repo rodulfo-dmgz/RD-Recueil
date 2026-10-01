@@ -1,6 +1,21 @@
 // Rendu lecture seule des réponses par section et du journal - partagé entre
-// la vue 360 et le dossier de preuves (Lot 5).
+// la vue 360 et le dossier de preuves (Lot 5). construireValeurReponse est
+// aussi réutilisée par le récapitulatif client (recap.js).
 import { formaterReponse } from '../engine/formatage.js';
+import { construireFicheRncp, construireFicheCertifInfo } from './fiche-certification.js';
+
+// code_rncp avec une fiche mise en cache (sélection faite dans le champ,
+// 01_ARCHITECTURE.md section 6.2) : affiche la fiche complète plutôt que le
+// simple texte, y compris à l'impression (dossier de preuves Qualiopi).
+export function construireValeurReponse(question, reponse) {
+  const valeur = reponse?.valeur;
+  if (question.type === 'code_rncp' && valeur && typeof valeur === 'object' && valeur.detail) {
+    return valeur.source === 'certifinfo' ? construireFicheCertifInfo(valeur.detail) : construireFicheRncp(valeur.detail);
+  }
+  const texte = document.createElement('span');
+  texte.textContent = formaterReponse(question, reponse);
+  return texte;
+}
 
 export function rendreReponsesParSection(questionnaire, reponses, visibilite) {
   const conteneur = document.createElement('div');
@@ -26,7 +41,7 @@ export function rendreReponsesParSection(questionnaire, reponses, visibilite) {
       const dt = document.createElement('dt');
       dt.textContent = q.libelle.replace(/\\\*/g, '');
       const dd = document.createElement('dd');
-      dd.textContent = formaterReponse(q, reponseParId.get(q.id));
+      dd.appendChild(construireValeurReponse(q, reponseParId.get(q.id)));
       dl.append(dt, dd);
     }
     blocSection.appendChild(dl);

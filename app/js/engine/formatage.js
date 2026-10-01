@@ -14,7 +14,13 @@ export function formaterReponse(question, reponse) {
       .map((val) => question.options?.find((o) => o.valeur === val)?.libelle?.replace(/\\\*/g, '') ?? val)
       .join(', ');
   }
-  if (typeof v === 'object') return Object.values(v).filter(Boolean).join(', ');
+  if (typeof v === 'object') {
+    // code_rncp : { texte, source, detail } - seul le texte saisi/choisi est
+    // lisible ici, la fiche complète (detail) est affichée à part par les
+    // vues qui la supportent (lecture-demande.js, recap.js).
+    if (question.type === 'code_rncp') return v.texte || '—';
+    return Object.values(v).filter(Boolean).join(', ');
+  }
   if (question.type === 'choix_unique') {
     return question.options?.find((o) => o.valeur === v)?.libelle?.replace(/\\\*/g, '') ?? v;
   }

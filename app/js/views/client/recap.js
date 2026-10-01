@@ -1,7 +1,7 @@
 import { getEtatDemande } from '../../store.js';
 import { soumettre } from '../../services/demandes.js';
 import { listerQuestionsPertinentes } from '../../engine/completion.js';
-import { formaterReponse as formaterValeur } from '../../engine/formatage.js';
+import { construireValeurReponse } from '../../components/lecture-demande.js';
 import { afficherToast } from '../../components/toast.js';
 import { envoyerEmailEtape } from '../../services/notifications.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
@@ -77,7 +77,7 @@ export async function vueRecap(reference) {
         const dt = document.createElement('dt');
         dt.textContent = question.libelle.replace(/\\\*/g, '');
         const dd = document.createElement('dd');
-        dd.textContent = formaterValeur(question, reponse);
+        dd.appendChild(construireValeurReponse(question, reponse));
         if (question.obligatoire && vide) dd.classList.add('recap-section__manquant');
         liste.append(dt, dd);
       }
