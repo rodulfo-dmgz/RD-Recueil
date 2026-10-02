@@ -74,6 +74,8 @@ Toute transition est journalisée dans `evenements` (qui, quand, depuis, vers, c
 Le consultant peut **réouvrir** la saisie client depuis `soumise` ou `cadrage_a_revoir` : retour à `en_saisie` (si la demande de modification remet en cause les réponses au questionnaire).
 Depuis `cadrage_a_revoir`, le consultant peut aussi créer une nouvelle version de la note et la renvoyer directement, sans repasser par la saisie client : retour à `cadrage_envoye`.
 
+Un **retour manuel** à un statut antérieur (SQL, hors application) est journalisé dans `evenements` avec le type `correction` (de, vers) et jamais comme un changement de statut : les statuts parcourus entre le statut retrouvé et le statut quitté sont alors ignorés du calendrier et des indicateurs (`rpc_jalons`, migration 0029), et aucune notification n'est envoyée.
+
 L'**archivage** (`demandes.archivee`) est orthogonal au statut : il masque une demande des listes staff par défaut sans changer son cycle de vie, réversible via `rpc_archiver_demande` (staff, tout statut). À distinguer de la suppression d'un compte utilisateur (section 8.1), qui supprime définitivement ses demandes.
 
 ---

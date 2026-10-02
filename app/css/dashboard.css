@@ -471,17 +471,22 @@ body.menu-replie.layout-lateral #app { margin-left: 0; }
   color: var(--texte);
 }
 .cal__case--vide { visibility: hidden; }
-.cal__case--aujourdhui { background: var(--rd-bleu); color: #fff; font-weight: 700; }
+button.cal__case { padding: 0; border: none; background: transparent; font: inherit; cursor: pointer; }
+button.cal__case:hover { background: var(--fond); }
+.cal__case--selection { box-shadow: inset 0 0 0 2px var(--rd-turquoise); }
+.cal__detail { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--bordure); }
+.cal__detail-titre { margin: 0 0 8px; font-size: 14px; }
+.cal__indication { margin: 0; font-size: 13px; }
+.cal__case--aujourdhui, button.cal__case--aujourdhui:hover { background: var(--rd-bleu); color: #fff; font-weight: 700; }
 .cal__points { display: flex; gap: 2px; }
 .cal__point { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: var(--rd-turquoise); }
 .cal__point--avenir { background: var(--rd-bleu); }
 .cal__point--echeance { background: var(--rd-orange); }
 .cal__case--aujourdhui .cal__point { box-shadow: 0 0 0 1px #fff; }
-.cal__liste { margin: 12px 0 0; padding: 12px 0 0; list-style: none; border-top: 1px solid var(--bordure); display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
+.cal__liste { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .cal__evenement { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .cal__date { min-width: 54px; white-space: nowrap; font-family: var(--police-code); color: var(--texte-doux); }
 .cal__libelle { min-width: 0; }
-.cal__vide { margin: 0; font-size: 13px; }
 
 /* ─── Tableaux et rapport ──────────────────────────────────── */
 .db-table-defilement { overflow-x: auto; }
