@@ -44,3 +44,24 @@ export function prochaineAction(statut, reference) {
       return { type: 'termine', libelle: 'Cette demande est terminée.', href: null };
   }
 }
+
+// Côté consultant : action à mener sur la demande, ou null quand c'est au
+// client (ou à personne) d'agir. Mêmes statuts que prochaineAction.
+export function actionConsultant(statut) {
+  switch (statut) {
+    case 'brouillon':
+      return 'Inviter le client';
+    case 'soumise':
+      return 'Planifier l’entretien';
+    case 'entretien_planifie':
+      return 'Mener l’entretien';
+    case 'en_analyse':
+      return 'Rédiger la note de cadrage';
+    case 'cadrage_a_revoir':
+      return 'Revoir la note de cadrage';
+    case 'cadrage_valide':
+      return 'Préparer la proposition';
+    default:
+      return null;
+  }
+}

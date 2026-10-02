@@ -82,7 +82,7 @@ L'**archivage** (`demandes.archivee`) est orthogonal au statut : il masque une d
 
 ### 4.1 Espace client
 
-L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes documents, glossaire, charte RGPD) ; sur mobile il se replie en barre du haut. Le personnel garde l'en-tête horizontal. L'aperçu client de l'admin (section 4.2) affiche aussi ce menu.
+L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes documents, glossaire, charte RGPD) ; sur mobile il se replie en barre du haut. Le personnel (consultant, admin) utilise le même menu latéral, avec ses propres liens ; l'admin y trouve le sélecteur « Simuler une vue » (aperçu consultant ou client, section 4.2).
 
 | Route | Écran | Contenu |
 |---|---|---|
@@ -102,7 +102,7 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 
 | Route | Écran | Contenu |
 |---|---|---|
-| `#/tableau-de-bord` | Tableau de bord | Demandes par statut, échéances TC-13.02, demandes sans réponse depuis 7 jours. |
+| `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation, consultant, date. |
 | `#/demandes/nouvelle` | Création | Client existant (liste déroulante) ou nouveau (raison sociale, SIRET), types pressentis (pré-coche TC-0.01), date limite. |
 | `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. |

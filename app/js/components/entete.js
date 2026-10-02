@@ -20,6 +20,11 @@ const LIENS_STAFF = [
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
 ];
 
+const LIENS_ADMIN = [
+  { href: '#/comptes/nouveau', icone: 'user-plus', libelle: 'Créer un compte' },
+  { href: '#/admin/utilisateurs', icone: 'users', libelle: 'Comptes' },
+];
+
 const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Client' };
 
 function estLienActif(href) {
@@ -38,21 +43,21 @@ function lienLateral(l) {
   return `<a href="${l.href}" class="menu-lateral__lien${actif ? ' menu-lateral__lien--actif' : ''}"${actif ? ' aria-current="page"' : ''}><i data-lucide="${l.icone}"></i><span>${l.libelle}</span></a>`;
 }
 
-// Espace client : menu latéral façon RD_LMS (sur mobile, le CSS le replie en
-// barre du haut). Mêmes identifiants que l'en-tête classique, pour que les
-// écouteurs de rendreEntete (déconnexion, aperçu, notifications) restent valables.
-function gabaritLateral({ liens, profil, selecteurApercu, selecteurClientApercu, apercuActif }) {
-  const blocApercu = apercuActif
+// Menu latéral façon RD_LMS pour tous les rôles (sur mobile, le CSS le replie
+// en barre du haut). Les identifiants (déconnexion, aperçu, notifications) sont
+// ceux utilisés par les écouteurs de rendreEntete.
+function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteurClientApercu, estAdminReel, apercuActif }) {
+  const blocApercu = estAdminReel
     ? `<div class="menu-lateral__apercu">
         <p class="menu-lateral__titre">Simuler une vue</p>
         ${selecteurApercu}
         ${selecteurClientApercu}
-        <button type="button" id="bouton-fin-apercu" class="menu-lateral__retour">Revenir à Admin</button>
+        ${apercuActif ? '<button type="button" id="bouton-fin-apercu" class="menu-lateral__retour">Revenir à Admin</button>' : ''}
       </div>`
     : '';
   return `
     <div class="menu-lateral">
-      <a href="#/accueil" class="menu-lateral__logo">
+      <a href="#/" class="menu-lateral__logo">
         <img src="assets/images/logo.svg" alt="" />
         <span>RD Recueil</span>
       </a>
@@ -64,7 +69,7 @@ function gabaritLateral({ liens, profil, selecteurApercu, selecteurClientApercu,
       <div class="menu-lateral__pied">
         <div class="menu-lateral__profil">
           <span class="menu-lateral__avatar" aria-hidden="true">${initiales(profil)}</span>
-          <span class="menu-lateral__identite"><strong>${profil.nom || profil.email}</strong><small>Client</small></span>
+          <span class="menu-lateral__identite"><strong>${profil.nom || profil.email}</strong><small>${roleLibelle}</small></span>
         </div>
         <div class="menu-lateral__outils">
           <div class="entete__notifications">
@@ -100,14 +105,7 @@ export function rendreEntete(profil) {
   const roleApercu = estAdminReel ? getApercuRole() : null;
   const roleEffectif = roleApercu || profil.role;
 
-  const liens = roleEffectif === 'client' ? LIENS_CLIENT : LIENS_STAFF;
-  const lienCompte =
-    roleEffectif === 'admin'
-      ? `
-        <a href="#/comptes/nouveau" class="entete__lien"><i data-lucide="user-plus"></i><span>Créer un compte</span></a>
-        <a href="#/admin/utilisateurs" class="entete__lien"><i data-lucide="users"></i><span>Comptes</span></a>
-      `
-      : '';
+  const liens = [...(roleEffectif === 'client' ? LIENS_CLIENT : LIENS_STAFF), ...(roleEffectif === 'admin' ? LIENS_ADMIN : [])];
 
   const selecteurApercu = estAdminReel
     ? `
@@ -134,61 +132,18 @@ export function rendreEntete(profil) {
       `
       : '';
 
-  const banniereApercu =
-    estAdminReel && roleApercu
-      ? `
-        <div class="entete__banniere-apercu">
-          <i data-lucide="eye"></i>
-          <span>Vous visualisez la navigation comme un compte <strong>${LIBELLES_ROLE[roleApercu]}</strong>. Vos droits réels restent Admin.</span>
-          <button type="button" id="bouton-fin-apercu" class="btn btn--secondaire">Revenir à Admin</button>
-        </div>
-      `
-      : '';
-
-  const lateral = roleEffectif === 'client';
-  document.body.classList.toggle('layout-lateral', lateral);
-  entete.classList.toggle('entete--lateral', lateral);
-
+  document.body.classList.add('layout-lateral');
+  entete.classList.add('entete--lateral');
   entete.hidden = false;
-  entete.innerHTML = lateral
-    ? gabaritLateral({ liens, profil, selecteurApercu, selecteurClientApercu, apercuActif: estAdminReel && Boolean(roleApercu) })
-    : `
-    <div class="entete__conteneur">
-      <a href="#/" class="entete__logo">
-        <img src="assets/images/logo.svg" alt="" class="entete__logo-image" />
-        <span>RD Recueil</span>
-      </a>
-      <nav class="entete__nav" aria-label="Navigation principale">
-        ${liens.map((l) => `<a href="${l.href}" class="entete__lien"><i data-lucide="${l.icone}"></i><span>${l.libelle}</span></a>`).join('')}
-        ${lienCompte}
-      </nav>
-      <div class="entete__compte">
-        ${selecteurApercu}
-        ${selecteurClientApercu}
-        <span class="entete__nom">${profil.nom || profil.email}</span>
-        <div class="entete__notifications">
-          <button type="button" id="bouton-notifications" class="entete__theme" aria-label="Notifications" aria-expanded="false">
-            <i data-lucide="bell"></i>
-            <span id="badge-notifications" class="entete__badge-notifications" hidden>0</span>
-          </button>
-          <div id="panneau-notifications" class="panneau-notifications" hidden>
-            <div class="panneau-notifications__entete">
-              <span>Notifications</span>
-              <button type="button" id="bouton-tout-lu" class="panneau-notifications__tout-lu">Tout marquer lu</button>
-            </div>
-            <div id="liste-notifications" class="panneau-notifications__liste"></div>
-          </div>
-        </div>
-        <button type="button" class="entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
-          <i data-lucide="moon"></i>
-        </button>
-        <button type="button" id="bouton-deconnexion" class="btn btn--secondaire entete__deconnexion" title="Déconnexion">
-          <i data-lucide="log-out"></i><span>Déconnexion</span>
-        </button>
-      </div>
-    </div>
-    ${banniereApercu}
-  `;
+  entete.innerHTML = gabaritLateral({
+    liens,
+    profil,
+    roleLibelle: LIBELLES_ROLE[roleEffectif],
+    selecteurApercu,
+    selecteurClientApercu,
+    estAdminReel,
+    apercuActif: Boolean(roleApercu),
+  });
 
   document.getElementById('bouton-deconnexion').addEventListener('click', async () => {
     await deconnecter();

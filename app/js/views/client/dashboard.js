@@ -5,114 +5,25 @@ import { listerDocumentsClient } from '../../services/documents.js';
 import { calculerPourcentage } from './mes-demandes.js';
 import { getProfil } from '../../store.js';
 import { afficherToast } from '../../components/toast.js';
-import { ETAPES_SUIVI, etapeCourante, prochaineAction } from '../../engine/suivi.js';
+import { prochaineAction } from '../../engine/suivi.js';
+import { el, icone, lienBouton, prenomDe, salutation, construireHero, construireKpis, construireEtapes } from '../../components/dashboard-ui.js';
 import { LIBELLES_STATUT, STATUTS_FINAUX, categorieStatut } from '../../engine/statuts.js';
 
 const TELEPHONE = '07 66 62 60 19';
 
-function el(tag, className, texte) {
-  const noeud = document.createElement(tag);
-  if (className) noeud.className = className;
-  if (texte != null) noeud.textContent = texte;
-  return noeud;
-}
-
-function icone(nom) {
-  const i = document.createElement('i');
-  i.setAttribute('data-lucide', nom);
-  i.setAttribute('aria-hidden', 'true');
-  return i;
-}
-
-function prenomDe(profil) {
-  const source = profil?.nom || profil?.email?.split('@')[0] || '';
-  const premier = source.trim().split(/\s+/)[0] || '';
-  return premier ? premier.charAt(0).toUpperCase() + premier.slice(1).toLowerCase() : '';
-}
-
-function salutation(date = new Date()) {
-  const h = date.getHours();
-  if (h < 12) return 'Bonjour';
-  if (h < 18) return 'Bon après-midi';
-  return 'Bonsoir';
-}
-
-function lienBouton(href, classe, texte, nomIcone) {
-  const a = el('a', classe);
-  a.href = href;
-  if (nomIcone) a.appendChild(icone(nomIcone));
-  a.appendChild(el('span', null, texte));
-  return a;
-}
-
-function construireHero(profil, actionPrincipale) {
-  const hero = el('section', 'db-hero');
-  const contenu = el('div', 'db-hero__contenu');
-
-  const eyebrow = el('div', 'db-hero__eyebrow');
-  eyebrow.appendChild(
-    el('span', 'db-hero__date', new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))
-  );
-  const badge = el('span', 'db-hero__badge');
-  badge.append(icone('user-round'), el('span', null, 'Espace client'));
-  eyebrow.appendChild(badge);
-  contenu.appendChild(eyebrow);
-
+function heroClient(profil, actionPrincipale) {
   const prenom = prenomDe(profil);
-  contenu.appendChild(el('h1', 'db-hero__titre', `${salutation()}${prenom ? `, ${prenom}` : ''} !`));
-  contenu.appendChild(
-    el('p', 'db-hero__sous-titre', 'Suivez vos demandes, retrouvez vos documents et avancez à votre rythme.')
-  );
-
-  const actions = el('div', 'db-hero__actions');
-  actions.appendChild(
-    actionPrincipale
-      ? lienBouton(actionPrincipale.href, 'db-btn db-btn--accent', actionPrincipale.libelle, 'arrow-right')
-      : lienBouton('#/mes-demandes', 'db-btn db-btn--accent', 'Voir mes demandes', 'layout-list')
-  );
-  actions.appendChild(lienBouton('#/documents', 'db-btn db-btn--verre', 'Mes documents', 'folder-open'));
-  contenu.appendChild(actions);
-
-  hero.appendChild(contenu);
-  const embleme = el('div', 'db-hero__embleme');
-  embleme.setAttribute('aria-hidden', 'true');
-  embleme.appendChild(icone('shield-check'));
-  hero.appendChild(embleme);
-  return hero;
-}
-
-function construireKpis({ total, enCours, aFaire, documents }) {
-  const barre = el('section', 'db-kpis');
-  const kpis = [
-    { libelle: 'Demandes', valeur: total, nomIcone: 'layout-list' },
-    { libelle: 'En cours', valeur: enCours, nomIcone: 'clock' },
-    { libelle: 'Actions à faire', valeur: aFaire, nomIcone: 'circle-alert', accent: aFaire > 0 },
-    { libelle: 'Documents', valeur: documents, nomIcone: 'folder-open' },
-  ];
-  for (const k of kpis) {
-    const carte = el('div', 'db-kpi');
-    const tete = el('div', 'db-kpi__tete');
-    tete.append(icone(k.nomIcone), el('span', 'db-kpi__libelle', k.libelle));
-    carte.append(tete, el('span', k.accent ? 'db-kpi__valeur db-kpi__valeur--accent' : 'db-kpi__valeur', String(k.valeur)));
-    barre.appendChild(carte);
-  }
-  return barre;
-}
-
-function construireEtapes(statut) {
-  const courante = etapeCourante(statut);
-  const liste = el('ol', 'db-etapes');
-  ETAPES_SUIVI.forEach((etape, index) => {
-    const etat = index < courante ? 'fait' : index === courante ? 'courant' : 'avenir';
-    const li = el('li', `db-etape db-etape--${etat}`);
-    if (etat === 'courant') li.setAttribute('aria-current', 'step');
-    const puce = el('span', 'db-etape__puce');
-    if (etat === 'fait') puce.appendChild(icone('check'));
-    else puce.textContent = String(index + 1);
-    li.append(puce, el('span', 'db-etape__libelle', etape.libelle));
-    liste.appendChild(li);
+  return construireHero({
+    badge: 'Espace client',
+    titre: `${salutation()}${prenom ? `, ${prenom}` : ''} !`,
+    sousTitre: 'Suivez vos demandes, retrouvez vos documents et avancez à votre rythme.',
+    actions: [
+      actionPrincipale
+        ? lienBouton(actionPrincipale.href, 'db-btn db-btn--accent', actionPrincipale.libelle, 'arrow-right')
+        : lienBouton('#/mes-demandes', 'db-btn db-btn--accent', 'Voir mes demandes', 'layout-list'),
+      lienBouton('#/documents', 'db-btn db-btn--verre', 'Mes documents', 'folder-open'),
+    ],
   });
-  return liste;
 }
 
 function construireSuivi(demande, pourcentage) {
@@ -235,9 +146,14 @@ export async function vueDashboardClient() {
   const nbDocuments = documents.notes.length + documents.propositions.length + documents.fichiers.length;
 
   const main = el('main', 'db');
-  main.appendChild(construireHero(getProfil(), actionPrincipale));
+  main.appendChild(heroClient(getProfil(), actionPrincipale));
   main.appendChild(
-    construireKpis({ total: demandes.length, enCours: enCours.length, aFaire: avecAction.length, documents: nbDocuments })
+    construireKpis([
+      { libelle: 'Demandes', valeur: demandes.length, nomIcone: 'layout-list' },
+      { libelle: 'En cours', valeur: enCours.length, nomIcone: 'clock' },
+      { libelle: 'Actions à faire', valeur: avecAction.length, nomIcone: 'circle-alert', accent: avecAction.length > 0 },
+      { libelle: 'Documents', valeur: nbDocuments, nomIcone: 'folder-open' },
+    ])
   );
 
   const grille = el('div', 'db-grille');

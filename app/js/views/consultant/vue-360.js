@@ -18,6 +18,9 @@ import { rendreMarkdown, separerAnnexeGlossaire, injecterValidationDansCorps } f
 import { construireDevisImprimable } from '../../components/devis-imprimable.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { LIBELLES_STATUT, categorieStatut } from '../../engine/statuts.js';
+import { construireEtapes } from '../../components/dashboard-ui.js';
+import { getProfil, setApercuRole } from '../../store.js';
+import { navigate } from '../../router.js';
 
 const TRANSITIONS = {
   soumise: [{ vers: 'en_saisie', libelle: 'Réouvrir la saisie' }],
@@ -115,6 +118,13 @@ function rendre({
     entete.appendChild(badgeArchivee);
   }
   main.appendChild(entete);
+
+  // Mêmes étapes que sur le tableau de bord du client.
+  const suivi = document.createElement('section');
+  suivi.className = 'db-carte';
+  suivi.style.marginBottom = '16px';
+  suivi.appendChild(construireEtapes(demande.statut));
+  main.appendChild(suivi);
 
   main.appendChild(
     creerCarteListe(rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, lignesProposition }))
@@ -271,6 +281,18 @@ function rendreActionsRapides(demande) {
       if (window.confirm('Confirmer l’abandon de cette demande ?')) transitionner(demande, 'abandonnee');
     });
     actions.appendChild(abandonner);
+  }
+
+  if (getProfil()?.role === 'admin') {
+    const voirClient = document.createElement('button');
+    voirClient.type = 'button';
+    voirClient.className = 'btn btn--secondaire';
+    voirClient.textContent = 'Voir comme le client';
+    voirClient.addEventListener('click', () => {
+      setApercuRole('client');
+      navigate(`/d/${demande.reference}`);
+    });
+    actions.appendChild(voirClient);
   }
 
   const boutonArchiver = document.createElement('button');

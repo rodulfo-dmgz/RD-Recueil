@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { ETAPES_SUIVI, etapeCourante, prochaineAction } from '../app/js/engine/suivi.js';
+import { ETAPES_SUIVI, etapeCourante, prochaineAction, actionConsultant } from '../app/js/engine/suivi.js';
 
 const STATUTS = [
   'brouillon', 'envoyee', 'en_saisie', 'soumise', 'entretien_planifie', 'en_analyse',
@@ -50,4 +50,13 @@ test('prochaineAction : statuts finaux -> terminé, sans lien', () => {
 
 test('prochaineAction : tout statut a un libellé', () => {
   for (const s of STATUTS) assert.ok(prochaineAction(s, 'RDF-1').libelle);
+});
+
+test('actionConsultant : action à mener ou null quand le client agit', () => {
+  assert.equal(actionConsultant('soumise'), 'Planifier l’entretien');
+  assert.equal(actionConsultant('en_analyse'), 'Rédiger la note de cadrage');
+  assert.equal(actionConsultant('cadrage_valide'), 'Préparer la proposition');
+  for (const s of ['envoyee', 'en_saisie', 'cadrage_envoye', 'proposition_envoyee', 'gagnee', 'abandonnee']) {
+    assert.equal(actionConsultant(s), null, s);
+  }
 });
