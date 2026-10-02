@@ -156,6 +156,10 @@ body.layout-lateral #app { margin-left: var(--menu-largeur); padding-top: var(--
 }
 .barre-haut__menu:hover { background: var(--fond); }
 .barre-haut__menu svg { width: 20px; height: 20px; }
+/* Icône selon l'état : "fermer" quand le menu est visible, "ouvrir" sinon. */
+.barre-haut__ico-ouvrir { display: none; }
+body.menu-replie .barre-haut__ico-fermer { display: none; }
+body.menu-replie .barre-haut__ico-ouvrir { display: block; }
 .barre-haut__titre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--police-titre); font-weight: 600; font-size: 18px; }
 .barre-haut__outils { display: flex; align-items: center; gap: 8px; }
 .barre-haut .entete__theme { width: 44px; height: 44px; }
@@ -180,6 +184,14 @@ body.menu-replie.layout-lateral #app { margin-left: 0; }
   .menu-lateral,
   body.menu-replie .menu-lateral { transform: translateX(-100%); }
   body.menu-ouvert .menu-lateral { transform: translateX(0); box-shadow: 0 0 40px rgba(0, 0, 0, .4); }
+  .barre-haut__ico-fermer,
+  body.menu-replie .barre-haut__ico-fermer { display: none; }
+  .barre-haut__ico-ouvrir,
+  body.menu-replie .barre-haut__ico-ouvrir { display: block; }
+  body.menu-ouvert .barre-haut__ico-fermer,
+  body.menu-replie.menu-ouvert .barre-haut__ico-fermer { display: block; }
+  body.menu-ouvert .barre-haut__ico-ouvrir,
+  body.menu-replie.menu-ouvert .barre-haut__ico-ouvrir { display: none; }
   body.menu-ouvert .menu-voile { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(0, 0, 0, .45); }
   .barre-haut .panneau-notifications { position: fixed; top: calc(var(--barre-hauteur) + 4px); left: 8px; right: 8px; width: auto; }
 }

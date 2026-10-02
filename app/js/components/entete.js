@@ -104,8 +104,9 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
     </aside>
     <div class="menu-voile" id="menu-voile"></div>
     <div class="barre-haut">
-      <button type="button" id="bouton-menu" class="barre-haut__menu" aria-label="Afficher ou masquer le menu" aria-controls="menu-lateral">
-        <i data-lucide="panel-left"></i>
+      <button type="button" id="bouton-menu" class="barre-haut__menu" aria-label="Afficher ou masquer le menu" aria-controls="menu-lateral" aria-expanded="true">
+        <i data-lucide="panel-left-close" class="barre-haut__ico-fermer"></i>
+        <i data-lucide="panel-left-open" class="barre-haut__ico-ouvrir"></i>
       </button>
       <span class="barre-haut__titre">${titrePage()}</span>
       <div class="barre-haut__outils">
@@ -144,9 +145,18 @@ function initialiserMenu() {
   document.body.classList.toggle('menu-replie', replie);
   document.body.classList.remove('menu-ouvert');
 
-  document.getElementById('bouton-menu').addEventListener('click', () => {
+  const bouton = document.getElementById('bouton-menu');
+  const majEtat = () => {
+    const mobile = window.matchMedia(ECRAN_MOBILE).matches;
+    const visible = mobile ? document.body.classList.contains('menu-ouvert') : !document.body.classList.contains('menu-replie');
+    bouton.setAttribute('aria-expanded', String(visible));
+  };
+  majEtat();
+
+  bouton.addEventListener('click', () => {
     if (window.matchMedia(ECRAN_MOBILE).matches) {
       document.body.classList.toggle('menu-ouvert');
+      majEtat();
       return;
     }
     const nouveau = document.body.classList.toggle('menu-replie');
@@ -155,8 +165,12 @@ function initialiserMenu() {
     } catch {
       // non mémorisé.
     }
+    majEtat();
   });
-  document.getElementById('menu-voile').addEventListener('click', () => document.body.classList.remove('menu-ouvert'));
+  document.getElementById('menu-voile').addEventListener('click', () => {
+    document.body.classList.remove('menu-ouvert');
+    majEtat();
+  });
 }
 
 export function rendreEntete(profil) {
