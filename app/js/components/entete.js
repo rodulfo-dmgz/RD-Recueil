@@ -7,8 +7,11 @@ import { listerNotifications, compterNonLues, marquerLue, marquerToutesLues } fr
 import { listerClientsApercu } from '../services/comptes.js';
 
 const LIENS_CLIENT = [
+  { href: '#/accueil', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
   { href: '#/mes-demandes', icone: 'layout-list', libelle: 'Mes demandes' },
+  { href: '#/documents', icone: 'folder-open', libelle: 'Mes documents' },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
+  { href: '#/charte-rgpd', icone: 'shield-check', libelle: 'Charte RGPD' },
 ];
 
 const LIENS_STAFF = [
@@ -18,6 +21,76 @@ const LIENS_STAFF = [
 ];
 
 const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Client' };
+
+function estLienActif(href) {
+  const hash = location.hash || '#/';
+  if (href === '#/mes-demandes') return hash.startsWith('#/mes-demandes') || hash.startsWith('#/d/');
+  return hash.startsWith(href);
+}
+
+function initiales(profil) {
+  const mots = (profil.nom || profil.email || '?').trim().split(/[\s@.]+/).filter(Boolean);
+  return ((mots[0]?.[0] || '?') + (mots[1]?.[0] || '')).toUpperCase();
+}
+
+function lienLateral(l) {
+  const actif = estLienActif(l.href);
+  return `<a href="${l.href}" class="menu-lateral__lien${actif ? ' menu-lateral__lien--actif' : ''}"${actif ? ' aria-current="page"' : ''}><i data-lucide="${l.icone}"></i><span>${l.libelle}</span></a>`;
+}
+
+// Espace client : menu latéral façon RD_LMS (sur mobile, le CSS le replie en
+// barre du haut). Mêmes identifiants que l'en-tête classique, pour que les
+// écouteurs de rendreEntete (déconnexion, aperçu, notifications) restent valables.
+function gabaritLateral({ liens, profil, selecteurApercu, selecteurClientApercu, apercuActif }) {
+  const blocApercu = apercuActif
+    ? `<div class="menu-lateral__apercu">
+        <p class="menu-lateral__titre">Simuler une vue</p>
+        ${selecteurApercu}
+        ${selecteurClientApercu}
+        <button type="button" id="bouton-fin-apercu" class="menu-lateral__retour">Revenir à Admin</button>
+      </div>`
+    : '';
+  return `
+    <div class="menu-lateral">
+      <a href="#/accueil" class="menu-lateral__logo">
+        <img src="assets/images/logo.svg" alt="" />
+        <span>RD Recueil</span>
+      </a>
+      <nav class="menu-lateral__nav" aria-label="Navigation principale">
+        <p class="menu-lateral__titre">Navigation</p>
+        ${liens.map(lienLateral).join('')}
+      </nav>
+      ${blocApercu}
+      <div class="menu-lateral__pied">
+        <div class="menu-lateral__profil">
+          <span class="menu-lateral__avatar" aria-hidden="true">${initiales(profil)}</span>
+          <span class="menu-lateral__identite"><strong>${profil.nom || profil.email}</strong><small>Client</small></span>
+        </div>
+        <div class="menu-lateral__outils">
+          <div class="entete__notifications">
+            <button type="button" id="bouton-notifications" class="entete__theme" aria-label="Notifications" aria-expanded="false">
+              <i data-lucide="bell"></i>
+              <span id="badge-notifications" class="entete__badge-notifications" hidden>0</span>
+            </button>
+            <div id="panneau-notifications" class="panneau-notifications" hidden>
+              <div class="panneau-notifications__entete">
+                <span>Notifications</span>
+                <button type="button" id="bouton-tout-lu" class="panneau-notifications__tout-lu">Tout marquer lu</button>
+              </div>
+              <div id="liste-notifications" class="panneau-notifications__liste"></div>
+            </div>
+          </div>
+          <button type="button" class="entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
+            <i data-lucide="moon"></i>
+          </button>
+          <button type="button" id="bouton-deconnexion" class="menu-lateral__deconnexion" title="Déconnexion">
+            <i data-lucide="log-out"></i><span>Déconnexion</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 export function rendreEntete(profil) {
   const entete = document.getElementById('entete');
@@ -72,8 +145,14 @@ export function rendreEntete(profil) {
       `
       : '';
 
+  const lateral = roleEffectif === 'client';
+  document.body.classList.toggle('layout-lateral', lateral);
+  entete.classList.toggle('entete--lateral', lateral);
+
   entete.hidden = false;
-  entete.innerHTML = `
+  entete.innerHTML = lateral
+    ? gabaritLateral({ liens, profil, selecteurApercu, selecteurClientApercu, apercuActif: estAdminReel && Boolean(roleApercu) })
+    : `
     <div class="entete__conteneur">
       <a href="#/" class="entete__logo">
         <img src="assets/images/logo.svg" alt="" class="entete__logo-image" />
@@ -282,4 +361,6 @@ export function viderEntete() {
   if (!entete) return;
   entete.hidden = true;
   entete.innerHTML = '';
+  entete.classList.remove('entete--lateral');
+  document.body.classList.remove('layout-lateral');
 }

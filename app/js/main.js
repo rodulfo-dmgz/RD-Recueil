@@ -5,6 +5,9 @@ import { rendreEntete, viderEntete } from './components/entete.js';
 import { vueConnexion } from './views/client/connexion.js';
 import { vueChangerMotDePasse } from './views/client/changer-mot-de-passe.js';
 import { vueMesDemandes } from './views/client/mes-demandes.js';
+import { vueDashboardClient } from './views/client/dashboard.js';
+import { vueDocuments } from './views/client/documents.js';
+import { vueCharteRgpd } from './views/client/charte-rgpd.js';
 import { vueAccueilDemande } from './views/client/accueil.js';
 import { vueSection } from './views/client/section.js';
 import { vueRecap } from './views/client/recap.js';
@@ -79,6 +82,21 @@ route('/changer-mot-de-passe', async () => {
   }
   viderEntete();
   vueChangerMotDePasse({ oblige: profil.doit_changer_mot_de_passe });
+});
+
+route('/accueil', async () => {
+  if (!(await garantirProfilActif())) return;
+  vueDashboardClient();
+});
+
+route('/documents', async () => {
+  if (!(await garantirProfilActif())) return;
+  vueDocuments();
+});
+
+route('/charte-rgpd', async () => {
+  if (!(await garantirProfilActif())) return;
+  vueCharteRgpd();
 });
 
 route('/mes-demandes', async () => {
@@ -196,7 +214,7 @@ route('/', async () => {
     navigate('/changer-mot-de-passe');
     return;
   }
-  navigate(profil.role === 'client' ? '/mes-demandes' : '/tableau-de-bord');
+  navigate(profil.role === 'client' ? '/accueil' : '/tableau-de-bord');
 });
 
 notFound(() => {

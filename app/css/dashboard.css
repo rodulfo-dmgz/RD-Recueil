@@ -1,0 +1,363 @@
+/* Espace client : menu latéral et tableau de bord (inspiré du dashboard
+   RD_LMS). Couleurs de la charte via tokens.css ; thème sombre hérité des
+   variables (le menu et le bandeau restent bleus dans les deux thèmes). */
+
+:root {
+  --menu-fond: color-mix(in srgb, var(--rd-bleu) 72%, #000);
+  --menu-largeur: 260px;
+}
+
+/* ─── Menu latéral ─────────────────────────────────────────── */
+body.layout-lateral #app { margin-left: var(--menu-largeur); }
+
+.entete--lateral {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--menu-largeur);
+  z-index: 30;
+  background: var(--menu-fond);
+  border-bottom: none;
+  color: #fff;
+}
+.menu-lateral {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 14px;
+  gap: 20px;
+}
+.menu-lateral__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+  color: #fff;
+  text-decoration: none;
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-size: 18px;
+}
+.menu-lateral__logo img { width: 34px; height: 34px; border-radius: 50%; background: #fff; }
+.menu-lateral__nav { display: flex; flex-direction: column; gap: 4px; }
+.menu-lateral__titre {
+  margin: 0 8px 6px;
+  font-family: var(--police-code);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .55);
+}
+.menu-lateral__lien {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--rayon);
+  color: rgba(255, 255, 255, .86);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+}
+.menu-lateral__lien svg { width: 18px; height: 18px; flex-shrink: 0; stroke: rgba(255, 255, 255, .7); }
+.menu-lateral__lien:hover,
+.menu-lateral__lien:focus-visible { background: rgba(255, 255, 255, .08); }
+.menu-lateral__lien--actif { background: rgba(255, 255, 255, .14); color: #fff; font-weight: 600; }
+.menu-lateral__lien--actif svg { stroke: var(--rd-orange); }
+
+.menu-lateral__apercu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+}
+.menu-lateral__apercu .entete__apercu { flex-direction: column; align-items: stretch; color: rgba(255, 255, 255, .7); }
+.menu-lateral__apercu .entete__apercu-select { max-width: none; width: 100%; min-height: 40px; }
+.menu-lateral__retour {
+  min-height: 40px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: var(--rayon);
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menu-lateral__pied {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+}
+.menu-lateral__profil { display: flex; align-items: center; gap: 10px; padding: 0 4px; min-width: 0; }
+.menu-lateral__avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--rd-turquoise);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+.menu-lateral__identite { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.menu-lateral__identite strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.menu-lateral__identite small { color: rgba(255, 255, 255, .6); font-size: 12px; }
+.menu-lateral__outils { display: flex; align-items: center; gap: 8px; }
+.menu-lateral .entete__theme {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .2);
+  color: #fff;
+}
+.menu-lateral .entete__theme:hover { background: rgba(255, 255, 255, .2); }
+.menu-lateral .panneau-notifications { top: auto; bottom: 0; left: calc(100% + 16px); right: auto; }
+.menu-lateral__deconnexion {
+  flex: 1;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: var(--rayon);
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.menu-lateral__deconnexion:hover { background: rgba(255, 255, 255, .1); }
+.menu-lateral__deconnexion svg { width: 16px; height: 16px; }
+
+/* Mobile : le menu devient une barre en haut (icônes seules). */
+@media (max-width: 900px) {
+  body.layout-lateral #app { margin-left: 0; }
+  .entete--lateral { position: sticky; top: 0; bottom: auto; width: auto; }
+  .menu-lateral { height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; }
+  .menu-lateral__logo span, .menu-lateral__titre, .menu-lateral__lien span,
+  .menu-lateral__identite, .menu-lateral__deconnexion span { display: none; }
+  .menu-lateral__logo { padding: 0; }
+  .menu-lateral__nav { order: 3; flex: 1 0 100%; flex-direction: row; justify-content: space-between; }
+  .menu-lateral__lien { flex: 1; justify-content: center; padding: 0; }
+  .menu-lateral__apercu { order: 4; flex: 1 0 100%; flex-direction: row; flex-wrap: wrap; padding-top: 8px; }
+  .menu-lateral__apercu .entete__apercu { flex: 1 1 140px; }
+  .menu-lateral__pied { margin: 0 0 0 auto; flex-direction: row; align-items: center; padding: 0; border: 0; gap: 8px; }
+  .menu-lateral__outils { gap: 6px; }
+  .menu-lateral__deconnexion { flex: none; width: 44px; padding: 0; }
+  .menu-lateral .panneau-notifications { position: fixed; top: 56px; left: 8px; right: 8px; bottom: auto; width: auto; }
+}
+
+/* ─── Tableau de bord ──────────────────────────────────────── */
+.db { max-width: 1180px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+.db-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 32px 36px;
+  border-radius: 20px;
+  color: #fff;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 88% 30%, rgba(255, 255, 255, .18), transparent 45%),
+    linear-gradient(135deg, color-mix(in srgb, var(--rd-bleu) 80%, #000) 0%, var(--rd-bleu) 55%, var(--rd-turquoise) 135%);
+  box-shadow: 0 20px 40px -22px rgba(31, 69, 144, .5);
+}
+.db-hero__contenu { flex: 1; min-width: 0; }
+.db-hero__eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.db-hero__date { font-family: var(--police-code); font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: rgba(255, 255, 255, .75); }
+.db-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .12);
+  font-family: var(--police-code);
+  font-size: 12px;
+}
+.db-hero__badge svg { width: 13px; height: 13px; }
+.db-hero__titre { margin: 0 0 8px; text-wrap: balance; font-size: clamp(26px, 4vw, 36px); color: #fff; }
+.db-hero__sous-titre { margin: 0 0 20px; max-width: 520px; color: rgba(255, 255, 255, .85); }
+.db-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.db-hero__embleme {
+  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+.db-hero__embleme svg { width: 56px; height: 56px; stroke: rgba(255, 255, 255, .85); }
+
+.db-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--rayon);
+  font-family: var(--police-texte);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.db-btn svg { width: 16px; height: 16px; }
+.db-btn--accent { background: var(--rd-orange); color: #fff; }
+.db-btn--accent:hover { filter: brightness(1.08); }
+.db-btn--verre { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); color: #fff; }
+.db-btn--verre:hover { background: rgba(255, 255, 255, .22); }
+.db-btn--primaire { background: var(--rd-bleu); color: #fff; }
+.db-btn--primaire:hover { filter: brightness(1.12); }
+.db-btn--discret { background: var(--surface); border-color: var(--bordure); color: var(--rd-bleu); }
+.db-btn--discret:hover { background: var(--fond); }
+
+.db-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 16px;
+  box-shadow: var(--ombre);
+  overflow: hidden;
+}
+.db-kpi { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; border-right: 1px solid var(--bordure); }
+.db-kpi:last-child { border-right: none; }
+.db-kpi__tete { display: flex; align-items: center; gap: 8px; color: var(--texte-doux); font-size: 13px; }
+.db-kpi__tete svg { width: 15px; height: 15px; }
+.db-kpi__valeur { font-family: var(--police-code); font-size: 28px; font-weight: 500; line-height: 1; color: var(--texte); }
+.db-kpi__valeur--accent { color: var(--rd-orange); }
+
+.db-grille { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.db-principale, .db-lateral { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.db-titre { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; font-size: 19px; }
+.db-titre svg { width: 20px; height: 20px; stroke: var(--rd-bleu); }
+.db-vide { margin: 0; }
+.db-carte { background: var(--surface); border: 1px solid var(--bordure); border-radius: 16px; padding: 20px; box-shadow: var(--ombre); }
+
+.db-suivi { display: flex; flex-direction: column; gap: 18px; }
+.db-suivi__entete { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.db-suivi__reference { margin: 0; font-size: 18px; }
+.db-etapes { display: flex; margin: 0; padding: 0; list-style: none; }
+.db-etape { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.db-etape::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--bordure);
+}
+.db-etape:first-child::before { display: none; }
+.db-etape--fait::before, .db-etape--courant::before { background: var(--rd-turquoise); }
+.db-etape__puce {
+  position: relative;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--bordure);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--texte-doux);
+  font-size: 13px;
+  font-weight: 600;
+}
+.db-etape__puce svg { width: 15px; height: 15px; }
+.db-etape--fait .db-etape__puce { border-color: var(--rd-turquoise); background: var(--rd-turquoise); color: #fff; }
+.db-etape--courant .db-etape__puce { border-color: var(--rd-bleu); background: var(--rd-bleu); color: #fff; box-shadow: 0 0 0 4px color-mix(in srgb, var(--rd-bleu) 18%, transparent); }
+.db-etape__libelle { font-size: 12px; line-height: 1.3; color: var(--texte-doux); }
+.db-etape--courant .db-etape__libelle { color: var(--texte); font-weight: 600; }
+
+.db-suivi__progression { display: flex; align-items: center; gap: 12px; }
+.db-barre { flex: 1; height: 8px; border-radius: 999px; background: var(--fond); overflow: hidden; }
+.db-barre__rempli { display: block; height: 100%; border-radius: inherit; background: var(--rd-turquoise); }
+.db-suivi__pourcentage { font-size: 13px; color: var(--texte-doux); white-space: nowrap; }
+.db-suivi__pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: var(--rayon);
+  background: var(--fond);
+}
+.db-suivi__pied--action { background: color-mix(in srgb, var(--rd-orange) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--rd-orange) 35%, transparent); }
+.db-suivi__action { margin: 0; font-weight: 600; }
+
+.db-acces { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.db-acces__carte {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 14px;
+  color: var(--texte);
+  text-decoration: none;
+  box-shadow: var(--ombre);
+}
+.db-acces__carte:hover { border-color: var(--rd-bleu); }
+.db-acces__carte > svg { width: 16px; height: 16px; margin-left: auto; flex-shrink: 0; stroke: var(--texte-doux); }
+.db-acces__icone {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--rd-bleu) 10%, var(--surface));
+}
+.db-acces__icone svg { width: 20px; height: 20px; stroke: var(--rd-bleu); }
+.db-acces__texte { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.db-acces__texte small { color: var(--texte-doux); font-size: 12px; }
+
+.db-lateral .db-titre { margin-top: 0; font-size: 17px; }
+.db-lateral__reference { margin: 0 0 4px; font-family: var(--police-code); font-size: 13px; color: var(--texte-doux); }
+.db-lateral__texte { margin: 0 0 14px; }
+.db-lateral__contact { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; }
+.db-lateral__contact svg { width: 16px; height: 16px; }
+
+@media (max-width: 1000px) {
+  .db-grille { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .db { padding: 16px; gap: 16px; }
+  .db-hero { padding: 24px 20px; }
+  .db-hero__embleme { display: none; }
+  .db-kpis { grid-template-columns: repeat(2, 1fr); }
+  .db-kpi:nth-child(2) { border-right: none; }
+  .db-kpi:nth-child(-n + 2) { border-bottom: 1px solid var(--bordure); }
+  .db-acces { grid-template-columns: minmax(0, 1fr); }
+  .db-etape__libelle { font-size: 11px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .db-barre__rempli { transition: width .6s cubic-bezier(.2, .7, .3, 1); }
+}
+
+/* ─── Charte RGPD ──────────────────────────────────────────── */
+.charte__section { margin-bottom: 16px; }
+.charte__section h2 { font-size: 18px; }
+.charte__section ul { margin: 0 0 12px; padding-left: 20px; }
+.charte__section li { margin-bottom: 4px; }
+.charte__section p:last-child { margin-bottom: 0; }

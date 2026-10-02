@@ -1,4 +1,4 @@
-import { supabase } from '../../supabase.js';
+import { listerMesDemandes } from '../../services/demandes.js';
 import { afficherToast } from '../../components/toast.js';
 import { chargerQuestionnaire } from '../../services/questionnaire.js';
 import { chargerReponses } from '../../services/reponses.js';
@@ -23,7 +23,7 @@ function formaterDate(iso) {
 // Progression client (mêmes règles que la page de la demande) - calculée ici
 // pour l'afficher directement dans la liste, sans attendre d'ouvrir la
 // demande.
-async function calculerPourcentage(demande) {
+export async function calculerPourcentage(demande) {
   try {
     const [questionnaire, reponses] = await Promise.all([
       chargerQuestionnaire(demande.questionnaire_id),
@@ -86,13 +86,10 @@ export async function vueMesDemandes() {
   app.innerHTML = '<main class="conteneur"><h1>Mes demandes</h1><p>Chargement…</p></main>';
   const main = app.querySelector('main');
 
-  const { data, error } = await supabase
-    .from('demandes')
-    .select('id, reference, statut, types, questionnaire_id, updated_at')
-    .eq('archivee', false)
-    .order('updated_at', { ascending: false });
-
-  if (error) {
+  let data;
+  try {
+    data = await listerMesDemandes();
+  } catch (error) {
     afficherToast(error.message, { type: 'erreur' });
     main.innerHTML = '<h1>Mes demandes</h1><p>Impossible de charger vos demandes.</p>';
     return;

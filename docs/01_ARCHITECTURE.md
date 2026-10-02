@@ -82,10 +82,15 @@ L'**archivage** (`demandes.archivee`) est orthogonal au statut : il masque une d
 
 ### 4.1 Espace client
 
+L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes documents, glossaire, charte RGPD) ; sur mobile il se replie en barre du haut. Le personnel garde l'en-tête horizontal. L'aperçu client de l'admin (section 4.2) affiche aussi ce menu.
+
 | Route | Écran | Contenu |
 |---|---|---|
 | `#/connexion` | Connexion | E-mail + mot de passe. |
 | `#/changer-mot-de-passe` | Changement de mot de passe | Imposé à la première connexion si `doit_changer_mot_de_passe`. |
+| `#/accueil` | Tableau de bord | Page d'arrivée du client : bandeau d'accueil avec l'action principale, indicateurs (demandes, en cours, actions à faire, documents), suivi par étapes de chaque demande en cours (réponses, entretien, note de cadrage, proposition, décision) avec la prochaine action attendue, accès rapides, aide. |
+| `#/documents` | Mes documents | Note de cadrage, proposition commerciale et pièces déposées, regroupées par demande (voir, imprimer, télécharger). |
+| `#/charte-rgpd` | Charte RGPD | Données collectées, finalités, destinataires, durée de conservation (section 8.3), droits et contact. |
 | `#/mes-demandes` | Mes demandes | Liste des demandes accessibles, statut, progression. |
 | `#/d/:ref` | Accueil de la demande | Présentation, barre de progression par section, bouton reprendre. |
 | `#/d/:ref/s/:section` | Saisie d'une section | Questions visibles, sauvegarde automatique, infobulles glossaire. |

@@ -24,6 +24,18 @@ export async function listerDemandes({ statut, type, inclureArchivees = false } 
   return data;
 }
 
+// Demandes du client connecte (la RLS limite aux demandes accessibles),
+// hors archivees - tableau de bord et liste Mes demandes.
+export async function listerMesDemandes() {
+  const { data, error } = await supabase
+    .from('demandes')
+    .select('id, reference, statut, types, questionnaire_id, updated_at')
+    .eq('archivee', false)
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
 // RPC dediee plutot qu'un update direct (CLAUDE.md) : trace l'action dans
 // evenements sans declencher les notifications de changement de statut
 // (01_ARCHITECTURE.md section 4.2, migration 0025).
