@@ -7,26 +7,28 @@
   --menu-largeur: 260px;
 }
 
-/* ─── Menu latéral ─────────────────────────────────────────── */
-body.layout-lateral #app { margin-left: var(--menu-largeur); }
+/* ─── Menu latéral et barre du haut ────────────────────────── */
+:root { --barre-hauteur: 64px; }
 
-.entete--lateral {
+/* #entete n'est plus qu'un conteneur : le menu et la barre sont fixes. */
+.entete--lateral { position: static; background: none; border: none; z-index: auto; }
+
+body.layout-lateral #app { margin-left: var(--menu-largeur); padding-top: var(--barre-hauteur); }
+
+.menu-lateral {
   position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
   width: var(--menu-largeur);
-  z-index: 30;
-  background: var(--menu-fond);
-  border-bottom: none;
-  color: #fff;
-}
-.menu-lateral {
-  height: 100%;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
   gap: 20px;
+  background: var(--menu-fond);
+  color: #fff;
+  overflow-y: auto;
 }
 .menu-lateral__logo {
   display: flex;
@@ -110,18 +112,7 @@ body.layout-lateral #app { margin-left: var(--menu-largeur); }
 .menu-lateral__identite { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .menu-lateral__identite strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
 .menu-lateral__identite small { color: rgba(255, 255, 255, .6); font-size: 12px; }
-.menu-lateral__outils { display: flex; align-items: center; gap: 8px; }
-.menu-lateral .entete__theme {
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, .1);
-  border-color: rgba(255, 255, 255, .2);
-  color: #fff;
-}
-.menu-lateral .entete__theme:hover { background: rgba(255, 255, 255, .2); }
-.menu-lateral .panneau-notifications { top: auto; bottom: 0; left: calc(100% + 16px); right: auto; }
 .menu-lateral__deconnexion {
-  flex: 1;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -137,22 +128,60 @@ body.layout-lateral #app { margin-left: var(--menu-largeur); }
 .menu-lateral__deconnexion:hover { background: rgba(255, 255, 255, .1); }
 .menu-lateral__deconnexion svg { width: 16px; height: 16px; }
 
-/* Mobile : le menu devient une barre en haut (icônes seules). */
+/* Barre du haut : bouton du menu, titre de la page, notifications, thème. */
+.barre-haut {
+  position: fixed;
+  top: 0;
+  left: var(--menu-largeur);
+  right: 0;
+  height: var(--barre-hauteur);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--bordure);
+}
+.barre-haut__menu {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--rayon);
+  background: transparent;
+  color: var(--texte);
+  cursor: pointer;
+}
+.barre-haut__menu:hover { background: var(--fond); }
+.barre-haut__menu svg { width: 20px; height: 20px; }
+.barre-haut__titre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--police-titre); font-weight: 600; font-size: 18px; }
+.barre-haut__outils { display: flex; align-items: center; gap: 8px; }
+.barre-haut .entete__theme { width: 44px; height: 44px; }
+.menu-voile { display: none; }
+
+/* Menu replié (desktop) */
+body.menu-replie .menu-lateral { transform: translateX(-100%); }
+body.menu-replie .barre-haut { left: 0; }
+body.menu-replie.layout-lateral #app { margin-left: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .menu-lateral { transition: transform .25s ease; }
+  .barre-haut { transition: left .25s ease; }
+  body.layout-lateral #app { transition: margin-left .25s ease; }
+}
+
+/* Mobile : le menu devient un tiroir ouvert par le bouton de la barre. */
 @media (max-width: 900px) {
-  body.layout-lateral #app { margin-left: 0; }
-  .entete--lateral { position: sticky; top: 0; bottom: auto; width: auto; }
-  .menu-lateral { height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; }
-  .menu-lateral__logo span, .menu-lateral__titre, .menu-lateral__lien span,
-  .menu-lateral__identite, .menu-lateral__deconnexion span { display: none; }
-  .menu-lateral__logo { padding: 0; }
-  .menu-lateral__nav { order: 3; flex: 1 0 100%; flex-direction: row; justify-content: space-between; }
-  .menu-lateral__lien { flex: 1; justify-content: center; padding: 0; }
-  .menu-lateral__apercu { order: 4; flex: 1 0 100%; flex-direction: row; flex-wrap: wrap; padding-top: 8px; }
-  .menu-lateral__apercu .entete__apercu { flex: 1 1 140px; }
-  .menu-lateral__pied { margin: 0 0 0 auto; flex-direction: row; align-items: center; padding: 0; border: 0; gap: 8px; }
-  .menu-lateral__outils { gap: 6px; }
-  .menu-lateral__deconnexion { flex: none; width: 44px; padding: 0; }
-  .menu-lateral .panneau-notifications { position: fixed; top: 56px; left: 8px; right: 8px; bottom: auto; width: auto; }
+  body.layout-lateral #app,
+  body.menu-replie.layout-lateral #app { margin-left: 0; }
+  .barre-haut,
+  body.menu-replie .barre-haut { left: 0; padding: 0 12px; }
+  .menu-lateral,
+  body.menu-replie .menu-lateral { transform: translateX(-100%); }
+  body.menu-ouvert .menu-lateral { transform: translateX(0); box-shadow: 0 0 40px rgba(0, 0, 0, .4); }
+  body.menu-ouvert .menu-voile { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(0, 0, 0, .45); }
+  .barre-haut .panneau-notifications { position: fixed; top: calc(var(--barre-hauteur) + 4px); left: 8px; right: 8px; width: auto; }
 }
 
 /* ─── Tableau de bord ──────────────────────────────────────── */
@@ -408,4 +437,4 @@ body.layout-lateral #app { margin-left: var(--menu-largeur); }
 }
 .db-pipeline__total { font-family: var(--police-code); font-size: 18px; color: var(--texte); }
 
-@media print { body.layout-lateral #app { margin-left: 0; } }
+@media print { body.layout-lateral #app { margin-left: 0; padding-top: 0; } }

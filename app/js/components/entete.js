@@ -43,9 +43,31 @@ function lienLateral(l) {
   return `<a href="${l.href}" class="menu-lateral__lien${actif ? ' menu-lateral__lien--actif' : ''}"${actif ? ' aria-current="page"' : ''}><i data-lucide="${l.icone}"></i><span>${l.libelle}</span></a>`;
 }
 
-// Menu latéral façon RD_LMS pour tous les rôles (sur mobile, le CSS le replie
-// en barre du haut). Les identifiants (déconnexion, aperçu, notifications) sont
-// ceux utilisés par les écouteurs de rendreEntete.
+// Titre de la barre du haut, déduit de la route courante.
+const TITRES_PAGE = [
+  ['#/accueil', 'Tableau de bord'],
+  ['#/tableau-de-bord', 'Tableau de bord'],
+  ['#/mes-demandes', 'Mes demandes'],
+  ['#/documents', 'Mes documents'],
+  ['#/glossaire', 'Glossaire'],
+  ['#/charte-rgpd', 'Charte RGPD'],
+  ['#/demandes/nouvelle', 'Nouvelle demande'],
+  ['#/demandes/', 'Demande'],
+  ['#/demandes', 'Demandes'],
+  ['#/comptes/nouveau', 'Créer un compte'],
+  ['#/admin/utilisateurs', 'Comptes'],
+  ['#/d/', 'Ma demande'],
+];
+
+function titrePage() {
+  const hash = location.hash || '#/';
+  return TITRES_PAGE.find(([prefixe]) => hash.startsWith(prefixe))?.[1] ?? 'RD Recueil';
+}
+
+// Menu latéral façon RD_LMS (navigation, profil) et barre du haut (titre,
+// notifications, thème), pour tous les rôles. Sur mobile le menu devient un
+// tiroir ouvert par le bouton de la barre. Les identifiants (déconnexion,
+// aperçu, notifications) sont ceux utilisés par les écouteurs de rendreEntete.
 function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteurClientApercu, estAdminReel, apercuActif }) {
   const blocApercu = estAdminReel
     ? `<div class="menu-lateral__apercu">
@@ -56,7 +78,7 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
       </div>`
     : '';
   return `
-    <div class="menu-lateral">
+    <aside class="menu-lateral" id="menu-lateral">
       <a href="#/" class="menu-lateral__logo">
         <img src="assets/images/logo.svg" alt="" />
         <span>RD Recueil</span>
@@ -71,30 +93,66 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
           <span class="menu-lateral__avatar" aria-hidden="true">${initiales(profil)}</span>
           <span class="menu-lateral__identite"><strong>${profil.nom || profil.email}</strong><small>${roleLibelle}</small></span>
         </div>
-        <div class="menu-lateral__outils">
-          <div class="entete__notifications">
-            <button type="button" id="bouton-notifications" class="entete__theme" aria-label="Notifications" aria-expanded="false">
-              <i data-lucide="bell"></i>
-              <span id="badge-notifications" class="entete__badge-notifications" hidden>0</span>
-            </button>
-            <div id="panneau-notifications" class="panneau-notifications" hidden>
-              <div class="panneau-notifications__entete">
-                <span>Notifications</span>
-                <button type="button" id="bouton-tout-lu" class="panneau-notifications__tout-lu">Tout marquer lu</button>
-              </div>
-              <div id="liste-notifications" class="panneau-notifications__liste"></div>
+        <button type="button" id="bouton-deconnexion" class="menu-lateral__deconnexion" title="Déconnexion">
+          <i data-lucide="log-out"></i><span>Déconnexion</span>
+        </button>
+      </div>
+    </aside>
+    <div class="menu-voile" id="menu-voile"></div>
+    <div class="barre-haut">
+      <button type="button" id="bouton-menu" class="barre-haut__menu" aria-label="Afficher ou masquer le menu" aria-controls="menu-lateral">
+        <i data-lucide="panel-left"></i>
+      </button>
+      <span class="barre-haut__titre">${titrePage()}</span>
+      <div class="barre-haut__outils">
+        <div class="entete__notifications">
+          <button type="button" id="bouton-notifications" class="entete__theme" aria-label="Notifications" aria-expanded="false">
+            <i data-lucide="bell"></i>
+            <span id="badge-notifications" class="entete__badge-notifications" hidden>0</span>
+          </button>
+          <div id="panneau-notifications" class="panneau-notifications" hidden>
+            <div class="panneau-notifications__entete">
+              <span>Notifications</span>
+              <button type="button" id="bouton-tout-lu" class="panneau-notifications__tout-lu">Tout marquer lu</button>
             </div>
+            <div id="liste-notifications" class="panneau-notifications__liste"></div>
           </div>
-          <button type="button" class="entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
-            <i data-lucide="moon"></i>
-          </button>
-          <button type="button" id="bouton-deconnexion" class="menu-lateral__deconnexion" title="Déconnexion">
-            <i data-lucide="log-out"></i><span>Déconnexion</span>
-          </button>
         </div>
+        <button type="button" class="entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
+          <i data-lucide="moon"></i>
+        </button>
       </div>
     </div>
   `;
+}
+
+// Desktop : replie/déplie le menu (mémorisé). Mobile : ouvre/ferme le tiroir.
+const CLE_MENU_REPLIE = 'rd-recueil-menu-replie';
+const ECRAN_MOBILE = '(max-width: 900px)';
+
+function initialiserMenu() {
+  let replie = false;
+  try {
+    replie = localStorage.getItem(CLE_MENU_REPLIE) === '1';
+  } catch {
+    // stockage indisponible : le menu reste déplié.
+  }
+  document.body.classList.toggle('menu-replie', replie);
+  document.body.classList.remove('menu-ouvert');
+
+  document.getElementById('bouton-menu').addEventListener('click', () => {
+    if (window.matchMedia(ECRAN_MOBILE).matches) {
+      document.body.classList.toggle('menu-ouvert');
+      return;
+    }
+    const nouveau = document.body.classList.toggle('menu-replie');
+    try {
+      localStorage.setItem(CLE_MENU_REPLIE, nouveau ? '1' : '0');
+    } catch {
+      // non mémorisé.
+    }
+  });
+  document.getElementById('menu-voile').addEventListener('click', () => document.body.classList.remove('menu-ouvert'));
 }
 
 export function rendreEntete(profil) {
@@ -144,6 +202,8 @@ export function rendreEntete(profil) {
     estAdminReel,
     apercuActif: Boolean(roleApercu),
   });
+
+  initialiserMenu();
 
   document.getElementById('bouton-deconnexion').addEventListener('click', async () => {
     await deconnecter();
@@ -317,5 +377,5 @@ export function viderEntete() {
   entete.hidden = true;
   entete.innerHTML = '';
   entete.classList.remove('entete--lateral');
-  document.body.classList.remove('layout-lateral');
+  document.body.classList.remove('layout-lateral', 'menu-replie', 'menu-ouvert');
 }

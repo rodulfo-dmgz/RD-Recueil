@@ -82,7 +82,7 @@ L'**archivage** (`demandes.archivee`) est orthogonal au statut : il masque une d
 
 ### 4.1 Espace client
 
-L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes documents, glossaire, charte RGPD) ; sur mobile il se replie en barre du haut. Le personnel (consultant, admin) utilise le même menu latéral, avec ses propres liens ; l'admin y trouve le sélecteur « Simuler une vue » (aperçu consultant ou client, section 4.2).
+L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes documents, glossaire, charte RGPD, profil et déconnexion) et une barre du haut (titre de la page, notifications, mode sombre, bouton qui replie le menu). Sur mobile le menu devient un tiroir ouvert par ce bouton. Le personnel (consultant, admin) utilise le même menu latéral, avec ses propres liens ; l'admin y trouve le sélecteur « Simuler une vue » (aperçu consultant ou client, section 4.2).
 
 | Route | Écran | Contenu |
 |---|---|---|
