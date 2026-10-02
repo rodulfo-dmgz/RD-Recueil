@@ -26,6 +26,9 @@ const TRANSITIONS = {
 const STATUTS_FINAUX = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
 // entretien_planifie résulte désormais du choix d'un créneau par le client
 // (cf. creneaux.js), plus d'un simple clic consultant.
+// Statuts où le consultant rédige/envoie la note ou le devis (éditeurs dédiés).
+const STATUTS_AVEC_CADRAGE = new Set(['en_analyse', 'cadrage_envoye', 'cadrage_a_revoir', 'cadrage_valide', 'proposition_envoyee']);
+const STATUTS_AVEC_PROPOSITION = new Set(['cadrage_valide', 'proposition_envoyee', 'gagnee', 'perdue']);
 const STATUTS_AVEC_CRENEAUX = new Set(['soumise', 'entretien_planifie']);
 
 export async function vueVue360(reference) {
@@ -181,6 +184,28 @@ function rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, li
         icone: 'clipboard-check',
         titre: 'Mode entretien',
         sousTitre: "Mener l'entretien face au client",
+      })
+    );
+  }
+
+  if (STATUTS_AVEC_CADRAGE.has(demande.statut)) {
+    elements.push(
+      creerLigneNavigation({
+        href: `#/demandes/${demande.reference}/cadrage`,
+        icone: 'file-pen-line',
+        titre: 'Rédiger la note de cadrage',
+        sousTitre: 'Éditeur : rédiger, envoyer au client',
+      })
+    );
+  }
+
+  if (STATUTS_AVEC_PROPOSITION.has(demande.statut)) {
+    elements.push(
+      creerLigneNavigation({
+        href: `#/demandes/${demande.reference}/proposition`,
+        icone: 'receipt-text',
+        titre: 'Éditer la proposition commerciale',
+        sousTitre: 'Éditeur : devis et justification',
       })
     );
   }
