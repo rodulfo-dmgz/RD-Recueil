@@ -14,6 +14,7 @@ import { navigate } from '../../router.js';
 import { afficherToast } from '../../components/toast.js';
 import { construireFormulaireClient } from '../../components/formulaire-client.js';
 import { construireOngletContacts } from './client-contacts.js';
+import { construireOngletActivite } from './client-activite.js';
 import { construireOngletDemandes, construireOngletDocuments } from './client-demandes.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
 import { libelleJalon } from '../../engine/jalons.js';
@@ -29,6 +30,7 @@ import {
 const MAX_ETAPES = 8;
 const ONGLETS = [
   { cle: 'apercu', libelle: 'Aperçu', chemin: (id) => `#/clients/${id}` },
+  { cle: 'activite', libelle: 'Activité', chemin: (id) => `#/clients/${id}/activite` },
   { cle: 'contacts', libelle: 'Contacts', chemin: (id) => `#/clients/${id}/contacts` },
   { cle: 'demandes', libelle: 'Demandes', chemin: (id) => `#/clients/${id}/demandes` },
   { cle: 'documents', libelle: 'Documents', chemin: (id) => `#/clients/${id}/documents` },
@@ -237,7 +239,19 @@ export async function vueClientFiche(id, onglet = 'apercu') {
 
     main.appendChild(construireOnglets(id, onglet));
 
-    if (onglet === 'contacts') {
+    if (onglet === 'activite') {
+      const ids = new Set(demandes.map((d) => d.id));
+      main.appendChild(
+        construireOngletActivite({
+          client,
+          demandes,
+          jalons: jalons.filter((j) => ids.has(j.demande_id)),
+          responsables,
+          estAdmin,
+          profilId: getProfil()?.user_id,
+        })
+      );
+    } else if (onglet === 'contacts') {
       main.appendChild(construireOngletContacts({ client, importation }));
     } else if (onglet === 'demandes') {
       main.appendChild(construireOngletDemandes({ client, demandes }));
@@ -268,6 +282,7 @@ export async function vueClientFiche(id, onglet = 'apercu') {
         mini('Demandes', client.nb_demandes),
         mini('En cours', client.nb_actives),
         mini('Gagnées', client.nb_gagnees),
+        mini('Tâches ouvertes', client.nb_taches_ouvertes ?? 0),
         mini('Dernière activité', formaterDate(client.derniere_activite))
       );
       main.appendChild(minis);

@@ -22,7 +22,7 @@ function boutonNavigation(sens, libelle, action) {
 }
 
 function heure(jalon) {
-  if (jalon.type === 'echeance') return '';
+  if (jalon.type === 'echeance' || jalon.type === 'tache') return '';
   return new Date(jalon.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -83,7 +83,16 @@ export function construireCalendrier(jalons, { maintenant = new Date() } = {}) {
     for (const e of parJour.get(selection) ?? []) {
       const ligne = el('li', 'cal__evenement');
       ligne.appendChild(el('span', `cal__point cal__point--${categorieJalon(e, maintenant)}`));
-      ligne.append(el('span', 'cal__date', heure(e)), el('span', 'cal__libelle', `${libelleJalon(e.type)} · ${e.reference}`));
+      const libelle = el('span', 'cal__libelle');
+      const texte = `${e.libelle ?? libelleJalon(e.type)} · ${e.reference}`;
+      if (e.href) {
+        const lien = el('a', null, texte);
+        lien.href = e.href;
+        libelle.appendChild(lien);
+      } else {
+        libelle.textContent = texte;
+      }
+      ligne.append(el('span', 'cal__date', heure(e)), libelle);
       liste.appendChild(ligne);
     }
     detail.appendChild(liste);

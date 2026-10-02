@@ -16,6 +16,7 @@ const COLONNES_CSV = [
   { libelle: 'Demandes', valeur: (c) => c.nb_demandes },
   { libelle: 'Demandes actives', valeur: (c) => c.nb_actives },
   { libelle: 'Demandes gagnées', valeur: (c) => c.nb_gagnees },
+  { libelle: 'Tâches ouvertes', valeur: (c) => c.nb_taches_ouvertes ?? 0 },
   { libelle: 'Dernière activité', valeur: (c) => (c.derniere_activite ? c.derniere_activite.slice(0, 10) : '') },
 ];
 
@@ -45,6 +46,7 @@ function ligneClient(c) {
     el('td', null, c.ville || '-'),
     el('td', null, c.contact_principal || '-'),
     el('td', null, demandes),
+    el('td', null, c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : '-'),
     el('td', null, formaterDate(c.derniere_activite))
   );
   return ligne;
@@ -54,7 +56,7 @@ function construireTableau(clients) {
   const tableau = el('table', 'db-table');
   const tete = el('thead');
   const ligneTete = el('tr');
-  for (const t of ['Entreprise', 'SIRET', 'Statut', 'Ville', 'Contact principal', 'Demandes', 'Dernière activité']) {
+  for (const t of ['Entreprise', 'SIRET', 'Statut', 'Ville', 'Contact principal', 'Demandes', 'Tâches', 'Dernière activité']) {
     ligneTete.appendChild(el('th', null, t));
   }
   tete.appendChild(ligneTete);

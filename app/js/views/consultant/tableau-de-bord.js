@@ -10,6 +10,10 @@ import { listerJalons } from '../../services/jalons.js';
 import { grouperParDemande, calculerKpis, formaterDelai } from '../../engine/jalons.js';
 import { formaterTaux } from './indicateurs.js';
 import { LIBELLES_STATUT, STATUTS_FINAUX } from '../../engine/statuts.js';
+import { listerTaches, terminerTache, reporterTache } from '../../services/taches.js';
+import { construireCalendrier } from '../../components/calendrier.js';
+import { construireLigneTache, echeanceApresReport } from '../../components/ligne-tache.js';
+import { classerTaches, tachesVersJalons } from '../../engine/taches.js';
 
 const LIBELLES_ROLE = { admin: 'Administrateur', consultant: 'Espace consultant' };
 const MAX_PAR_ETAPE = 5;
@@ -41,6 +45,49 @@ function carteAlerte(nomIcone, titre, demandes, detail) {
   const liste = el('div', 'db-lignes');
   for (const d of demandes) liste.appendChild(ligneDemande(d, detail?.(d)));
   carte.appendChild(liste);
+  return carte;
+}
+
+const MAX_TACHES_JOUR = 8;
+
+// Tâches en retard et du jour, avec le nombre de celles de la semaine.
+function construireAujourdhui(taches, profil) {
+  const g = classerTaches(taches);
+  const urgentes = [...g.enRetard, ...g.aujourdhui];
+  const carte = el('section', 'db-carte');
+  const titre = el('h2', 'db-titre');
+  titre.append(icone('list-checks'), el('span', null, `Aujourd’hui : ${urgentes.length} tâche${urgentes.length > 1 ? 's' : ''}`));
+  carte.appendChild(titre);
+
+  if (urgentes.length === 0) {
+    carte.appendChild(el('p', 'db-vide texte-doux', 'Rien de prévu aujourd’hui.'));
+  } else {
+    const agir = (promesse, message) =>
+      promesse
+        .then(() => {
+          afficherToast(message, { type: 'succes' });
+          return vueTableauDeBord();
+        })
+        .catch((err) => afficherToast(err.message, { type: 'erreur' }));
+    const liste = el('ul', 'cl-taches');
+    for (const t of urgentes.slice(0, MAX_TACHES_JOUR)) {
+      liste.appendChild(
+        construireLigneTache(t, {
+          profilId: profil?.user_id,
+          avecClient: true,
+          onTerminer: () => agir(terminerTache(t.id), 'Tâche terminée.'),
+          onReporter: (jours) => agir(reporterTache(t.id, echeanceApresReport(jours)), 'Échéance reportée.'),
+        })
+      );
+    }
+    carte.appendChild(liste);
+  }
+  const reste = Math.max(0, urgentes.length - MAX_TACHES_JOUR);
+  const suite = [];
+  if (reste > 0) suite.push(`${reste} autre${reste > 1 ? 's' : ''} aujourd’hui`);
+  if (g.semaine.length > 0) suite.push(`${g.semaine.length} cette semaine`);
+  carte.appendChild(el('p', 'texte-doux', suite.join(' · ')));
+  carte.appendChild(lienBouton('#/taches', 'db-btn db-btn--discret db-btn--lien', 'Toutes mes tâches', 'arrow-right'));
   return carte;
 }
 
@@ -80,6 +127,12 @@ export async function vueTableauDeBord() {
   }
 
   const profil = getProfil();
+  let taches = [];
+  try {
+    taches = await listerTaches({ assigneeId: profil?.user_id });
+  } catch {
+    // tâches indisponibles : le reste du tableau de bord s'affiche.
+  }
   let kpisDelais = null;
   if (profil?.role === 'admin') {
     try {
@@ -126,6 +179,14 @@ export async function vueTableauDeBord() {
     );
     main.appendChild(lienBouton('#/indicateurs', 'db-btn db-btn--discret db-btn--lien', 'Tous les indicateurs', 'chart-column'));
   }
+
+  const haut = el('div', 'db-grille');
+  const colonneJour = el('div', 'db-principale');
+  colonneJour.appendChild(construireAujourdhui(taches, profil));
+  const lateral = el('aside', 'db-lateral');
+  lateral.appendChild(construireCalendrier(tachesVersJalons(taches)));
+  haut.append(colonneJour, lateral);
+  main.appendChild(haut);
 
   const principale = el('div', 'db-principale');
 

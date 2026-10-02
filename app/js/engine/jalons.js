@@ -21,6 +21,7 @@ export const LIBELLES_JALON = {
   reorientee: 'Demande réorientée',
   abandonnee: 'Demande abandonnée',
   echeance: 'Date limite',
+  tache: 'Tâche à faire',
 };
 
 const STATUTS_FINAUX_JALON = new Set(['gagnee', 'perdue', 'reorientee', 'abandonnee']);
@@ -31,9 +32,11 @@ export function libelleJalon(type) {
   return LIBELLES_JALON[type] || type;
 }
 
-// 'fait' (déjà passé), 'avenir' (rendez-vous à venir), 'echeance' (date limite).
+// 'fait' (déjà passé), 'avenir' (rendez-vous à venir), 'echeance' (date limite),
+// 'tache' (tâche interne du staff, CRM lot B).
 export function categorieJalon(jalon, maintenant = new Date()) {
   if (jalon.type === 'echeance') return 'echeance';
+  if (jalon.type === 'tache') return 'tache';
   if (jalon.type === 'entretien' && new Date(jalon.date) > maintenant) return 'avenir';
   return 'fait';
 }

@@ -456,8 +456,8 @@ body.menu-replie.layout-lateral #app { margin-left: 0; }
 .cal__mois { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .cal__titre { font-family: var(--police-titre); font-weight: 600; }
 .cal__nav {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: none;
@@ -543,8 +543,6 @@ button.cal__case:hover { background: var(--fond); }
 .cl-fiche-entete h1 { margin: 0 0 4px; }
 .cl-fiche-entete__meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 0; }
 .cl-fiche-entete__actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.cl-minis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-@media (max-width: 640px) { .cl-minis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .cl-groupe { margin: 20px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--texte-doux); }
 .cl-infos { display: grid; grid-template-columns: minmax(120px, 200px) minmax(0, 1fr); gap: 6px 16px; margin: 0; }
 .cl-infos dt { color: var(--texte-doux); font-size: 14px; }
@@ -598,3 +596,53 @@ button.cal__case:hover { background: var(--fond); }
 .cl-form--contact legend { padding: 0; font-family: var(--police-titre); font-weight: 600; }
 .cl-case { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
 .cl-case input { width: 20px; height: 20px; accent-color: var(--rd-bleu); }
+
+/* Activité : tâches et historique */
+.cl-minis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.cl-taches, .cl-historique { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.cl-tache { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--bordure); }
+.cl-tache:last-child, .cl-historique__ligne:last-child { border-bottom: none; }
+.cl-tache--retard .cl-tache__meta { color: var(--erreur); }
+.cl-tache__fait { flex-shrink: 0; width: 44px; height: 44px; display: grid; place-items: center; border: 2px solid var(--bordure); border-radius: 50%; background: transparent; color: transparent; cursor: pointer; }
+.cl-tache__fait:hover, .cl-tache__fait:focus-visible { border-color: var(--rd-turquoise); color: var(--rd-turquoise); }
+.cl-tache__fait svg { width: 18px; height: 18px; }
+.cl-tache__corps { flex: 1; min-width: 0; }
+.cl-tache__corps strong { overflow-wrap: anywhere; }
+.cl-tache__meta { margin: 2px 0 0; font-size: 13px; }
+.cl-tache__description { margin: 4px 0 0; font-size: 14px; white-space: pre-wrap; }
+.cl-tache__actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.cl-tache__reporter { width: auto; min-width: 130px; }
+.cl-historique__ligne { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--bordure); }
+.cl-historique__icone { flex-shrink: 0; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--fond); color: var(--bleu-texte); }
+.cl-historique__icone svg { width: 18px; height: 18px; }
+.cl-historique__corps { flex: 1; min-width: 0; }
+.cl-historique__tete { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0; }
+.cl-historique__date { font-size: 13px; }
+.cl-historique__lien { display: inline-block; margin-top: 2px; font-size: 13px; color: var(--bleu-texte); }
+.cl-historique__supprimer { align-self: flex-start; }
+@media (max-width: 640px) {
+  .cl-tache { flex-wrap: wrap; }
+  .cl-tache__actions { width: 100%; justify-content: flex-start; padding-left: 56px; }
+}
+
+.cal__point--tache { background: var(--rd-orange); }
+.cal__libelle a { color: var(--bleu-texte); }
+.cl-tache__client { display: block; font-size: 13px; color: var(--bleu-texte); }
+
+.relance-ligne { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.relance-echeance { width: auto; }
+
+.modale-formulaire {
+  border: none;
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  background: var(--surface);
+  color: var(--texte);
+  padding: 24px;
+  max-width: 480px;
+  width: 90vw;
+}
+.modale-formulaire::backdrop { background: rgba(26, 31, 43, .5); }
+.modale-formulaire h2 { margin: 0 0 4px; font-family: var(--police-titre); }
+.modale-formulaire .cl-form { gap: 12px; }
+.modale-formulaire__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 4px; }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { formaterReponse } from '../app/js/engine/formatage.js';
+import { formaterReponse, echapperHtml } from '../app/js/engine/formatage.js';
 
 test('formaterReponse : absente -> tiret', () => {
   assert.equal(formaterReponse({ type: 'texte_court' }, null), '—');
@@ -49,4 +49,10 @@ test('formaterReponse : objet générique (hors code_rncp) concatène ses valeur
 
 test('formaterReponse : nombre converti en chaîne', () => {
   assert.equal(formaterReponse({ type: 'nombre' }, { valeur: 42 }), '42');
+});
+
+test('echapperHtml : neutralise les balises et les guillemets', () => {
+  assert.equal(echapperHtml('<img src=x onerror="a()"> & \'b\''), '&lt;img src=x onerror=&quot;a()&quot;&gt; &amp; &#39;b&#39;');
+  assert.equal(echapperHtml(null), '');
+  assert.equal(echapperHtml(12), '12');
 });

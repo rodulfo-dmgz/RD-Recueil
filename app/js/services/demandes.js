@@ -122,14 +122,6 @@ export async function inviterClient(demandeId, email, { droit = 'editeur', nom, 
   return resultat; // { email, motDePasseTemporaire, compteExistant, userId }
 }
 
-// Relance manuelle (pas d'automatisation planifiée - RM-05 est marquée V2
-// dans 01_ARCHITECTURE.md) : aucun envoi automatique, journalise simplement
-// un rappel en commentaire interne. Le consultant recontacte le client par
-// le canal de son choix.
-export async function relancerClient(demandeId, email) {
-  await posterCommentaire(demandeId, { cible: 'general', texte: `Relance à faire auprès de ${email}.`, interne: true });
-}
-
 // Demandes envoyee/en_saisie sans réponse depuis plus de 7 jours - tableau
 // de bord consultant (01_ARCHITECTURE.md section 4.2).
 export async function listerDemandesInactives() {

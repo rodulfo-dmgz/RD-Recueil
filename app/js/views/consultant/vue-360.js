@@ -1,4 +1,7 @@
-import { obtenirDemandeParReference, changerStatut, inviterClient, relancerClient, archiverDemande } from '../../services/demandes.js';
+import { obtenirDemandeParReference, changerStatut, inviterClient, archiverDemande } from '../../services/demandes.js';
+import { creerTache } from '../../services/taches.js';
+import { ajouterJours, preparerTache, validerTache } from '../../engine/taches.js';
+import { cleJour } from '../../engine/jalons.js';
 import { chargerQuestionnaire, chargerGlossaire } from '../../services/questionnaire.js';
 import { chargerReponsesStaff } from '../../services/reponses.js';
 import { listerFichiers } from '../../services/fichiers.js';
@@ -386,22 +389,33 @@ function rendreRelance(demande, acces) {
     li.className = 'relance-ligne';
     const email = document.createElement('span');
     email.textContent = a.email;
+    const echeance = document.createElement('input');
+    echeance.type = 'date';
+    echeance.className = 'champ-saisie relance-echeance';
+    echeance.value = ajouterJours(cleJour(new Date()), 3);
+    echeance.setAttribute('aria-label', `Échéance de la relance de ${a.email}`);
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'btn btn--secondaire';
-    bouton.textContent = 'Noter une relance';
+    bouton.textContent = 'Créer une tâche de relance';
     bouton.addEventListener('click', async () => {
+      const saisie = { titre: `Relancer ${a.email}`, type: 'relance', echeance: echeance.value, demande_id: demande.id };
+      const erreurs = validerTache(saisie);
+      if (erreurs.echeance) {
+        afficherToast(erreurs.echeance, { type: 'erreur' });
+        return;
+      }
       bouton.disabled = true;
       try {
-        await relancerClient(demande.id, a.email);
-        afficherToast(`Relance journalisée pour ${a.email}.`, { type: 'succes' });
+        await creerTache(demande.client_id, preparerTache(saisie));
+        afficherToast(`Tâche de relance créée pour ${a.email} (échéance le ${new Date(`${echeance.value}T12:00:00`).toLocaleDateString('fr-FR')}).`, { type: 'succes' });
       } catch (err) {
         afficherToast(err.message, { type: 'erreur' });
       } finally {
         bouton.disabled = false;
       }
     });
-    li.append(email, bouton);
+    li.append(email, echeance, bouton);
     liste.appendChild(li);
   }
   bloc.appendChild(liste);

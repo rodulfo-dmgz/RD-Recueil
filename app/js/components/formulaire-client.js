@@ -3,6 +3,7 @@
 // réutilise la saisie avec suggestions SIRENE du questionnaire.
 import { el } from './dashboard-ui.js';
 import { render as rendreChampSiret } from './fields/siret.js';
+import { champSelect } from './champs-crm.js';
 import { rechercherEntreprise } from '../services/entreprises.js';
 import {
   CHAMPS_FICHE,
@@ -36,21 +37,6 @@ function champTexte(champ, valeur, erreurs) {
   erreurs[champ.cle] = { input, erreur };
   libelle.appendChild(erreur);
   return libelle;
-}
-
-function champSelect(cle, libelle, options, valeur, vide) {
-  const wrapper = el('label', 'cl-champ');
-  wrapper.appendChild(el('span', 'cl-champ__libelle', libelle));
-  const select = el('select', 'champ-saisie');
-  select.name = cle;
-  const lignes = vide != null ? [{ valeur: '', libelle: vide }, ...options] : options;
-  for (const o of lignes) {
-    const option = Object.assign(document.createElement('option'), { value: o.valeur, textContent: o.libelle });
-    option.selected = o.valeur === (valeur ?? '');
-    select.appendChild(option);
-  }
-  wrapper.appendChild(select);
-  return { wrapper, select };
 }
 
 // valeurs : fiche existante (ou {}), responsables : profils staff.

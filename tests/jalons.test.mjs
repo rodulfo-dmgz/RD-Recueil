@@ -31,6 +31,8 @@ test('categorieJalon : échéance, rendez-vous à venir, fait', () => {
   assert.equal(categorieJalon(j('a', 'entretien', '2026-10-09T10:00:00'), maintenant), 'avenir');
   assert.equal(categorieJalon(j('a', 'entretien', '2026-10-01T10:00:00'), maintenant), 'fait');
   assert.equal(categorieJalon(j('a', 'soumise', '2026-10-01T10:00:00'), maintenant), 'fait');
+  assert.equal(categorieJalon(j('a', 'tache', '2026-10-09T09:00:00'), maintenant), 'tache');
+  assert.equal(libelleJalon('tache'), 'Tâche à faire');
 });
 
 test('jalonsParJour : regroupe par jour local, trié', () => {

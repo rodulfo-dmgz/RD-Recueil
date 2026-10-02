@@ -11,6 +11,7 @@ import { vueCharteRgpd } from './views/client/charte-rgpd.js';
 import { vueRapport } from './views/client/rapport.js';
 import { vueIndicateurs } from './views/consultant/indicateurs.js';
 import { vueClients } from './views/consultant/clients.js';
+import { vueTaches } from './views/consultant/taches.js';
 import { vueClientFiche } from './views/consultant/client-fiche.js';
 import { vueClientNouveau } from './views/consultant/client-nouveau.js';
 import { vueAccueilDemande } from './views/client/accueil.js';
@@ -162,6 +163,11 @@ route('/glossaire', async () => {
 route('/tableau-de-bord', async () => {
   if (!(await garantirStaff())) return;
   vueTableauDeBord();
+});
+
+route('/taches', async () => {
+  if (!(await garantirStaff())) return;
+  vueTaches();
 });
 
 route('/clients', async () => {

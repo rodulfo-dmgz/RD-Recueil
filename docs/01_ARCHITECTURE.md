@@ -105,14 +105,15 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 
 | Route | Écran | Contenu |
 |---|---|---|
-| `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. |
+| `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. Un bloc « Aujourd'hui » liste mes tâches en retard et du jour (Terminer, Reporter) à côté d'un calendrier de mes échéances. |
 | `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. |
 | `#/clients` | Clients | Liste des clients et prospects : recherche (nom, SIRET, ville, contact), filtre de statut (archivés masqués), contact principal, nombre de demandes, dernière activité, export CSV. |
 | `#/clients/nouveau` | Nouveau client ou prospect | Fiche pré-remplie par la recherche SIRET (base SIRENE), statut `prospect` par défaut. |
-| `#/clients/:id` (+ `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
+| `#/clients/:id` (+ `/activite`, `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Activité (tâches ouvertes, échanges notés, historique avec les étapes des demandes, ajout rapide d'un contact), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
+| `#/taches` | Tâches | Mes tâches par défaut (l'admin peut voir celles de l'équipe) ; filtres statut et client ; groupes En retard, Aujourd'hui, Cette semaine, Plus tard ; Terminer, Reporter, accès à la fiche. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation, consultant, date. |
 | `#/demandes/nouvelle` (+ `/:clientId`) | Création | Client existant (liste déroulante, présélectionné depuis sa fiche) ou nouveau (raison sociale, SIRET ; un SIRET déjà connu sélectionne le client existant), types pressentis (pré-coche TC-0.01), date limite. |
-| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. |
+| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». |
 | `#/demandes/:ref/entretien` | Mode entretien | Voir 4.3. |
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
 | `#/admin/questionnaire` | Versions | Import des `.md`, prévisualisation, publication. |
@@ -419,7 +420,48 @@ create table contacts (
 );
 
 -- Vue v_clients (security_invoker) : clients + nb_demandes, nb_actives,
--- nb_gagnees, derniere_activite, contact_principal.
+-- nb_gagnees, derniere_activite (tient compte des échanges notés),
+-- contact_principal, nb_taches_ouvertes (selon les droits de l'appelant),
+-- prochaine_echeance.
+
+-- Échanges notés avec un client (0034, 0035, 0036). Lecture et création pour
+-- tout le staff ; modification et suppression par l'auteur ou l'admin.
+create table activites (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references clients on delete cascade,
+  contact_id uuid references contacts on delete set null,
+  demande_id uuid references demandes on delete set null,
+  auteur uuid references profils(user_id) on delete set null default auth.uid(),
+  type text not null check (type in ('note','appel','email','rendez_vous','autre')),
+  objet text not null,
+  description text,
+  date_activite timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+-- Tâches (0034) : personnelles. L'admin voit et gère tout et désigne le
+-- responsable ; un consultant ne voit, ne crée (pour lui seul), ne modifie
+-- et ne supprime que les tâches qui lui sont assignées. Jamais visibles du
+-- client ni du calendrier du client. Triggers : fn_tache_maj (dates de
+-- mise à jour et de clôture), fn_notifier_tache (notification au
+-- responsable quand quelqu'un d'autre lui confie une tâche).
+create table taches (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references clients on delete cascade,
+  contact_id uuid references contacts on delete set null,
+  demande_id uuid references demandes on delete set null,
+  assignee_id uuid references profils(user_id) on delete set null,
+  created_by uuid references auth.users on delete set null default auth.uid(),
+  titre text not null,
+  description text,
+  type text not null default 'autre' check (type in ('appel','email','relance','rendez_vous','autre')),
+  echeance date not null,              -- une date, sans heure
+  statut text not null default 'a_faire' check (statut in ('a_faire','terminee','annulee')),
+  terminee_le timestamptz, terminee_par uuid references auth.users on delete set null,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+
+-- est_admin() (security definer) complète est_staff() dans les politiques.
 
 create sequence demande_seq;
 
@@ -528,8 +570,9 @@ create table notifications (
   destinataire uuid not null references auth.users on delete cascade,
   demande_id uuid references demandes on delete cascade,
   reference text not null,
-  type text not null,                  -- le statut ('vers') qui a déclenché la notification
+  type text not null,                  -- le statut ('vers') qui a déclenché la notification, ou 'tache'
   titre text not null,
+  lien text,                           -- chemin de l'application (ex. /clients/<id>/activite) ; sinon la demande
   lu boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -562,12 +605,17 @@ create table notifications (
 
 > Choix initial (V1.0) : lien magique par e-mail. Abandonné en cours de développement au profit d'un mot de passe temporaire généré par le consultant, la fiabilité de livraison des e-mails transactionnels s'étant révélée un point de friction récurrent en usage réel.
 
+> Correctif (0033) : la politique `profils_staff` autorisait tout le staff, donc un simple consultant, à modifier ou supprimer n'importe quel profil depuis son navigateur, notamment à se donner le rôle `admin`. Elle est désormais en lecture seule ; l'application ne fait que lire `profils`.
+
 ### 8.2 Politiques RLS (`0003_rls.sql`)
 
 | Table | Staff (`admin`, `consultant`) | Client |
 |---|---|---|
 | `questionnaires`, `questions`, `glossaire` | Lecture | Lecture (questions : uniquement sections `visible_client`) |
 | `clients`, `contacts`, vue `v_clients` | Lecture, création, modification ; suppression d'un client réservée à l'admin (0032) | Aucun accès |
+| `activites` | Lecture et création ; modification et suppression par l'auteur ou l'admin (0035) | Aucun accès |
+| `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, création pour lui seul, modification, suppression ; réassignation refusée) (0034) | Aucun accès |
+| `profils` | Lecture seule (0033) ; créations, changements de rôle et suppressions par les Edge Functions (`service_role`) | Lecture de son propre profil |
 | `demandes` | Lecture et écriture | Lecture si `a_acces()` |
 | `reponses` | Tout | Lecture si `a_acces()` et question non `F` ; écriture si droit `editeur`, question `C` ou `C/F`, statut `envoyee` ou `en_saisie`. Colonne `annotation_consultant` masquée par une vue `v_reponses_client`. |
 | `fichiers` + bucket Storage `demandes` | Tout | Lecture et dépôt dans `demandes/{client}/{reference}/…` si `a_acces()` (le 2e segment, `reference`, est la clé vérifiée par la RLS - le 1er, un slug du nom du client, ne sert qu'à regrouper visuellement les fichiers par client dans Supabase Storage) |
@@ -740,6 +788,8 @@ Export « Dossier de preuves » (V2) : un PDF par demande regroupant réponses, 
 
 **Notification interne** - table `notifications` (`destinataire`, `demande_id`, `reference`, `type`, `titre`, `lu`) alimentée par un unique trigger `fn_notifier_evenement` sur `evenements` (`AFTER INSERT`) : toute transition passe déjà par `rpc_changer_statut`, qui écrit dans `evenements` - un seul trigger centralisé suffit, sans modifier chaque RPC. RLS : un compte ne voit et ne marque comme lues que ses propres notifications.
 
+**Tâches** - quand une tâche est confiée à quelqu'un d'autre (création ou changement de responsable), le trigger `fn_notifier_tache` crée une notification pour le nouveau responsable (`type` = `tache`, `reference` = nom du client, `lien` = `/clients/<id>/activite`) ; aucun e-mail. Le panneau suit `lien` quand il est renseigné et échappe tous les textes affichés.
+
 **E-mail** - envoyé à part par le client juste après l'action réussie (`app/js/services/notifications.js`, fonction `envoyerEmailEtape`), via l'Edge Function `envoyer-notification-email` (Resend, domaine `mail.rd-formation.com` vérifié, secret `RESEND_API_KEY` côté serveur uniquement, jamais dans la base - CLAUDE.md). Volontairement non bloquant : un échec d'envoi n'annule jamais l'action ni ne remonte d'erreur à l'utilisateur, la fiabilité des e-mails transactionnels ayant déjà été un point de friction sur ce projet (section 8.1). Secret `APP_URL` optionnel pour le lien inclus dans l'e-mail (URL GitHub Pages par défaut si absent). Gabarit HTML sobre (logo repris du site public `rd-formation.com`, un seul bouton d'action, coordonnées en pied de page) en tableaux et styles en ligne pour rester lisible dans Outlook.
 
 ---
@@ -753,7 +803,7 @@ L'application évolue vers un CRM autour de la demande, qui reste l'objet centra
 | Lot | Contenu | État |
 |---|---|---|
 | A | Fiche client, contacts, onglets Demandes et Documents, SIRET unique | réalisé (migrations 0030 à 0032) |
-| B | Activités, tâches, page « Aujourd'hui », relances dans le calendrier | à faire |
+| B | Échanges notés, tâches (droits par responsable), bloc « Aujourd'hui » et calendrier des échéances, relances en tâches | réalisé (migrations 0033 à 0036) |
 | C | Montants, CA pondéré, pipeline en euros | à faire |
 | D | Financements, références de factures (outil de facturation externe) | à faire |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |

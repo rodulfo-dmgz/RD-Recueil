@@ -5,6 +5,7 @@ import { setProfil, getApercuRole, setApercuRole, getClientApercuId, setClientAp
 import { navigate } from '../router.js';
 import { listerNotifications, compterNonLues, marquerLue, marquerToutesLues } from '../services/notifications.js';
 import { listerClientsApercu } from '../services/comptes.js';
+import { echapperHtml } from '../engine/formatage.js';
 
 const LIENS_CLIENT = [
   { href: '#/accueil', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
@@ -18,6 +19,7 @@ const LIENS_CLIENT = [
 const LIENS_STAFF = [
   { href: '#/tableau-de-bord', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
   { href: '#/clients', icone: 'building-2', libelle: 'Clients' },
+  { href: '#/taches', icone: 'list-checks', libelle: 'Tâches' },
   { href: '#/demandes', icone: 'list', libelle: 'Demandes' },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
 ];
@@ -56,6 +58,7 @@ const TITRES_PAGE = [
   ['#/indicateurs', 'Indicateurs'],
   ['#/glossaire', 'Glossaire'],
   ['#/charte-rgpd', 'Charte RGPD'],
+  ['#/taches', 'Tâches'],
   ['#/clients/nouveau', 'Nouveau client'],
   ['#/clients/', 'Fiche client'],
   ['#/clients', 'Clients'],
@@ -357,21 +360,26 @@ function initialiserNotifications(profil) {
     liste.innerHTML = notifications
       .map(
         (n) => `
-          <button type="button" class="panneau-notifications__item${n.lu ? '' : ' panneau-notifications__item--non-lue'}" data-id="${n.id}" data-reference="${n.reference}">
-            <span class="panneau-notifications__titre">${n.titre}</span>
-            <span class="panneau-notifications__meta">${n.reference} · ${formaterRelatif(n.created_at)}</span>
+          <button type="button" class="panneau-notifications__item${n.lu ? '' : ' panneau-notifications__item--non-lue'}" data-id="${echapperHtml(n.id)}" data-reference="${echapperHtml(n.reference)}" data-lien="${echapperHtml(n.lien ?? '')}">
+            <span class="panneau-notifications__titre">${echapperHtml(n.titre)}</span>
+            <span class="panneau-notifications__meta">${echapperHtml(n.reference)} · ${formaterRelatif(n.created_at)}</span>
           </button>
         `
       )
       .join('');
     liste.querySelectorAll('.panneau-notifications__item').forEach((item) => {
       item.addEventListener('click', async () => {
-        const { id, reference } = item.dataset;
+        const { id, reference, lien } = item.dataset;
         panneau.hidden = true;
         bouton.setAttribute('aria-expanded', 'false');
         marquerLue(id)
           .then(rafraichirBadge)
           .catch(() => {});
+        // Notification de tâche : chemin explicite ; sinon, la demande concernée.
+        if (lien && lien.startsWith('/')) {
+          navigate(lien);
+          return;
+        }
         const prefixe = profil.role === 'client' ? 'd' : 'demandes';
         navigate(`/${prefixe}/${reference}`);
       });

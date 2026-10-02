@@ -19,8 +19,8 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 
 | Lot | Contenu | État |
 |---|---|---|
-| A | Fiche client et contacts | terminé (reste un essai avec un vrai compte, voir points ouverts) |
-| B | Activités, tâches, page "Aujourd'hui", relances dans le calendrier | à faire |
+| A | Fiche client et contacts | terminé et commité (`db4b088`, non poussé) ; reste un essai avec un vrai compte |
+| B | Activités, tâches, bloc "Aujourd'hui", relances dans le calendrier | terminé et commité ; reste un essai avec un vrai compte |
 | C | Montants, CA pondéré, pipeline en euros, KPI financiers | à faire |
 | D | Financements, références de factures (Shine) | à faire |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |
@@ -62,6 +62,41 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 
 ### Hors lot A
 Journal d'activité, tâches, montants, recherche globale, fusion de doublons, consentement des contacts.
+
+## 3b. Lot B : activités et tâches
+
+### Décisions de l'utilisateur
+1. Pas de page "Aujourd'hui" séparée : un bloc "Aujourd'hui" sur le tableau de bord consultant plus une page `#/taches`.
+2. **Visibilité** : un consultant ne voit et ne gère que les tâches qui lui sont assignées ; l'admin voit tout et désigne le responsable de chaque tâche. (Les échanges notés restent lisibles par tout le staff.)
+3. Pas de priorité sur les tâches, tri par échéance (une date, sans heure).
+4. Dans la vue 360, "Noter une relance" (commentaire interne "Relance à faire") devient la création d'une vraie tâche de relance (échéance par défaut : 3 jours).
+5. Rappels automatiques (`pg_cron`, e-mail quotidien) : on décidera après le lot B.
+
+### Modèle
+- `activites` : client, contact et demande facultatifs, auteur, type (note, appel, email, rendez_vous, autre), objet, description, date. Lecture et écriture pour tout le staff.
+- `taches` : client, contact et demande facultatifs, assignee_id, created_by, titre, description, type (appel, email, relance, rendez_vous, autre), echeance (date), statut (a_faire, terminee, annulee), terminee_le et terminee_par (tenus par un trigger). Droits : l'admin tout ; un consultant lit, crée (pour lui seul), modifie et supprime uniquement ses tâches, et ne peut pas les réassigner.
+- Notification interne au responsable quand quelqu'un d'autre lui confie une tâche (création ou changement de responsable) ; `notifications.lien` permet de mener à `/clients/:id/activite` ; `reference` porte alors le nom du client.
+- `v_clients` : ajout de `nb_taches_ouvertes` et `prochaine_echeance` (selon les droits de l'appelant) ; `derniere_activite` tient compte des échanges notés.
+- Les tâches sont internes : elles n'apparaissent jamais dans le calendrier ni dans les données du client.
+- Droits des échanges (0035) : tout le staff lit et crée ; seuls l'auteur ou l'admin modifient ou suppriment un échange.
+
+### Écrans prévus
+- Fiche client, nouvel onglet "Activité" (`#/clients/:id/activite`) : boutons "Noter un échange" et "Nouvelle tâche", tâches ouvertes à cocher, historique qui mêle échanges et étapes des demandes ; un échange peut créer la tâche de suivi dans le même geste.
+- `#/taches` : tâches avec filtre "Mes tâches" par défaut (l'admin peut voir l'équipe), statut et client ; Terminer, Reporter, accès à la fiche.
+- Tableau de bord consultant : bloc "Aujourd'hui" (en retard, du jour, de la semaine) et calendrier des échéances (jours cliquables).
+- Vue 360 : "Créer une tâche de relance".
+
+### Étapes
+- [x] B1. Migrations et droits, vérifiés en base
+- [x] B2. Logique testée `engine/taches.js`
+- [x] B3. Services `services/activites.js` et `services/taches.js`
+- [x] B4. Onglet Activité de la fiche
+- [x] B5. Page tâches, bloc "Aujourd'hui" et calendrier
+- [x] B6. Vue 360 (relance en tâche) et notifications avec lien
+- [x] B7. Documentation, tests, cohérence, vérifications, commit
+
+### Hors lot B
+Rappels automatiques, tâches créées automatiquement à chaque changement de statut, priorités, heure d'échéance, tâches récurrentes.
 
 ## 4. Journal des étapes
 
@@ -179,10 +214,122 @@ Fichiers du lot A, prêts à commiter (rien n'est commité ni poussé) :
 
 Les migrations 0030 à 0032 sont déjà appliquées sur la base de production alors que le code du lot n'est pas encore poussé : c'est sans effet sur l'application publiée (les nouvelles colonnes ont des valeurs par défaut et la séparation des droits de `clients` garde les mêmes accès pour le staff, sauf la suppression réservée à l'admin).
 
+### 2026-10-02 : lot B, étape B1 (migrations 0033 et 0034) et faille corrigée
+
+**Faille trouvée et corrigée (migration 0033).** La politique `profils_staff` était `for all` : tout membre du staff, donc un simple consultant, pouvait modifier, créer ou supprimer n'importe quel profil depuis son navigateur, en particulier se donner le rôle `admin`. Reproduit en base avant correction (transaction annulée : un "consultant" se passe admin, 1 ligne modifiée). L'application ne fait que lire `profils` (`auth.js`, `services/comptes.js`) ; les créations, changements de rôle et suppressions passent par les Edge Functions avec la clé `service_role`, qui ignore la RLS. La politique est remplacée par `profils_staff_lecture` (lecture seule). Après correction, dans la même simulation : changement de rôle 0 ligne, suppression 0 ligne, lecture des profils toujours possible (4 lignes). La base est intacte (1 admin, 3 clients). Cette faille rendait caduques les droits "admin seulement" (suppression de client, désignation des tâches).
+
+**Migration 0034.**
+- `est_admin()` (security definer, comme `est_staff()`), `notifications.lien`, tables `activites` et `taches` avec index et RLS, triggers `trg_taches_maj` (dates de mise à jour et de clôture) et `trg_notifier_tache` (notification au responsable), vue `v_clients` étendue.
+
+Vérifié en base (transactions annulées, un compte client simulé en consultant, rien de résiduel : 0 tâche, 0 activité, 0 notification de tâche, 0 consultant) :
+- admin : voit toutes les tâches, crée pour n'importe qui ;
+- consultant : voit 1 tâche sur 2 (la sienne), les échanges notés, crée une tâche pour lui, la création pour l'admin est refusée, il termine sa tâche (terminee_le renseignée, terminee_par = lui), terminer celle de l'admin touche 0 ligne, la réaffectation est refusée, `v_clients` ne compte que ses tâches ;
+- notifications : le consultant reçoit une notification avec le lien `/clients/<id>/activite` quand l'admin lui confie une tâche, pas l'admin pour sa propre tâche, une réaffectation par l'admin notifie le nouveau responsable une seule fois (une simple modification de titre n'en crée pas) ;
+- client : 0 tâche, 0 activité visibles, insertion refusée.
+
+À noter : `app/js/components/entete.js` ouvre encore les notifications vers `#/demandes/:reference`. Le lien `/clients/:id/activite` sera pris en compte à l'étape B6.
+
+### 2026-10-02 : lot B, étape B2 (logique testée)
+
+Fait : `app/js/engine/taches.js` (fonctions pures) et `tests/taches.test.mjs` (10 tests).
+- Constantes et libellés : `TYPES_ACTIVITE`, `TYPES_TACHE`, `libelleTypeActivite`, `libelleTypeTache`.
+- Dates (une échéance est une chaîne AAAA-MM-JJ, calculée en jours entiers donc insensible aux changements d'heure) : `estCleValide`, `ajouterJours`, `joursDeRetard`, `libelleEcheance` (En retard de N jours, Hier, Aujourd'hui, Demain, date).
+- `classerTaches(taches, maintenant)` : seulement les tâches à faire, réparties en `enRetard`, `aujourdhui`, `semaine` (les six jours suivants) et `plusTard`, triées par échéance puis par création.
+- Formulaires : `preparerTache` / `validerTache` (titre et échéance obligatoires, `assignee_id` repris seulement s'il est fourni), `preparerActivite` / `validerActivite` (objet obligatoire, date saisie convertie en ISO).
+- `fusionnerHistorique(activites, jalons, maintenant)` : échanges et étapes passées d'un client, du plus récent au plus ancien ; dates futures et dates limites exclues.
+- `tachesVersJalons(taches)` : tâches à faire converties en éléments de calendrier (type `tache`, `libelle` = titre, `reference` = nom du client, 9 h locales du jour d'échéance). Le calendrier devra connaître ce type (étape B5).
+
+Vérifié : `node --test tests/*.test.mjs` 124 réussis, 0 échec (114 avant) ; les 10 nouveaux tests passent aussi dans les fuseaux America/New_York et Pacific/Auckland ; `check-coherence` 0 erreur ; aucun tiret cadratin.
+
+### 2026-10-02 : lot B, étape B3 (services, migrations 0035 et 0036)
+
+Fait :
+- Migration `0035_activites_droits.sql` (appliquée) : la politique `activites_staff` (for all) laissait tout consultant modifier ou effacer l'historique d'un collègue ; elle est remplacée par lecture et création pour le staff, modification et suppression pour l'auteur ou l'admin.
+- Migration `0036_activites_auteur_profil.sql` (appliquée) : `activites.auteur` référence `profils` (et non `auth.users`) pour afficher le nom de l'auteur par jointure ; même comportement si le profil disparaît (auteur vide, échange conservé).
+- `services/taches.js` : `listerTaches({ clientId, assigneeId, statut })` (jointures client, contact, demande, responsable ; tri par échéance), `creerTache(clientId, champs)` (sans responsable fourni, confiée à l'utilisateur connecté), `modifierTache`, `terminerTache`, `rouvrirTache`, `annulerTache`, `reporterTache(id, echeance)`, `supprimerTache`.
+- `services/activites.js` : `listerActivites(clientId, limite)` (jointures contact, demande, auteur, du plus récent au plus ancien), `creerActivite`, `supprimerActivite` (message clair si la base refuse).
+
+Vérifié :
+- Droits des échanges en base (transactions annulées, un compte client simulé en consultant) : le consultant lit les 2 échanges, modifie et supprime le sien, ne peut ni modifier ni supprimer celui de l'admin (0 ligne), son nom est renseigné d'office comme auteur ; l'admin peut supprimer celui du consultant.
+- Jointures : les deux requêtes exactes des services sont acceptées par l'API REST de Supabase (réponse 200, liste vide faute de session, donc la RLS est bien appliquée) alors qu'une jointure inexistante est refusée (400), ce qui prouve que le contrôle est réel.
+- Les services ne sont pas testables hors navigateur avec une vraie session ; ils le seront à travers les écrans (étapes B4 à B6).
+
+### 2026-10-02 : lot B, étape B4 (onglet Activité)
+
+Fait :
+- `views/consultant/client-activite.js` (nouveau) : onglet `#/clients/:id/activite`.
+  - Tâches ouvertes (en retard d'abord, puis du jour, de la semaine, plus tard) : bouton rond pour terminer, type, échéance en clair ("En retard de 3 jours"), contact, demande, responsable (affiché à l'admin ou quand la tâche n'est pas la sienne), reporter (demain, dans 3 jours, dans 1 semaine), suppression avec confirmation.
+  - Historique : échanges notés (icône par type, contact, auteur, lien vers la demande) mêlés aux étapes passées des demandes, du plus récent au plus ancien ; suppression visible seulement pour l'auteur ou l'admin.
+  - Formulaire "Noter un échange" (type, date et heure, objet, contact actif, demande, description) avec la case "Créer une tâche de suivi" (titre prérempli "Suivi : objet", échéance dans 3 jours, type relance). Si la tâche échoue après l'échange, l'échange reste enregistré et un message le dit.
+  - Formulaire "Nouvelle tâche" (titre, type, échéance, contact, demande, description) ; l'admin choisit le responsable, un consultant crée pour lui seul.
+- `components/champs-crm.js` (nouveau) : `bouton`, `champ`, `champSelect`, `zoneTexte`, `caseACocher`, partagés ; `client-contacts.js` et `formulaire-client.js` les importent au lieu de leurs copies locales.
+- `engine/taches.js` : ajout de `versChampDatetime` (valeur d'un champ date et heure locale), 1 test de plus.
+- `views/consultant/client-fiche.js` : nouvel onglet "Activité" (après Aperçu), indicateur "Tâches ouvertes" sur l'Aperçu ; `views/consultant/clients.js` : colonne "Tâches" et colonne CSV "Tâches ouvertes". Styles `cl-tache*`, `cl-historique*` ; les indicateurs de la fiche passent en grille adaptative (`auto-fit`).
+
+Vérifié : `node --test tests/*.test.mjs` 125 réussis, 0 échec. Page de test avec services simulés (supprimée ensuite), en admin puis en consultant : liste et libellés corrects, validations (titre, échéance, objet), création de tâche avec responsable, échange avec suivi (une activité puis une tâche de type relance), terminer, reporter (échéance recalculée), supprimer tâche et échange, un consultant ne voit pas le choix du responsable et ne peut supprimer que ses propres échanges, échec de la base affiché sans fermer le formulaire, échec de la tâche de suivi sans perdre l'échange, 375 px sans défilement horizontal ni cible sous 40 px. Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-02 : lot B, étape B5 (page des tâches, bloc "Aujourd'hui", calendrier)
+
+Fait :
+- `components/ligne-tache.js` (nouveau) : ligne de tâche partagée (fiche client, page des tâches, tableau de bord) avec `echeanceApresReport(jours)` ; `client-activite.js` l'importe au lieu de sa copie.
+- `views/consultant/taches.js` (nouveau), route `#/taches` et entrée "Tâches" du menu : filtres statut (à faire, terminées, annulées), client (liste tirée des tâches affichées) et, pour l'admin seulement, responsable ("Moi" par défaut, "Toute l'équipe" ou un consultant) ; les tâches à faire sont groupées en En retard, Aujourd'hui, Cette semaine, Plus tard ; lien vers la fiche du client, Terminer et Reporter.
+- Tableau de bord consultant (`tableau-de-bord.js`) : bloc "Aujourd'hui : N tâches" (en retard et du jour, 8 au plus, avec Terminer et Reporter, rendu rafraîchi ensuite), rappel du nombre de tâches de la semaine et lien "Toutes mes tâches", et à côté un calendrier des échéances de mes tâches (jours cliquables, comme côté client).
+- Calendrier : nouveau type de jalon `tache` (`engine/jalons.js` : catégorie et libellé ; `components/calendrier.js` : pas d'heure, titre propre, lien vers la fiche ; point orange). Les tâches ne sont jamais envoyées au calendrier du client : `rpc_jalons` n'a pas changé.
+- `engine/taches.js` : `tachesVersJalons` ajoute le lien `href` vers l'onglet Activité.
+- Cibles tactiles : les flèches du calendrier passent de 36 à 44 px (page client comprise).
+
+Vérifié : `node --test tests/*.test.mjs` 125 réussis, 0 échec ; `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : page des tâches (groupes et compteurs, "Moi" puis "Toute l'équipe", filtre par client, terminer puis rechargement, liste des terminées), tableau de bord (appel limité aux tâches de la personne connectée, bloc, lien, calendrier avec points orange et détail du jour contenant un lien vers la fiche, terminer depuis le bloc), 375 px sans défilement horizontal et sans cible sous 44 px. Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-02 : lot B, étape B6 (vue 360 et notifications)
+
+Fait :
+- `views/consultant/vue-360.js` : le bloc "Relancer le client" crée maintenant une vraie tâche. Pour chaque personne invitée : une date (par défaut dans 3 jours) et le bouton "Créer une tâche de relance" ; la tâche ("Relancer adresse@e-mail", type relance) est rattachée au client et à la demande et confiée à la personne connectée. Une échéance vide est refusée avant tout appel, une erreur de la base est affichée et le bouton se réactive. L'ancien commentaire interne "Relance à faire" est supprimé (`relancerClient` retiré de `services/demandes.js`).
+- `components/entete.js` : une notification peut porter un `lien` (chemin de l'application) ; un clic sur une notification de tâche ouvre `/clients/:id/activite`, les autres notifications ouvrent toujours la demande. Le titre, la référence et le lien sont échappés (`echapperHtml` dans `engine/formatage.js`, 1 test) : jusqu'ici le titre était inséré tel quel dans la page, et le titre d'une tâche est une saisie libre, donc une balise y aurait été exécutée chez le destinataire.
+- Style `relance-echeance` (ligne qui passe à la ligne sur mobile).
+
+Vérifié : `node --test tests/*.test.mjs` 126 réussis, 0 échec ; `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) chargeant le vrai module du panneau de notifications et la vraie vue 360 : badge et liste, titre contenant une balise affiché en texte (rien d'exécuté), clic sur la notification de tâche vers `#/clients/c2/activite` et sur l'autre vers la demande, notifications marquées lues ; vue 360 avec ses deux relances, date par défaut correcte, tâche créée avec les bons champs (client, demande, type, échéance), échéance vide refusée, échec de la base signalé, ancien bouton absent, bouton "Fiche client" présent avec le bon lien (ce qui valide la modification de l'étape 6 du lot A restée non testée), 375 px sans défilement horizontal et cibles de 44 px. Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-02 : lot B, ajout demandé avant la clôture (nouveau contact depuis un échange ou une tâche)
+
+Demande de l'utilisateur : quand la personne jointe ou à rappeler n'est pas encore dans la fiche, pouvoir l'ajouter sur place au lieu de n'avoir que la liste existante.
+
+Fait (`views/consultant/client-activite.js`, styles `cl-contact-rapide*`) :
+- Le choix "Contact" des formulaires "Noter un échange" et "Nouvelle tâche" propose "+ Nouveau contact…" ; ce choix ouvre nom (obligatoire), fonction, e-mail et téléphone.
+- À l'enregistrement, le contact est créé dans l'onglet Contacts (sans rôle ; contact principal s'il n'y en avait aucun), puis l'échange et la tâche de suivi lui sont rattachés. Si la suite échoue ou si l'e-mail existe déjà ("Un contact avec cet e-mail existe déjà pour ce client."), le formulaire reste ouvert ; une fois le contact créé, le choix le reprend, donc un nouvel essai ne le recrée pas.
+
+Vérifié : `node --test tests/*.test.mjs` 126 réussis, 0 échec. Page de test avec services simulés (supprimée ensuite) : le choix est proposé dans les deux formulaires, nom manquant et e-mail invalide bloqués sans aucun appel, e-mail en double signalé sans créer d'échange, création avec échange et suivi (ordre : contact, échange, tâche ; mêmes identifiants), principal faux quand il y en a déjà un, nouveau contact proposé ensuite dans la liste, 375 px sans défilement horizontal ni cible sous 44 px. Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-02 : lot B, ajout du contact en fenêtre modale (remplace la version dépliée)
+
+Remarque de l'utilisateur : les champs dépliés dans le formulaire allongeaient trop la page, une fenêtre modale est plus sensée.
+
+Fait (`views/consultant/client-activite.js`, styles `modale-formulaire*` dans `css/dashboard.css`) :
+- "+ Nouveau contact…" ouvre un `<dialog>` natif (comme la signature et les documents) : nom (obligatoire), fonction, e-mail, téléphone. Le formulaire de l'échange ou de la tâche garde exactement sa taille et ce qui y était déjà saisi.
+- "Ajouter le contact" crée le contact tout de suite (onglet Contacts, sans rôle, principal s'il n'y en avait pas), l'ajoute à la liste, le sélectionne et affiche "Contact ajouté.". Les formulaires lisent simplement le choix : plus de création différée à l'envoi, donc plus simple.
+- Annuler, clic sur le fond ou Échap referment la fenêtre et rétablissent le choix précédent. Erreurs (nom manquant, e-mail invalide ou en double) affichées dans la fenêtre, qui reste ouverte.
+- La fermeture passe par une seule fonction (indépendante de l'événement `close`, que le navigateur du volet de test ne déclenchait pas ; les événements `cancel` et `close` y sont tout de même branchés pour le cas d'Échap).
+
+Vérifié : page de test avec services simulés (supprimée ensuite) : ouverture avec focus sur le nom, formulaire parent inchangé en hauteur et en saisie, validation sans appel, doublon signalé fenêtre ouverte, annuler et fond rétablissent le choix, création avec sélection automatique, échange puis enregistré avec ce contact, événement Échap simulé (`cancel`) ferme proprement, à 375 px la fenêtre tient dans l'écran (338 px) avec des cibles de 44 px. `node --test tests/*.test.mjs` 126 réussis. Non testé avec la vraie base et un vrai compte, ni avec la vraie touche Échap.
+
+### 2026-10-02 : lot B, étape B7 (clôture)
+
+Fait :
+- `docs/01_ARCHITECTURE.md` : routes (`#/taches`, onglet Activité, bloc "Aujourd'hui", relance de la vue 360), tables `activites` et `taches`, `notifications.lien`, `est_admin()`, `v_clients` étendue (section 7) ; droits de `activites`, `taches` et `profils` (8.2) et note sur la faille corrigée (8.1) ; notifications de tâches (16) ; lot B réalisé (17).
+- Contrôle d'ensemble : 126 tests réussis, `check-coherence` 0 erreur, aucun tiret cadratin dans les lignes ajoutées, toutes les migrations 0030 à 0037 présentes en base et en local.
+- Audit de sécurité Supabase relancé : une alerte concernait le lot (`fn_tache_maj` sans `search_path` fixe) ; corrigée par la migration `0037_fn_tache_maj_search_path.sql` (appliquée, trigger revérifié : la date de clôture est toujours renseignée). `est_admin()` n'est pas exécutable par `anon` ; `fn_notifier_tache` n'est exécutable par personne.
+
+Fichiers du lot B (commit) :
+- Nouveaux : `supabase/migrations/0033_profils_lecture_staff.sql` à `0037_fn_tache_maj_search_path.sql` ; `app/js/engine/taches.js` ; `app/js/services/taches.js` et `activites.js` ; `app/js/components/champs-crm.js` et `ligne-tache.js` ; `app/js/views/consultant/client-activite.js` et `taches.js` ; `tests/taches.test.mjs`.
+- Modifiés : `app/css/dashboard.css`, `app/js/main.js`, `components/calendrier.js`, `components/entete.js`, `components/formulaire-client.js`, `engine/formatage.js`, `engine/jalons.js`, `services/demandes.js`, `views/consultant/client-contacts.js`, `client-fiche.js`, `clients.js`, `tableau-de-bord.js`, `vue-360.js`, `docs/01_ARCHITECTURE.md`, `docs/changes.md`, `tests/formatage.test.mjs`, `tests/jalons.test.mjs`.
+- Non inclus : `app/assets/images/logo.svg`, `app/crm_app.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.ts` et `app/preview.ts` (apparus dans `app/`, que je n'ai pas créés), `.claude/skills/`, `docs/05_SKELETONS.md`, les deux fichiers d'e-mails.
+
 ## 5. Points ouverts
 
-- **Essai réel du lot A** : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
+- **Alertes de sécurité Supabase déjà présentes avant le CRM (non traitées)** : `rpc_valider_cadrage(uuid, text)` est exécutable par le rôle `anon` (le `revoke` de 0005 portait sur l'ancienne signature) ; `est_staff`, `get_my_role`, `handle_new_user`, `rls_auto_enable`, `fn_historiser_reponse`, `fn_notifier_evenement` sont exécutables par `anon` ; `get_my_role` et `update_updated_at_column` n'ont pas de `search_path` fixe ; la protection contre les mots de passe compromis est désactivée côté Auth. S'ajoute le trou déjà signalé : `rpc_valider_cadrage` et `rpc_accepter_proposition` ne vérifient pas que l'appelant a accès à la demande. À traiter dans une migration dédiée, avec accord.
+- **Fichiers inconnus dans `app/`** : `app/mail.ts` (gabarit d'e-mail d'activation) et `app/preview.ts` (génère un aperçu HTML de ce gabarit) datent de ce soir et ne sont pas de moi, sans doute vos essais d'e-mails. `app/` est publié sur GitHub Pages : à ne pas commiter tels quels, un gabarit d'e-mail n'a pas de raison d'y être.
+
+- **Essai réel des lots A et B** : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
 
 - `app/crm_app.md` est dans `app/` (dossier publié sur GitHub Pages) et n'est pas versionné : le déplacer dans `docs/` avant tout `git add app`.
-- Rien du lot A n'est commité pour l'instant (voir l'étape 7 pour la liste des fichiers).
+- Les lots A (`db4b088`) et B sont commités en local ; rien n'est poussé sur GitHub. Toutes les migrations (0030 à 0037) sont déjà appliquées sur la base de production alors que le code publié sur GitHub Pages est encore celui d'avant le CRM.
 - Hors CRM, toujours en attente : modèles d'e-mails refondus (`creer-compte/mail.ts`, `envoyer-notification-email/index.ts`) à ne pas déployer sans accord ; `docs/05_SKELETONS.md` non commité ; fichiers locaux non versionnés (`.claude/skills/`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`) ; trou de droits sur `rpc_valider_cadrage` et `rpc_accepter_proposition` (accès à vérifier par demande), proposé et non traité.

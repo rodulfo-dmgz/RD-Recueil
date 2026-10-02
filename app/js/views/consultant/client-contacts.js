@@ -10,6 +10,7 @@ import {
 } from '../../services/clients.js';
 import { afficherToast } from '../../components/toast.js';
 import { el, icone } from '../../components/dashboard-ui.js';
+import { bouton, champ, caseACocher } from '../../components/champs-crm.js';
 import {
   ROLES_CONTACT,
   extraireFicheClient,
@@ -19,39 +20,6 @@ import {
   preparerContact,
   validerContact,
 } from '../../engine/fiche-client.js';
-
-function bouton(classe, texte, nomIcone, action) {
-  const b = el('button', classe);
-  b.type = 'button';
-  if (nomIcone) b.appendChild(icone(nomIcone));
-  b.appendChild(el('span', null, texte));
-  b.addEventListener('click', action);
-  return b;
-}
-
-function champ(libelle, nom, valeur, type = 'text') {
-  const wrapper = el('label', 'cl-champ');
-  wrapper.appendChild(el('span', 'cl-champ__libelle', libelle));
-  const input = el('input', 'champ-saisie');
-  input.type = type;
-  input.name = nom;
-  input.value = valeur ?? '';
-  const erreur = el('span', 'cl-champ__erreur');
-  erreur.setAttribute('role', 'alert');
-  wrapper.append(input, erreur);
-  return { wrapper, input, erreur };
-}
-
-function caseACocher(libelle, nom, cochee, valeur) {
-  const wrapper = el('label', 'cl-case');
-  const input = el('input');
-  input.type = 'checkbox';
-  input.name = nom;
-  if (valeur != null) input.value = valeur;
-  input.checked = Boolean(cochee);
-  wrapper.append(input, el('span', null, libelle));
-  return { wrapper, input };
-}
 
 function construireFormulaire(contact, { onEnregistrer, onAnnuler }) {
   const formulaire = el('form', 'cl-form cl-form--contact');

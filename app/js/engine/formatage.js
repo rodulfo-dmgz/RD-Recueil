@@ -26,3 +26,13 @@ export function formaterReponse(question, reponse) {
   }
   return String(v);
 }
+
+// Texte brut -> HTML sûr (à placer dans un innerHTML).
+export function echapperHtml(texte) {
+  return String(texte ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
