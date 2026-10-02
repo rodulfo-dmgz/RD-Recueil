@@ -209,6 +209,31 @@ function rendreLignesDocuments({ reference, demande, reponses, noteEnvoyee, prop
     );
   }
 
+  // Actions du client : sans ces lignes, aucune page ne permet de signer la
+  // note ni de répondre à la proposition (les lignes Voir/Imprimer ci-dessous
+  // sont en lecture seule).
+  if (demande.statut === 'cadrage_envoye') {
+    elements.push(
+      creerLigneNavigation({
+        href: `#/d/${reference}/cadrage`,
+        icone: 'pen-line',
+        titre: 'Signer la note de cadrage',
+        sousTitre: 'Valider ou demander une modification',
+      })
+    );
+  }
+
+  if (demande.statut === 'proposition_envoyee') {
+    elements.push(
+      creerLigneNavigation({
+        href: `#/d/${reference}/proposition`,
+        icone: 'pen-line',
+        titre: 'Répondre à la proposition',
+        sousTitre: 'Accepter ou refuser',
+      })
+    );
+  }
+
   if (noteEnvoyee) {
     const { corps } = separerAnnexeGlossaire(noteEnvoyee.contenu_md);
     elements.push(
