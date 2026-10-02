@@ -283,6 +283,14 @@ function rendreActionsRapides(demande, acces) {
     actions.appendChild(abandonner);
   }
 
+  if (demande.client_id) {
+    const ficheClient = document.createElement('a');
+    ficheClient.className = 'btn btn--secondaire';
+    ficheClient.href = `#/clients/${demande.client_id}`;
+    ficheClient.textContent = 'Fiche client';
+    actions.appendChild(ficheClient);
+  }
+
   if (getProfil()?.role === 'admin') {
     const voirClient = document.createElement('button');
     voirClient.type = 'button';

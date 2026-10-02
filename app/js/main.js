@@ -10,6 +10,9 @@ import { vueDocuments } from './views/client/documents.js';
 import { vueCharteRgpd } from './views/client/charte-rgpd.js';
 import { vueRapport } from './views/client/rapport.js';
 import { vueIndicateurs } from './views/consultant/indicateurs.js';
+import { vueClients } from './views/consultant/clients.js';
+import { vueClientFiche } from './views/consultant/client-fiche.js';
+import { vueClientNouveau } from './views/consultant/client-nouveau.js';
 import { vueAccueilDemande } from './views/client/accueil.js';
 import { vueSection } from './views/client/section.js';
 import { vueRecap } from './views/client/recap.js';
@@ -161,9 +164,34 @@ route('/tableau-de-bord', async () => {
   vueTableauDeBord();
 });
 
+route('/clients', async () => {
+  if (!(await garantirStaff())) return;
+  vueClients();
+});
+
+route('/clients/nouveau', async () => {
+  if (!(await garantirStaff())) return;
+  vueClientNouveau();
+});
+
+route('/clients/:id', async ({ id }) => {
+  if (!(await garantirStaff())) return;
+  vueClientFiche(id);
+});
+
+route('/clients/:id/:onglet', async ({ id, onglet }) => {
+  if (!(await garantirStaff())) return;
+  vueClientFiche(id, onglet);
+});
+
 route('/demandes/nouvelle', async () => {
   if (!(await garantirStaff())) return;
   vueCreationDemande();
+});
+
+route('/demandes/nouvelle/:clientId', async ({ clientId }) => {
+  if (!(await garantirStaff())) return;
+  vueCreationDemande(clientId);
 });
 
 route('/demandes/:ref/entretien', async ({ ref }) => {

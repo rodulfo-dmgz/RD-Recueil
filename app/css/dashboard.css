@@ -518,3 +518,83 @@ button.cal__case:hover { background: var(--fond); }
 @media (max-width: 640px) { .db-minis { grid-template-columns: minmax(0, 1fr); } }
 
 @media print { .db-rapport__entete .db-btn { display: none; } .db-table { font-size: 12px; } .db-table th, .db-table td { white-space: normal; } }
+
+/* ─── Clients (CRM) ────────────────────────────────────────── */
+.cl-entete { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.cl-entete h1 { margin: 0; }
+.cl-filtres { display: flex; gap: 12px; flex-wrap: wrap; }
+.cl-recherche { flex: 1 1 280px; width: auto; }
+.cl-statut-filtre { flex: 0 1 220px; width: auto; }
+.cl-compteur { margin: 0 0 8px; font-size: 13px; }
+.cl-nom { display: block; font-weight: 600; color: var(--bleu-texte); text-decoration: none; }
+.cl-nom:hover { text-decoration: underline; }
+.cl-sous-nom { display: block; color: var(--texte-doux); font-size: 12px; }
+.cl-statut { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid var(--bordure); border-radius: 999px; background: var(--fond); font-size: 12px; font-weight: 600; }
+.cl-statut__point { width: 8px; height: 8px; border-radius: 50%; background: var(--texte-doux); }
+.cl-statut--client .cl-statut__point { background: var(--rd-turquoise); }
+.cl-statut--prospect .cl-statut__point { background: var(--rd-orange); }
+.cl-statut--archive { color: var(--texte-doux); }
+
+/* Fiche client */
+.cl-entete__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cl-retour { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; min-height: 44px; color: var(--bleu-texte); text-decoration: none; font-weight: 600; }
+.cl-retour svg { width: 18px; height: 18px; }
+.cl-fiche-entete { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+.cl-fiche-entete h1 { margin: 0 0 4px; }
+.cl-fiche-entete__meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 0; }
+.cl-fiche-entete__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cl-minis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 640px) { .cl-minis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cl-groupe { margin: 20px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--texte-doux); }
+.cl-infos { display: grid; grid-template-columns: minmax(120px, 200px) minmax(0, 1fr); gap: 6px 16px; margin: 0; }
+.cl-infos dt { color: var(--texte-doux); font-size: 14px; }
+.cl-infos dd { margin: 0; overflow-wrap: anywhere; }
+.cl-notes-lecture { margin: 0; white-space: pre-wrap; }
+.cl-import { border-color: var(--rd-turquoise); }
+.cl-import__liste { margin: 0 0 12px; padding-left: 20px; }
+.cl-etapes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.cl-etapes__ligne { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.cl-etapes__date { min-width: 150px; font-family: var(--police-code); font-size: 13px; color: var(--texte-doux); }
+
+/* Formulaire de fiche client */
+.cl-form { display: flex; flex-direction: column; gap: 20px; }
+.cl-form__groupe { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin: 0; padding: 0; border: none; }
+.cl-form__groupe legend { grid-column: 1 / -1; margin-bottom: 4px; padding: 0; font-family: var(--police-titre); font-weight: 600; }
+.cl-champ { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cl-champ--pleine { grid-column: 1 / -1; }
+.cl-champ__libelle { font-size: 14px; font-weight: 600; }
+.cl-champ__erreur { color: var(--erreur); font-size: 13px; }
+.cl-champ__erreur:empty { display: none; }
+.cl-notes { height: auto; padding: 10px 12px; resize: vertical; font: inherit; }
+.cl-form__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .cl-form__groupe { grid-template-columns: minmax(0, 1fr); }
+  .cl-infos { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cl-infos dd { margin-bottom: 8px; }
+}
+
+/* Onglets et contacts de la fiche client */
+.cl-onglets { display: flex; gap: 4px; border-bottom: 1px solid var(--bordure); overflow-x: auto; }
+.cl-onglet { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-bottom: 3px solid transparent; color: var(--texte-doux); text-decoration: none; font-weight: 600; white-space: nowrap; }
+.cl-onglet:hover { color: var(--texte); }
+.cl-onglet--actif { color: var(--bleu-texte); border-bottom-color: var(--rd-orange); }
+.cl-contacts { display: flex; flex-direction: column; gap: 16px; }
+.cl-contacts__grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 800px) { .cl-contacts__grille { grid-template-columns: minmax(0, 1fr); } }
+.cl-contact { display: flex; flex-direction: column; gap: 8px; }
+.cl-contact--inactif { opacity: .7; }
+.cl-contact__tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.cl-contact__nom { margin: 0; font-size: 17px; }
+.cl-contact__fonction { margin: 0; }
+.cl-contact__coordonnees { display: flex; flex-direction: column; gap: 2px; margin: 0; overflow-wrap: anywhere; }
+.cl-contact__coordonnees a { color: var(--bleu-texte); }
+.cl-contact__badges, .cl-contact__roles { display: flex; gap: 6px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.cl-contact__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+.cl-badge { padding: 2px 10px; border: 1px solid var(--bordure); border-radius: 999px; background: var(--fond); font-size: 12px; font-weight: 600; }
+.cl-badge--principal { border-color: var(--rd-orange); }
+.cl-badge--compte { border-color: var(--rd-turquoise); }
+.cl-role { padding: 2px 10px; border-radius: 999px; background: var(--fond); font-size: 12px; }
+.cl-form--contact .cl-form__roles { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; border: none; }
+.cl-form--contact legend { padding: 0; font-family: var(--police-titre); font-weight: 600; }
+.cl-case { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.cl-case input { width: 20px; height: 20px; accent-color: var(--rd-bleu); }

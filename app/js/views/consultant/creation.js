@@ -1,5 +1,5 @@
 import { creerDemande } from '../../services/demandes.js';
-import { listerClients } from '../../services/clients.js';
+import { listerClients, trouverClientParSiret } from '../../services/clients.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
@@ -28,14 +28,19 @@ function champTexte(id, label, { obligatoire = false, type = 'text' } = {}) {
   return wrapper;
 }
 
-export async function vueCreationDemande() {
+// clientIdPresel : client déjà choisi (depuis sa fiche), sélectionné d'office.
+export async function vueCreationDemande(clientIdPresel) {
   const app = document.getElementById('app');
   app.innerHTML = '';
 
   const main = document.createElement('main');
   main.className = 'conteneur';
 
-  main.appendChild(creerBoutonRetour('#/tableau-de-bord', 'Retour au tableau de bord'));
+  main.appendChild(
+    clientIdPresel
+      ? creerBoutonRetour(`#/clients/${clientIdPresel}`, 'Retour à la fiche client')
+      : creerBoutonRetour('#/tableau-de-bord', 'Retour au tableau de bord')
+  );
 
   const titre = document.createElement('h1');
   titre.textContent = 'Nouvelle demande';
@@ -68,6 +73,13 @@ export async function vueCreationDemande() {
       },
       lectureSeule: false,
       onAutoRemplir: async (siret, statut, donneesPreChargees) => {
+        const existant = await trouverClientParSiret(siret);
+        if (existant) {
+          selectClientExistant.value = existant.id;
+          basculerChampsClient();
+          afficherToast(`Ce SIRET correspond au client existant ${existant.raison_sociale} : il a été sélectionné.`, { type: 'info', duree: 6000 });
+          return;
+        }
         const donnees = donneesPreChargees || (await rechercherEntreprise(siret));
         if (!donnees) {
           statut.textContent = 'Aucun établissement trouvé pour ce SIRET.';
@@ -142,6 +154,10 @@ export async function vueCreationDemande() {
     selectClientExistant.innerHTML =
       '<option value="">Nouveau client…</option>' +
       clients.map((c) => `<option value="${c.id}">${c.raison_sociale}</option>`).join('');
+    if (clientIdPresel && clients.some((c) => c.id === clientIdPresel)) {
+      selectClientExistant.value = clientIdPresel;
+      basculerChampsClient();
+    }
   } catch (err) {
     afficherToast(err.message, { type: 'erreur' });
   }

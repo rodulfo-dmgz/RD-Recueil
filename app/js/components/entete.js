@@ -17,6 +17,7 @@ const LIENS_CLIENT = [
 
 const LIENS_STAFF = [
   { href: '#/tableau-de-bord', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
+  { href: '#/clients', icone: 'building-2', libelle: 'Clients' },
   { href: '#/demandes', icone: 'list', libelle: 'Demandes' },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
 ];
@@ -55,6 +56,9 @@ const TITRES_PAGE = [
   ['#/indicateurs', 'Indicateurs'],
   ['#/glossaire', 'Glossaire'],
   ['#/charte-rgpd', 'Charte RGPD'],
+  ['#/clients/nouveau', 'Nouveau client'],
+  ['#/clients/', 'Fiche client'],
+  ['#/clients', 'Clients'],
   ['#/demandes/nouvelle', 'Nouvelle demande'],
   ['#/demandes/', 'Demande'],
   ['#/demandes', 'Demandes'],

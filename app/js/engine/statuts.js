@@ -40,3 +40,12 @@ const CATEGORIES_STATUT = {
 export function categorieStatut(statut) {
   return CATEGORIES_STATUT[statut] || 'neutre';
 }
+
+// Familles de prestations (champ demandes.types).
+export const LIBELLES_TYPE = {
+  FOR: 'Formation',
+  PON: 'Prestation ponctuelle',
+  MOD: 'Conception de module',
+  ING: 'Ingénierie',
+  CER: 'Démarche certifiante',
+};

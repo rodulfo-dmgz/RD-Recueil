@@ -107,8 +107,11 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 |---|---|---|
 | `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. |
 | `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. |
+| `#/clients` | Clients | Liste des clients et prospects : recherche (nom, SIRET, ville, contact), filtre de statut (archivés masqués), contact principal, nombre de demandes, dernière activité, export CSV. |
+| `#/clients/nouveau` | Nouveau client ou prospect | Fiche pré-remplie par la recherche SIRET (base SIRENE), statut `prospect` par défaut. |
+| `#/clients/:id` (+ `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation, consultant, date. |
-| `#/demandes/nouvelle` | Création | Client existant (liste déroulante) ou nouveau (raison sociale, SIRET), types pressentis (pré-coche TC-0.01), date limite. |
+| `#/demandes/nouvelle` (+ `/:clientId`) | Création | Client existant (liste déroulante, présélectionné depuis sa fiche) ou nouveau (raison sociale, SIRET ; un SIRET déjà connu sélectionne le client existant), types pressentis (pré-coche TC-0.01), date limite. |
 | `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. |
 | `#/demandes/:ref/entretien` | Mode entretien | Voir 4.3. |
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
@@ -386,9 +389,37 @@ create table glossaire (
 create table clients (
   id uuid primary key default gen_random_uuid(),
   raison_sociale text not null,
-  siret text,
-  created_at timestamptz default now()
+  siret text,                          -- unique (espaces ignorés), index 0031
+  created_at timestamptz default now(),
+  -- fiche CRM (0030) :
+  nom_commercial text, forme_juridique text, code_naf text, secteur text,
+  adresse text, code_postal text, ville text,
+  telephone text, email_general text, site_web text,
+  effectif text, opco text,            -- libellés TC-1.08 et TC-1.10
+  source text,                         -- site_web, recommandation, salon… (validé dans le code)
+  statut text not null default 'client' check (statut in ('prospect','client','archive')),
+  responsable_id uuid references profils(user_id) on delete set null,
+  notes text,                          -- internes, jamais visibles du client
+  updated_at timestamptz default now()
 );
+
+-- Interlocuteurs d'un client (0030). Un e-mail par client (casse ignorée),
+-- un seul contact principal. Rôles : decideur, rh, financeur, administratif,
+-- operationnel, referent_handicap, autre. Un contact "a un compte" quand son
+-- e-mail est celui d'un profil client (pas de clé étrangère).
+create table contacts (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references clients on delete cascade,
+  prenom text, nom text not null, fonction text, email text, telephone text,
+  roles text[] not null default '{}',
+  principal boolean not null default false,
+  actif boolean not null default true,
+  notes text,
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+
+-- Vue v_clients (security_invoker) : clients + nb_demandes, nb_actives,
+-- nb_gagnees, derniere_activite, contact_principal.
 
 create sequence demande_seq;
 
@@ -536,6 +567,7 @@ create table notifications (
 | Table | Staff (`admin`, `consultant`) | Client |
 |---|---|---|
 | `questionnaires`, `questions`, `glossaire` | Lecture | Lecture (questions : uniquement sections `visible_client`) |
+| `clients`, `contacts`, vue `v_clients` | Lecture, création, modification ; suppression d'un client réservée à l'admin (0032) | Aucun accès |
 | `demandes` | Lecture et écriture | Lecture si `a_acces()` |
 | `reponses` | Tout | Lecture si `a_acces()` et question non `F` ; écriture si droit `editeur`, question `C` ou `C/F`, statut `envoyee` ou `en_saisie`. Colonne `annotation_consultant` masquée par une vue `v_reponses_client`. |
 | `fichiers` + bucket Storage `demandes` | Tout | Lecture et dépôt dans `demandes/{client}/{reference}/…` si `a_acces()` (le 2e segment, `reference`, est la clé vérifiée par la RLS - le 1er, un slug du nom du client, ne sert qu'à regrouper visuellement les fichiers par client dans Supabase Storage) |
@@ -709,3 +741,20 @@ Export « Dossier de preuves » (V2) : un PDF par demande regroupant réponses, 
 **Notification interne** - table `notifications` (`destinataire`, `demande_id`, `reference`, `type`, `titre`, `lu`) alimentée par un unique trigger `fn_notifier_evenement` sur `evenements` (`AFTER INSERT`) : toute transition passe déjà par `rpc_changer_statut`, qui écrit dans `evenements` - un seul trigger centralisé suffit, sans modifier chaque RPC. RLS : un compte ne voit et ne marque comme lues que ses propres notifications.
 
 **E-mail** - envoyé à part par le client juste après l'action réussie (`app/js/services/notifications.js`, fonction `envoyerEmailEtape`), via l'Edge Function `envoyer-notification-email` (Resend, domaine `mail.rd-formation.com` vérifié, secret `RESEND_API_KEY` côté serveur uniquement, jamais dans la base - CLAUDE.md). Volontairement non bloquant : un échec d'envoi n'annule jamais l'action ni ne remonte d'erreur à l'utilisateur, la fiabilité des e-mails transactionnels ayant déjà été un point de friction sur ce projet (section 8.1). Secret `APP_URL` optionnel pour le lien inclus dans l'e-mail (URL GitHub Pages par défaut si absent). Gabarit HTML sobre (logo repris du site public `rd-formation.com`, un seul bouton d'action, coordonnées en pied de page) en tableaux et styles en ligne pour rester lisible dans Outlook.
+
+---
+
+## 17. CRM (en cours)
+
+L'application évolue vers un CRM autour de la demande, qui reste l'objet central. Le suivi (décisions, feuille de route, journal des étapes, points ouverts) est tenu dans `docs/changes.md`.
+
+**Principes** : on étend l'existant plutôt que de créer un modèle parallèle (la table `clients` est enrichie, pas de table `entreprises` en plus) ; tout le CRM est réservé au staff ; un prospect est un client dont le statut est `prospect` ; les données TC-1 (identité) et TC-2 (interlocuteurs) alimentent la fiche par des boutons d'import qui ne remplissent que ce qui est vide.
+
+| Lot | Contenu | État |
+|---|---|---|
+| A | Fiche client, contacts, onglets Demandes et Documents, SIRET unique | réalisé (migrations 0030 à 0032) |
+| B | Activités, tâches, page « Aujourd'hui », relances dans le calendrier | à faire |
+| C | Montants, CA pondéré, pipeline en euros | à faire |
+| D | Financements, références de factures (outil de facturation externe) | à faire |
+| E | Recherche globale, fusion de doublons, clients dormants | à faire |
+| F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |

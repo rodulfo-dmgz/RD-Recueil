@@ -1,6 +1,7 @@
 import { listerDemandes } from '../../services/demandes.js';
 import { genererCsv } from '../../engine/csv.js';
 import { afficherToast } from '../../components/toast.js';
+import { telechargerCsv } from '../../components/telechargement.js';
 
 const COLONNES_CSV = [
   { libelle: 'Référence', valeur: (d) => d.reference },
@@ -10,16 +11,6 @@ const COLONNES_CSV = [
   { libelle: 'Date limite', valeur: (d) => d.date_limite ?? '' },
   { libelle: 'Créée le', valeur: (d) => (d.created_at ? d.created_at.slice(0, 10) : '') },
 ];
-
-function telechargerCsv(nomFichier, contenu) {
-  const blob = new Blob(['﻿' + contenu], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const lien = document.createElement('a');
-  lien.href = url;
-  lien.download = nomFichier;
-  lien.click();
-  URL.revokeObjectURL(url);
-}
 
 const STATUTS = [
   'brouillon', 'envoyee', 'en_saisie', 'soumise', 'entretien_planifie', 'en_analyse',
