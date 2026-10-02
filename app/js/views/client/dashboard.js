@@ -5,6 +5,8 @@ import { listerDocumentsClient } from '../../services/documents.js';
 import { calculerPourcentage } from './mes-demandes.js';
 import { getProfil, getClientApercuId } from '../../store.js';
 import { obtenirProfilClient } from '../../services/comptes.js';
+import { listerJalons } from '../../services/jalons.js';
+import { construireCalendrier } from '../../components/calendrier.js';
 import { afficherToast } from '../../components/toast.js';
 import { prochaineAction } from '../../engine/suivi.js';
 import { el, icone, lienBouton, prenomDe, salutation, construireHero, construireKpis, construireEtapes } from '../../components/dashboard-ui.js';
@@ -90,8 +92,9 @@ function construireAcces({ total, documents }) {
   return grille;
 }
 
-function construireLateral(actionPrincipale, demandePrincipale) {
+function construireLateral(actionPrincipale, demandePrincipale, jalons) {
   const colonne = el('aside', 'db-lateral');
+  colonne.appendChild(construireCalendrier(jalons));
 
   const prochaine = el('section', 'db-carte');
   const titre = el('h2', 'db-titre');
@@ -130,11 +133,18 @@ export async function vueDashboardClient() {
   let demandes;
   let documents;
   let pourcentages;
+  let jalons = [];
   try {
     const clientApercu = getClientApercuId();
     demandes = await listerMesDemandes({ userId: clientApercu });
     if (clientApercu) profilAffiche = (await obtenirProfilClient(clientApercu)) ?? profilAffiche;
     documents = await listerDocumentsClient(demandes.map((d) => d.id));
+    try {
+      const ids = new Set(demandes.map((d) => d.id));
+      jalons = (await listerJalons()).filter((j) => ids.has(j.demande_id));
+    } catch {
+      // le calendrier reste vide : le reste du tableau de bord s'affiche.
+    }
     const actives = demandes.filter((d) => !STATUTS_FINAUX.has(d.statut)).slice(0, 3);
     pourcentages = new Map(await Promise.all(actives.map(async (d) => [d.id, await calculerPourcentage(d)])));
   } catch (err) {
@@ -181,7 +191,7 @@ export async function vueDashboardClient() {
   principale.appendChild(titreAcces);
   principale.appendChild(construireAcces({ total: demandes.length, documents: nbDocuments }));
 
-  grille.append(principale, construireLateral(actionPrincipale, demandePrincipale));
+  grille.append(principale, construireLateral(actionPrincipale, demandePrincipale, jalons));
   main.appendChild(grille);
 
   app.innerHTML = '';

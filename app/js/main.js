@@ -8,6 +8,8 @@ import { vueMesDemandes } from './views/client/mes-demandes.js';
 import { vueDashboardClient } from './views/client/dashboard.js';
 import { vueDocuments } from './views/client/documents.js';
 import { vueCharteRgpd } from './views/client/charte-rgpd.js';
+import { vueRapport } from './views/client/rapport.js';
+import { vueIndicateurs } from './views/consultant/indicateurs.js';
 import { vueAccueilDemande } from './views/client/accueil.js';
 import { vueSection } from './views/client/section.js';
 import { vueRecap } from './views/client/recap.js';
@@ -92,6 +94,21 @@ route('/accueil', async () => {
 route('/documents', async () => {
   if (!(await garantirProfilActif())) return;
   vueDocuments();
+});
+
+route('/rapport', async () => {
+  if (!(await garantirProfilActif())) return;
+  vueRapport();
+});
+
+route('/indicateurs', async () => {
+  const profil = await garantirStaff();
+  if (!profil) return;
+  if (profil.role !== 'admin') {
+    navigate('/tableau-de-bord');
+    return;
+  }
+  vueIndicateurs();
 });
 
 route('/charte-rgpd', async () => {

@@ -6,6 +6,9 @@ import { getProfil } from '../../store.js';
 import { afficherToast } from '../../components/toast.js';
 import { el, icone, lienBouton, prenomDe, salutation, construireHero, construireKpis } from '../../components/dashboard-ui.js';
 import { ETAPES_SUIVI, etapeCourante, actionConsultant } from '../../engine/suivi.js';
+import { listerJalons } from '../../services/jalons.js';
+import { grouperParDemande, calculerKpis, formaterDelai } from '../../engine/jalons.js';
+import { formaterTaux } from './indicateurs.js';
 import { LIBELLES_STATUT, STATUTS_FINAUX } from '../../engine/statuts.js';
 
 const LIBELLES_ROLE = { admin: 'Administrateur', consultant: 'Espace consultant' };
@@ -77,6 +80,14 @@ export async function vueTableauDeBord() {
   }
 
   const profil = getProfil();
+  let kpisDelais = null;
+  if (profil?.role === 'admin') {
+    try {
+      kpisDelais = calculerKpis(grouperParDemande(await listerJalons()));
+    } catch {
+      // indicateurs indisponibles : le reste du tableau de bord s'affiche.
+    }
+  }
   const actives = demandes.filter((d) => !STATUTS_FINAUX.has(d.statut));
   const aTraiter = actives.filter((d) => actionConsultant(d.statut));
   const dansCinqJours = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
@@ -103,6 +114,18 @@ export async function vueTableauDeBord() {
       { libelle: 'Sans réponse (7 j)', valeur: inactives.length, nomIcone: 'hourglass' },
     ])
   );
+
+  if (kpisDelais) {
+    main.appendChild(
+      construireKpis([
+        { libelle: 'Réponse client (moy.)', valeur: formaterDelai(kpisDelais.delais.reponseClient.moyenne), nomIcone: 'clock' },
+        { libelle: 'Prise de RDV (moy.)', valeur: formaterDelai(kpisDelais.delais.priseRdv.moyenne), nomIcone: 'calendar-check' },
+        { libelle: 'Signature note (moy.)', valeur: formaterDelai(kpisDelais.delais.signatureNote.moyenne), nomIcone: 'pen-line' },
+        { libelle: 'Taux de conversion', valeur: formaterTaux(kpisDelais.conversion.taux), nomIcone: 'trending-up' },
+      ])
+    );
+    main.appendChild(lienBouton('#/indicateurs', 'db-btn db-btn--discret db-btn--lien', 'Tous les indicateurs', 'chart-column'));
+  }
 
   const principale = el('div', 'db-principale');
 

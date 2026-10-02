@@ -10,6 +10,7 @@ const LIENS_CLIENT = [
   { href: '#/accueil', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
   { href: '#/mes-demandes', icone: 'layout-list', libelle: 'Mes demandes' },
   { href: '#/documents', icone: 'folder-open', libelle: 'Mes documents' },
+  { href: '#/rapport', icone: 'file-chart-column', libelle: 'Mon rapport' },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
   { href: '#/charte-rgpd', icone: 'shield-check', libelle: 'Charte RGPD' },
 ];
@@ -23,6 +24,7 @@ const LIENS_STAFF = [
 const LIENS_ADMIN = [
   { href: '#/comptes/nouveau', icone: 'user-plus', libelle: 'Créer un compte' },
   { href: '#/admin/utilisateurs', icone: 'users', libelle: 'Comptes' },
+  { href: '#/indicateurs', icone: 'chart-column', libelle: 'Indicateurs' },
 ];
 
 const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Client' };
@@ -49,6 +51,8 @@ const TITRES_PAGE = [
   ['#/tableau-de-bord', 'Tableau de bord'],
   ['#/mes-demandes', 'Mes demandes'],
   ['#/documents', 'Mes documents'],
+  ['#/rapport', 'Mon rapport de projet'],
+  ['#/indicateurs', 'Indicateurs'],
   ['#/glossaire', 'Glossaire'],
   ['#/charte-rgpd', 'Charte RGPD'],
   ['#/demandes/nouvelle', 'Nouvelle demande'],

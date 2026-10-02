@@ -88,7 +88,8 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 |---|---|---|
 | `#/connexion` | Connexion | E-mail + mot de passe. |
 | `#/changer-mot-de-passe` | Changement de mot de passe | Imposé à la première connexion si `doit_changer_mot_de_passe`. |
-| `#/accueil` | Tableau de bord | Page d'arrivée du client : bandeau d'accueil avec l'action principale, indicateurs (demandes, en cours, actions à faire, documents), suivi par étapes de chaque demande en cours (réponses, entretien, note de cadrage, proposition, décision) avec la prochaine action attendue, accès rapides, aide. |
+| `#/accueil` | Tableau de bord | Page d'arrivée du client : bandeau d'accueil avec l'action principale, indicateurs (demandes, en cours, actions à faire, documents), suivi par étapes de chaque demande en cours (réponses, entretien, note de cadrage, proposition, décision) avec la prochaine action attendue, calendrier « Mon planning » des dates importantes (création, réponses envoyées, entretien, signature, date limite), accès rapides, aide. |
+| `#/rapport` | Mon rapport de projet | Pour chaque demande : étapes, durée écoulée, délai de réponse, prochain rendez-vous et chronologie des dates importantes avec le délai entre chaque étape ; imprimable. |
 | `#/documents` | Mes documents | Note de cadrage, proposition commerciale et pièces déposées, regroupées par demande (voir, imprimer, télécharger). |
 | `#/charte-rgpd` | Charte RGPD | Données collectées, finalités, destinataires, durée de conservation (section 8.3), droits et contact. |
 | `#/mes-demandes` | Mes demandes | Liste des demandes accessibles, statut, progression. |
@@ -103,6 +104,7 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 | Route | Écran | Contenu |
 |---|---|---|
 | `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. |
+| `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation, consultant, date. |
 | `#/demandes/nouvelle` | Création | Client existant (liste déroulante) ou nouveau (raison sociale, SIRET), types pressentis (pré-coche TC-0.01), date limite. |
 | `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. |
