@@ -32,7 +32,8 @@ export async function listerClientsApercu() {
     supabase.from('profils').select('user_id, email, nom').eq('role', 'client'),
     supabase
       .from('demande_acces')
-      .select('user_id, demandes(reference, created_at, clients(raison_sociale))')
+      .select('user_id, demandes!inner(reference, created_at, archivee, clients(raison_sociale))')
+      .eq('demandes.archivee', false)
       .not('user_id', 'is', null),
   ]);
   if (erreurProfils) throw erreurProfils;

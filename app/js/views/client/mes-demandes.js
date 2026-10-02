@@ -89,6 +89,7 @@ export async function vueMesDemandes() {
   const { data, error } = await supabase
     .from('demandes')
     .select('id, reference, statut, types, questionnaire_id, updated_at')
+    .eq('archivee', false)
     .order('updated_at', { ascending: false });
 
   if (error) {

@@ -135,7 +135,7 @@ export async function vueCreationCompte() {
   if (window.lucide) window.lucide.createIcons();
 
   try {
-    const demandes = await listerDemandes({ inclureArchivees: true });
+    const demandes = await listerDemandes();
     demandesParId = new Map(demandes.map((d) => [d.id, d]));
     selectDemande.innerHTML =
       '<option value="" disabled hidden selected>Sélectionner</option>' +
