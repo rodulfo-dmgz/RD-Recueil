@@ -4,6 +4,8 @@ import { listerJalons } from '../../services/jalons.js';
 import { afficherToast } from '../../components/toast.js';
 import { el, construireKpis } from '../../components/dashboard-ui.js';
 import { grouperParDemande, delaisDemande, calculerKpis, formaterDelai, ETAPES_DELAIS } from '../../engine/jalons.js';
+import { listerMontants } from '../../services/montants.js';
+import { agregerPipeline, caSigneParMois, formaterMontant, kpisFinance } from '../../engine/finance.js';
 
 export function formaterTaux(taux) {
   return taux == null ? '-' : `${Math.round(taux * 100)} %`;
@@ -66,6 +68,49 @@ export async function vueIndicateurs() {
       { libelle: 'Prise de RDV (moy.)', valeur: formaterDelai(kpis.delais.priseRdv.moyenne), nomIcone: 'calendar-check' },
     ])
   );
+
+  // Montants (HT) : pipeline et CA signé. Leur indisponibilité n'empêche pas la page.
+  let montants = null;
+  try {
+    montants = await listerMontants();
+  } catch {
+    montants = null;
+  }
+  if (montants) {
+    const kf = kpisFinance(montants);
+    main.appendChild(
+      construireKpis([
+        { libelle: 'Pipeline (HT)', valeur: formaterMontant(kf.pipeline), nomIcone: 'euro' },
+        { libelle: 'CA pondéré', valeur: formaterMontant(kf.pondere), nomIcone: 'scale' },
+        { libelle: `CA signé ${new Date().getFullYear()}`, valeur: formaterMontant(kf.caSigneAnnee), nomIcone: 'badge-check' },
+        { libelle: 'Montant moyen gagné', valeur: formaterMontant(kf.montantMoyenGagne), nomIcone: 'calculator' },
+      ])
+    );
+
+    const { etapes, total } = agregerPipeline(montants);
+    const pipeline = el('section', 'db-carte');
+    pipeline.appendChild(titre('Pipeline par étape'));
+    pipeline.appendChild(
+      tableau(
+        ['Étape', 'Demandes', 'Montant', 'Pondéré', 'Sans montant'],
+        [...etapes, { libelle: 'Total', ...total }].map((e) => [e.libelle, String(e.nb), formaterMontant(e.montant), formaterMontant(e.pondere), String(e.sansMontant)])
+      )
+    );
+    pipeline.appendChild(el('p', 'texte-doux', 'Demandes en cours uniquement, montants HT (franchise de TVA). Le pondéré applique la probabilité de chaque demande.'));
+    main.appendChild(pipeline);
+
+    const mois = caSigneParMois(montants);
+    const ca = el('section', 'db-carte');
+    ca.appendChild(titre('CA signé des 12 derniers mois'));
+    ca.appendChild(
+      tableau(
+        ['Mois', 'Demandes gagnées', 'CA signé'],
+        [...mois.map((m) => [m.libelle, String(m.nb), formaterMontant(m.montant)]), ['Total', String(mois.reduce((n, m) => n + m.nb, 0)), formaterMontant(mois.reduce((t, m) => t + m.montant, 0))]]
+      )
+    );
+    ca.appendChild(el('p', 'texte-doux', 'Daté par l’acceptation de la proposition par le client.'));
+    main.appendChild(ca);
+  }
 
   const moyennes = el('section', 'db-carte');
   moyennes.appendChild(titre('Délais moyens par étape'));

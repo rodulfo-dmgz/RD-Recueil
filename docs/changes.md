@@ -21,7 +21,7 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 |---|---|---|
 | A | Fiche client et contacts | terminé et commité (`db4b088`, non poussé) ; reste un essai avec un vrai compte |
 | B | Activités, tâches, bloc "Aujourd'hui", relances dans le calendrier | terminé et commité ; reste un essai avec un vrai compte |
-| C | Montants, CA pondéré, pipeline en euros, KPI financiers | à faire |
+| C | Montants, CA pondéré, pipeline en euros, KPI financiers | terminé et commité ; reste un essai avec un vrai compte |
 | D | Financements, références de factures (Shine) | à faire |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |
@@ -97,6 +97,39 @@ Journal d'activité, tâches, montants, recherche globale, fusion de doublons, c
 
 ### Hors lot B
 Rappels automatiques, tâches créées automatiquement à chaque changement de statut, priorités, heure d'échéance, tâches récurrentes.
+
+## 3c. Lot C : montants et pipeline en euros
+
+### Décisions de l'utilisateur (les quatre points validés)
+1. Un **montant estimé** saisi à la main avant la proposition (sinon le pipeline en euros resterait vide jusqu'à la proposition).
+2. **Probabilités par défaut** par statut : brouillon 5, envoyée 10, en saisie 15, soumise 25, entretien planifié 35, en analyse 45, note de cadrage envoyée 55, note à revoir 50, note validée 65, proposition envoyée 75, gagnée 100, perdue, réorientée, abandonnée 0 (en %). Modifiables par l'admin (SQL pour l'instant).
+3. **Visibilité** : les chiffres agrégés (tableau de bord, page Indicateurs, colonnes de la fiche et de la liste des clients) sont réservés à l'admin ; le consultant voit les montants d'une demande et de sa proposition, comme aujourd'hui. Limite connue : protection dans l'affichage seulement, les lignes des propositions étant déjà lisibles par tout le staff (la vue `v_demandes_montants` et les colonnes ajoutées à `v_clients` sont, elles, filtrées pour le staff).
+4. **Date du CA signé** : la date où le client accepte la proposition (`propositions.decidee_le`) ; la date de facturation viendra avec le lot D.
+
+### Modèle
+- Tout en HT (franchise de TVA, art. 293 B du CGI).
+- `probabilites_statut` : probabilité par défaut de chaque statut ; lecture staff, modification admin seulement.
+- `demande_enjeux` (staff seulement) : `montant_estime` et `probabilite` propres à la demande. Table à part et non colonnes de `demandes` : un client lit ses demandes ligne par ligne et aurait vu ces colonnes internes.
+- `v_demandes_montants` (staff seulement) : `montant_propose` (total de la proposition), `montant_retenu` (proposition si chiffrée, sinon estimation, sinon 0), `source_montant` (proposition, estimation ou aucun), `probabilite` effective (100 pour gagnée, 0 pour perdue, réorientée ou abandonnée, sinon celle de la demande, sinon celle du statut), `montant_pondere`, `date_decision`.
+- `v_clients` : ajout de `ca_signe` et `pipeline_pondere`.
+
+### Écrans prévus
+- Vue 360 : carte "Enjeu commercial" (estimation et probabilité modifiables, montant retenu et sa source, pondéré).
+- Tableau de bord admin : ligne d'indicateurs financiers (pipeline, CA pondéré, CA signé de l'année, taux de conversion en euros) et total en euros par colonne du pipeline, montant par demande.
+- Page Indicateurs (admin) : pipeline par étape et CA signé des douze derniers mois en tableau.
+- Fiche client : "CA signé" et "En cours (pondéré)" (admin) ; liste des clients : colonne "CA signé" (admin) et dans le CSV ; liste des demandes : colonne "Montant HT" dans le CSV.
+
+### Étapes
+- [x] C1. Migration et droits, vérifiés en base
+- [x] C2. Logique testée `engine/finance.js`
+- [x] C3. Services
+- [x] C4. Vue 360 : carte "Enjeu commercial"
+- [x] C5. Tableau de bord et page Indicateurs
+- [x] C6. Fiche client, liste des clients et exports
+- [x] C7. Documentation, tests, cohérence, vérifications, commit
+
+### Hors lot C
+Date de signature estimée et prévision mensuelle, motif de perte structuré (la raison existe déjà en texte libre), objectifs de chiffre d'affaires, remises, acomptes et factures (lot D), TVA, écran d'administration des probabilités.
 
 ## 4. Journal des étapes
 
@@ -323,6 +356,82 @@ Fichiers du lot B (commit) :
 - Modifiés : `app/css/dashboard.css`, `app/js/main.js`, `components/calendrier.js`, `components/entete.js`, `components/formulaire-client.js`, `engine/formatage.js`, `engine/jalons.js`, `services/demandes.js`, `views/consultant/client-contacts.js`, `client-fiche.js`, `clients.js`, `tableau-de-bord.js`, `vue-360.js`, `docs/01_ARCHITECTURE.md`, `docs/changes.md`, `tests/formatage.test.mjs`, `tests/jalons.test.mjs`.
 - Non inclus : `app/assets/images/logo.svg`, `app/crm_app.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.ts` et `app/preview.ts` (apparus dans `app/`, que je n'ai pas créés), `.claude/skills/`, `docs/05_SKELETONS.md`, les deux fichiers d'e-mails.
 
+### 2026-10-02 : lot C, étape C1 (migration 0038)
+
+Fait : migration `0038_montants.sql` appliquée sur la base et enregistrée dans `supabase/migrations/` : tables `probabilites_statut` (14 statuts) et `demande_enjeux`, vues `v_demandes_montants` et `v_clients` étendue (voir le modèle ci-dessus).
+
+Vérifié en base (transactions annulées, un compte client simulé en consultant, rien de résiduel : 0 enjeu, 14 probabilités, `soumise` toujours à 25, RDF-2026-0006 toujours `envoyee`, 0 consultant) :
+- proposition chiffrée (RDF-2026-0007, 1 000 € HT, proposition envoyée) : montant retenu 1 000, source proposition, probabilité 75, pondéré 750 ;
+- estimation seule (RDF-2026-0006, 5 000 €, statut envoyée) : source estimation, probabilité 10, pondéré 500 ; avec une probabilité propre de 50 : 2 500 ;
+- statuts finaux : une demande perdue vaut 0 % et 0 € pondéré malgré une probabilité saisie, une demande gagnée vaut 100 % (pondéré = montant) ;
+- `v_clients` : ANATOLCONSEIL gagnée donne `ca_signe` 5 000 et pipeline 0 ; DEMO (proposition envoyée) donne `ca_signe` 0 et pipeline 750 ;
+- contraintes : probabilité 120 refusée, montant négatif refusé ;
+- droits : un consultant voit les 4 demandes, modifie un enjeu, lit les 14 probabilités par défaut mais ne peut pas les modifier (0 ligne) ; l'admin peut ; un client ne voit rien (0 montant, 0 enjeu, 0 probabilité).
+
+### 2026-10-02 : lot C, étape C2 (logique testée)
+
+Fait : `app/js/engine/finance.js` (fonctions pures sur les lignes de `v_demandes_montants`, nombres acceptés en chaînes) et `tests/finance.test.mjs` (11 tests).
+- `formaterMontant(valeur, { decimales })` : "4 800 €" (0 décimale par défaut, 2 pour un devis), tiret si absent ; `libelleSourceMontant`.
+- `agregerPipeline(montants)` : demandes en cours (ni archivées ni terminées) réparties selon les étapes de suivi (Vos réponses, Entretien, Note de cadrage, Proposition ; l'étape Décision n'en fait pas partie) avec nombre, montant retenu, pondéré et nombre sans montant, plus un total.
+- `demandesSansMontant(montants)` : demandes en cours sans proposition chiffrée ni estimation, à partir de l'entretien (avant, rien à signaler).
+- `caSigneAnnee(montants, annee)` et `caSigneParMois(montants, maintenant, nbMois)` : demandes gagnées datées par la décision du client (à défaut, par la création), douze mois glissants du plus ancien au plus récent.
+- `kpisFinance(montants, maintenant)` : pipeline, pondéré, CA signé de l'année et total, montant moyen d'une demande gagnée, conversion en euros (gagné / (gagné + perdu), vide s'il n'y a rien), nombre de demandes sans montant. Les demandes archivées comptent dans le CA signé et la conversion, pas dans le pipeline.
+- `preparerEnjeu` / `validerEnjeu` : saisie "4 800,50" ou "4800.5" lue en nombre (arrondi au centime), vides en null, montant positif ou nul, probabilité entière de 0 à 100.
+
+Vérifié : `node --test tests/*.test.mjs` 137 réussis, 0 échec (126 avant) ; les 11 nouveaux tests passent aussi dans les fuseaux America/New_York et Pacific/Auckland ; `check-coherence` 0 erreur ; aucun tiret cadratin.
+
+### 2026-10-02 : lot C, étape C3 (services)
+
+Fait : `app/js/services/montants.js` (seul endroit qui appelle Supabase pour les montants).
+- `listerMontants({ clientId, demandeId })` et `obtenirMontantDemande(demandeId)` : lignes de `v_demandes_montants`, de la plus récente à la plus ancienne.
+- `enregistrerEnjeu(demandeId, { montant_estime, probabilite })` : écriture (création ou mise à jour) dans `demande_enjeux` ; `null` pour revenir à la valeur du statut ou à l'absence d'estimation. `obtenirEnjeu(demandeId)` lit ce qui est saisi (pour préremplir le formulaire).
+- `listerProbabilitesStatut()` et `modifierProbabiliteStatut(statut, pourcentage)` (message clair si la base refuse : modification réservée à l'admin). Pas encore d'écran qui s'en sert.
+
+Vérifié (requêtes réelles de l'API REST avec la clé publique, sans session) : la vue des montants et `v_clients` répondent "permission refusée" (inaccessibles hors connexion) ; `demande_enjeux` et `probabilites_statut` répondent 200 avec une liste vide (RLS) ; une colonne inexistante est refusée (400, donc le contrôle est réel) ; une écriture au format exact de l'upsert (`on_conflict=demande_id`) est acceptée par l'API puis refusée par la RLS ("new row violates row-level security policy"), ce qui valide le format de la requête et la protection. Les services s'essaieront de bout en bout avec les écrans (C4 à C6). `node --test tests/*.test.mjs` 137 réussis, 0 échec ; `check-coherence` 0 erreur.
+
+### 2026-10-02 : lot C, étape C4 (carte "Enjeu commercial" de la vue 360)
+
+Fait :
+- `components/carte-enjeu.js` (nouveau) : carte autonome (elle charge ses données et se redessine après chaque enregistrement) insérée dans `views/consultant/vue-360.js` juste après le suivi par étapes. Elle montre le montant retenu et sa source (Total de la proposition, Estimation ou Aucun montant), la probabilité effective (Par défaut du statut, Saisie pour cette demande, ou Fixée par le statut quand la demande est terminée) et le montant pondéré ; en dessous, le formulaire "Montant estimé (€ HT)" et "Probabilité (%)" (vide : celle du statut ; verrouillée pour une demande terminée).
+- Un message "Aucun montant : saisissez une estimation ou chiffrez la proposition." s'affiche pour une demande en cours à partir de l'entretien (pas avant, pas pour une demande terminée).
+- Saisie : virgule décimale et espaces acceptés ("4 800,50"), montant négatif, texte ou probabilité hors de 0 à 100 refusés avant tout appel ; erreur de la base affichée sans bloquer le bouton.
+- `engine/finance.js` : `formaterMontant` accepte `decimales: 'auto'` (deux décimales seulement si le montant n'est pas un entier), utilisé par la carte ; 1 assertion de plus.
+- Style `db-mini__detail`.
+
+Vérifié : `node --test tests/*.test.mjs` 137 réussis, 0 échec. Page de test avec les services simulés (supprimée ensuite) : les trois indicateurs et leur légende pour une demande sans montant, une demande estimée, une proposition chiffrée gagnée et une demande avant l'entretien ; erreurs sans aucun appel ; enregistrement avec "4 800,50" et 60 (appel avec 4800.5 et 60, indicateurs et champs rechargés, message "Enjeu enregistré.") ; probabilité vidée (appel avec null, retour à "Par défaut du statut") ; échec de la base ; affichage "4 800,50 €" et "2 880,30 €" ; à 375 px une seule colonne, aucun débordement, cibles de 44 px. Non testé dans la vraie vue 360 ni avec la vraie base et un vrai compte (la vue 360 est modifiée de deux lignes, syntaxe vérifiée).
+
+### 2026-10-02 : lot C, étape C5 (tableau de bord et page Indicateurs)
+
+Fait (admin seulement ; le consultant ne déclenche même pas la requête des montants) :
+- `views/consultant/tableau-de-bord.js` : ligne d'indicateurs financiers sous celle des délais (Pipeline HT, CA pondéré, CA signé de l'année, Conversion en euros) ; sous chaque colonne du pipeline des quatre premières étapes, le total en euros et le pondéré ; sur chaque demande, son montant ("4 000 €") ou "sans montant" (la colonne Décision montre aussi le montant des demandes gagnées et perdues) ; carte d'alerte "N demande(s) sans montant" (à partir de l'entretien) ; le lien "Tous les indicateurs" apparaît dès qu'une des deux lignes d'indicateurs existe. Une panne de la requête des montants n'empêche pas l'affichage du reste.
+- `views/consultant/indicateurs.js` : quatre indicateurs (Pipeline, CA pondéré, CA signé de l'année, Montant moyen gagné), tableau "Pipeline par étape" (demandes, montant, pondéré, sans montant, total), tableau "CA signé des 12 derniers mois" (mois, demandes gagnées, CA, total) avec la précision "Daté par l'acceptation de la proposition par le client."
+- Style `db-pipeline__montant`.
+
+Vérifié : `node --test tests/*.test.mjs` 137 réussis, 0 échec. Page de test avec services simulés (7 demandes aux montants variés, supprimée ensuite), en admin puis en consultant : pipeline 7 500 €, pondéré 4 175 €, CA signé 5 000 €, conversion 56 % (5 000 / 9 000), synthèses par colonne exactes, montants et "sans montant" par demande, alerte (1 demande) ; en consultant : aucune requête de montants, aucun indicateur financier, aucune synthèse, aucune alerte, pas de lien Indicateurs ; page Indicateurs : tableaux corrects (total pipeline 5 demandes / 7 500 € / 4 175 € / 2 sans montant, 12 mois dont un à 5 000 €) ; 375 px sans défilement horizontal pour les deux écrans. Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-02 : lot C, étape C6 (fiche client, liste des clients, exports)
+
+Fait :
+- `views/consultant/client-fiche.js` : deux indicateurs de plus sur l'Aperçu pour l'admin, "CA signé (HT)" et "En cours, pondéré (HT)" (colonnes `ca_signe` et `pipeline_pondere` de `v_clients`).
+- `views/consultant/clients.js` : colonne "CA signé" du tableau pour l'admin ; l'export CSV de l'admin ajoute "CA signé (HT)" et "Pipeline pondéré (HT)". Pour un consultant, ni colonne, ni export de ces chiffres.
+- `views/consultant/liste.js` : l'export CSV des demandes ajoute "Montant HT" et "Source du montant" (Total de la proposition, Estimation, Aucun montant) ; si la lecture des montants échoue, l'export se fait quand même sans ces colonnes. Ces montants sont ceux d'une demande, visibles du consultant comme décidé.
+
+Vérifié : `node --test tests/*.test.mjs` 137 réussis, 0 échec. Page de test avec services simulés (supprimée ensuite), en admin puis en consultant : liste des clients (colonne et 5 000 € ou tiret, CSV à douze colonnes pour l'admin et dix pour le consultant), fiche (sept indicateurs pour l'admin dont 5 000 € et 750 €, cinq pour le consultant), export des demandes (Montant HT 5000 et 0, sources correctes, et export sans les deux colonnes quand la lecture des montants échoue), 375 px sans défilement horizontal. Non testé avec la vraie base et un vrai compte.
+
+Limite connue (déjà notée plus haut) : la restriction des chiffres agrégés à l'admin est dans l'affichage ; les colonnes `ca_signe` et `pipeline_pondere` de `v_clients` restent lisibles par tout le staff via l'API.
+
+### 2026-10-02 : lot C, étape C7 (clôture)
+
+Fait :
+- `docs/01_ARCHITECTURE.md` : routes (tableau de bord admin, page Indicateurs, carte "Enjeu commercial" de la vue 360), tables `probabilites_statut` et `demande_enjeux`, vue `v_demandes_montants` et `v_clients` étendue (section 7), droits (8.2) et limite connue de la restriction aux admins, lot C réalisé (17).
+- Contrôle d'ensemble : 137 tests réussis, `check-coherence` 0 erreur, aucun tiret cadratin dans les lignes ajoutées.
+- Audit de sécurité Supabase relancé : aucune alerte nouvelle (la liste est celle d'avant le lot C, plus la correction de `fn_tache_maj` du lot B) ; les tables et vues du lot C n'apparaissent pas.
+
+Fichiers du lot C (commit) :
+- Nouveaux : `supabase/migrations/0038_montants.sql` ; `app/js/engine/finance.js` ; `app/js/services/montants.js` ; `app/js/components/carte-enjeu.js` ; `tests/finance.test.mjs`.
+- Modifiés : `app/css/dashboard.css`, `app/js/views/consultant/vue-360.js`, `tableau-de-bord.js`, `indicateurs.js`, `clients.js`, `client-fiche.js`, `liste.js`, `docs/01_ARCHITECTURE.md`, `docs/changes.md`.
+- Non inclus : les mêmes fichiers que pour le lot B (`app/assets/images/logo.svg`, `app/crm_app.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.ts`, `app/preview.ts`, `.claude/skills/`, `docs/05_SKELETONS.md`, les deux fichiers d'e-mails).
+
 ## 5. Points ouverts
 
 - **Alertes de sécurité Supabase déjà présentes avant le CRM (non traitées)** : `rpc_valider_cadrage(uuid, text)` est exécutable par le rôle `anon` (le `revoke` de 0005 portait sur l'ancienne signature) ; `est_staff`, `get_my_role`, `handle_new_user`, `rls_auto_enable`, `fn_historiser_reponse`, `fn_notifier_evenement` sont exécutables par `anon` ; `get_my_role` et `update_updated_at_column` n'ont pas de `search_path` fixe ; la protection contre les mots de passe compromis est désactivée côté Auth. S'ajoute le trou déjà signalé : `rpc_valider_cadrage` et `rpc_accepter_proposition` ne vérifient pas que l'appelant a accès à la demande. À traiter dans une migration dédiée, avec accord.
@@ -331,5 +440,5 @@ Fichiers du lot B (commit) :
 - **Essai réel des lots A et B** : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
 
 - `app/crm_app.md` est dans `app/` (dossier publié sur GitHub Pages) et n'est pas versionné : le déplacer dans `docs/` avant tout `git add app`.
-- Les lots A (`db4b088`) et B sont commités en local ; rien n'est poussé sur GitHub. Toutes les migrations (0030 à 0037) sont déjà appliquées sur la base de production alors que le code publié sur GitHub Pages est encore celui d'avant le CRM.
+- Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub ; le lot C (migration 0038 appliquée en base) est commité en local, pas encore poussé. Toutes les migrations (0030 à 0037) sont déjà appliquées sur la base de production alors que le code publié sur GitHub Pages est encore celui d'avant le CRM.
 - Hors CRM, toujours en attente : modèles d'e-mails refondus (`creer-compte/mail.ts`, `envoyer-notification-email/index.ts`) à ne pas déployer sans accord ; `docs/05_SKELETONS.md` non commité ; fichiers locaux non versionnés (`.claude/skills/`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`) ; trou de droits sur `rpc_valider_cadrage` et `rpc_accepter_proposition` (accès à vérifier par demande), proposé et non traité.

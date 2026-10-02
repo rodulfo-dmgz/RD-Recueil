@@ -18,6 +18,7 @@ import { construireOngletActivite } from './client-activite.js';
 import { construireOngletDemandes, construireOngletDocuments } from './client-demandes.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
 import { libelleJalon } from '../../engine/jalons.js';
+import { formaterMontant } from '../../engine/finance.js';
 import {
   CHAMPS_FICHE,
   SOURCES_CLIENT,
@@ -283,6 +284,7 @@ export async function vueClientFiche(id, onglet = 'apercu') {
         mini('En cours', client.nb_actives),
         mini('Gagnées', client.nb_gagnees),
         mini('Tâches ouvertes', client.nb_taches_ouvertes ?? 0),
+        ...(estAdmin ? [mini('CA signé (HT)', formaterMontant(client.ca_signe)), mini('En cours, pondéré (HT)', formaterMontant(client.pipeline_pondere))] : []),
         mini('Dernière activité', formaterDate(client.derniere_activite))
       );
       main.appendChild(minis);

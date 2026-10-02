@@ -2,6 +2,8 @@ import { listerDemandes } from '../../services/demandes.js';
 import { genererCsv } from '../../engine/csv.js';
 import { afficherToast } from '../../components/toast.js';
 import { telechargerCsv } from '../../components/telechargement.js';
+import { listerMontants } from '../../services/montants.js';
+import { libelleSourceMontant } from '../../engine/finance.js';
 
 const COLONNES_CSV = [
   { libelle: 'Référence', valeur: (d) => d.reference },
@@ -69,12 +71,24 @@ export function vueListeDemandes() {
 
   let dernieresDemandes = [];
 
-  boutonExporter.addEventListener('click', () => {
+  boutonExporter.addEventListener('click', async () => {
     if (dernieresDemandes.length === 0) {
       afficherToast('Aucune demande à exporter.', { type: 'erreur' });
       return;
     }
-    const csv = genererCsv(dernieresDemandes, COLONNES_CSV);
+    // Montants (HT) ajoutés quand ils sont disponibles ; sinon l'export reste possible sans eux.
+    let colonnes = COLONNES_CSV;
+    try {
+      const parDemande = new Map((await listerMontants()).map((m) => [m.demande_id, m]));
+      colonnes = [
+        ...COLONNES_CSV,
+        { libelle: 'Montant HT', valeur: (d) => parDemande.get(d.id)?.montant_retenu ?? '' },
+        { libelle: 'Source du montant', valeur: (d) => (parDemande.has(d.id) ? libelleSourceMontant(parDemande.get(d.id).source_montant) : '') },
+      ];
+    } catch {
+      colonnes = COLONNES_CSV;
+    }
+    const csv = genererCsv(dernieresDemandes, colonnes);
     telechargerCsv(`demandes-${new Date().toISOString().slice(0, 10)}.csv`, csv);
   });
 

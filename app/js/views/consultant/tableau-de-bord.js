@@ -14,6 +14,8 @@ import { listerTaches, terminerTache, reporterTache } from '../../services/tache
 import { construireCalendrier } from '../../components/calendrier.js';
 import { construireLigneTache, echeanceApresReport } from '../../components/ligne-tache.js';
 import { classerTaches, tachesVersJalons } from '../../engine/taches.js';
+import { listerMontants } from '../../services/montants.js';
+import { agregerPipeline, demandesSansMontant, formaterMontant, kpisFinance } from '../../engine/finance.js';
 
 const LIBELLES_ROLE = { admin: 'Administrateur', consultant: 'Espace consultant' };
 const MAX_PAR_ETAPE = 5;
@@ -91,7 +93,8 @@ function construireAujourdhui(taches, profil) {
   return carte;
 }
 
-function construirePipeline(demandes) {
+// finance : { montants: Map demande_id -> ligne de v_demandes_montants, etapes } ou null.
+function construirePipeline(demandes, finance) {
   const grille = el('div', 'db-pipeline');
   ETAPES_SUIVI.forEach((etape, index) => {
     const dans = demandes.filter((d) => etapeCourante(d.statut) === index);
@@ -99,10 +102,18 @@ function construirePipeline(demandes) {
     const tete = el('div', 'db-pipeline__tete');
     tete.append(el('span', 'db-pipeline__numero', String(index + 1)), el('h3', null, etape.libelle), el('span', 'db-pipeline__total', String(dans.length)));
     colonne.appendChild(tete);
+    const synthese = finance?.etapes[index];
+    if (synthese && synthese.nb > 0) {
+      colonne.appendChild(el('p', 'db-pipeline__montant texte-doux', `${formaterMontant(synthese.montant)} · ${formaterMontant(synthese.pondere)} pondéré`));
+    }
 
     if (dans.length === 0) colonne.appendChild(el('p', 'db-vide texte-doux', 'Aucune demande'));
     const liste = el('div', 'db-lignes');
-    for (const d of dans.slice(0, MAX_PAR_ETAPE)) liste.appendChild(ligneDemande(d, LIBELLES_STATUT[d.statut] || d.statut));
+    for (const d of dans.slice(0, MAX_PAR_ETAPE)) {
+      const ligneMontant = finance?.montants.get(d.id);
+      const montant = ligneMontant ? (ligneMontant.source_montant === 'aucun' ? 'sans montant' : formaterMontant(ligneMontant.montant_retenu)) : null;
+      liste.appendChild(ligneDemande(d, [LIBELLES_STATUT[d.statut] || d.statut, montant].filter(Boolean).join(' · ')));
+    }
     colonne.appendChild(liste);
     if (dans.length > MAX_PAR_ETAPE) {
       colonne.appendChild(lienBouton('#/demandes', 'db-btn db-btn--discret', `Voir les ${dans.length} demandes`, 'arrow-right'));
@@ -141,6 +152,17 @@ export async function vueTableauDeBord() {
       // indicateurs indisponibles : le reste du tableau de bord s'affiche.
     }
   }
+  // Chiffres agrégés : réservés à l'admin (lot C, décision de l'utilisateur).
+  let montants = null;
+  if (profil?.role === 'admin') {
+    try {
+      montants = await listerMontants();
+    } catch {
+      // montants indisponibles : le reste du tableau de bord s'affiche.
+    }
+  }
+  const kpisFin = montants ? kpisFinance(montants) : null;
+  const finance = montants ? { montants: new Map(montants.map((m) => [m.demande_id, m])), etapes: agregerPipeline(montants).etapes } : null;
   const actives = demandes.filter((d) => !STATUTS_FINAUX.has(d.statut));
   const aTraiter = actives.filter((d) => actionConsultant(d.statut));
   const dansCinqJours = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
@@ -177,6 +199,18 @@ export async function vueTableauDeBord() {
         { libelle: 'Taux de conversion', valeur: formaterTaux(kpisDelais.conversion.taux), nomIcone: 'trending-up' },
       ])
     );
+  }
+  if (kpisFin) {
+    main.appendChild(
+      construireKpis([
+        { libelle: 'Pipeline (HT)', valeur: formaterMontant(kpisFin.pipeline), nomIcone: 'euro' },
+        { libelle: 'CA pondéré', valeur: formaterMontant(kpisFin.pondere), nomIcone: 'scale' },
+        { libelle: `CA signé ${new Date().getFullYear()}`, valeur: formaterMontant(kpisFin.caSigneAnnee), nomIcone: 'badge-check' },
+        { libelle: 'Conversion (en €)', valeur: formaterTaux(kpisFin.conversion.taux), nomIcone: 'trending-up' },
+      ])
+    );
+  }
+  if (kpisDelais || kpisFin) {
     main.appendChild(lienBouton('#/indicateurs', 'db-btn db-btn--discret db-btn--lien', 'Tous les indicateurs', 'chart-column'));
   }
 
@@ -206,6 +240,13 @@ export async function vueTableauDeBord() {
       carteAlerte('calendar-clock', `${echeances.length} demande(s) à échéance proche`, echeances, (d) => `échéance ${d.date_limite}`)
     );
   }
+  if (montants) {
+    const ids = new Set(demandesSansMontant(montants).map((m) => m.demande_id));
+    const sansMontant = demandes.filter((d) => ids.has(d.id));
+    if (sansMontant.length > 0) {
+      principale.appendChild(carteAlerte('euro', `${sansMontant.length} demande(s) sans montant`, sansMontant, () => 'ajouter une estimation'));
+    }
+  }
   if (inactives.length > 0) {
     principale.appendChild(
       carteAlerte('hourglass', `${inactives.length} demande(s) sans réponse depuis plus de 7 jours`, inactives)
@@ -214,7 +255,7 @@ export async function vueTableauDeBord() {
 
   principale.appendChild(titreSection('route', 'Avancement des demandes'));
   if (demandes.length === 0) principale.appendChild(el('p', 'db-vide texte-doux', 'Aucune demande pour le moment.'));
-  principale.appendChild(construirePipeline(demandes));
+  principale.appendChild(construirePipeline(demandes, finance));
 
   main.appendChild(principale);
   app.innerHTML = '';

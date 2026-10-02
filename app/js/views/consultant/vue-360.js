@@ -22,6 +22,7 @@ import { construireDevisImprimable } from '../../components/devis-imprimable.js'
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { LIBELLES_STATUT, categorieStatut } from '../../engine/statuts.js';
 import { construireEtapes } from '../../components/dashboard-ui.js';
+import { construireCarteEnjeu } from '../../components/carte-enjeu.js';
 import { getProfil, setApercuRole, setClientApercuId } from '../../store.js';
 import { navigate } from '../../router.js';
 
@@ -128,6 +129,7 @@ function rendre({
   suivi.style.marginBottom = '16px';
   suivi.appendChild(construireEtapes(demande.statut));
   main.appendChild(suivi);
+  main.appendChild(construireCarteEnjeu({ demande }));
 
   main.appendChild(
     creerCarteListe(rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, lignesProposition }))

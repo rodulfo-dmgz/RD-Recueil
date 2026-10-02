@@ -646,3 +646,7 @@ button.cal__case:hover { background: var(--fond); }
 .modale-formulaire h2 { margin: 0 0 4px; font-family: var(--police-titre); }
 .modale-formulaire .cl-form { gap: 12px; }
 .modale-formulaire__actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 4px; }
+
+.db-mini__detail { font-size: 12px; }
+
+.db-pipeline__montant { margin: 4px 0 8px; font-size: 12px; }

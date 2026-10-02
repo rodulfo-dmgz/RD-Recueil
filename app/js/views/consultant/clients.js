@@ -5,6 +5,8 @@ import { afficherToast } from '../../components/toast.js';
 import { telechargerCsv } from '../../components/telechargement.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
 import { genererCsv } from '../../engine/csv.js';
+import { getProfil } from '../../store.js';
+import { formaterMontant } from '../../engine/finance.js';
 import { STATUTS_CLIENT, filtrerClients, libelleStatutClient } from '../../engine/fiche-client.js';
 
 const COLONNES_CSV = [
@@ -20,11 +22,17 @@ const COLONNES_CSV = [
   { libelle: 'Dernière activité', valeur: (c) => (c.derniere_activite ? c.derniere_activite.slice(0, 10) : '') },
 ];
 
+// Chiffres d'affaires : réservés à l'admin (lot C).
+const COLONNES_CSV_FINANCE = [
+  { libelle: 'CA signé (HT)', valeur: (c) => c.ca_signe ?? 0 },
+  { libelle: 'Pipeline pondéré (HT)', valeur: (c) => c.pipeline_pondere ?? 0 },
+];
+
 function formaterDate(date) {
   return date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
 }
 
-function ligneClient(c) {
+function ligneClient(c, avecFinance) {
   const ligne = el('tr');
 
   const nom = el('td');
@@ -49,19 +57,20 @@ function ligneClient(c) {
     el('td', null, c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : '-'),
     el('td', null, formaterDate(c.derniere_activite))
   );
+  if (avecFinance) ligne.insertBefore(el('td', null, c.ca_signe > 0 ? formaterMontant(c.ca_signe) : '-'), ligne.lastChild);
   return ligne;
 }
 
-function construireTableau(clients) {
+function construireTableau(clients, avecFinance) {
   const tableau = el('table', 'db-table');
   const tete = el('thead');
   const ligneTete = el('tr');
-  for (const t of ['Entreprise', 'SIRET', 'Statut', 'Ville', 'Contact principal', 'Demandes', 'Tâches', 'Dernière activité']) {
+  for (const t of ['Entreprise', 'SIRET', 'Statut', 'Ville', 'Contact principal', 'Demandes', 'Tâches', ...(avecFinance ? ['CA signé'] : []), 'Dernière activité']) {
     ligneTete.appendChild(el('th', null, t));
   }
   tete.appendChild(ligneTete);
   const corps = el('tbody');
-  for (const c of clients) corps.appendChild(ligneClient(c));
+  for (const c of clients) corps.appendChild(ligneClient(c, avecFinance));
   tableau.append(tete, corps);
   const defilement = el('div', 'db-table-defilement');
   defilement.appendChild(tableau);
@@ -69,6 +78,7 @@ function construireTableau(clients) {
 }
 
 export async function vueClients() {
+  const estAdmin = getProfil()?.role === 'admin';
   const app = document.getElementById('app');
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
 
@@ -119,7 +129,7 @@ export async function vueClients() {
       resultat.appendChild(el('p', 'db-vide texte-doux', clients.length === 0 ? 'Aucun client pour le moment.' : 'Aucun client ne correspond à cette recherche.'));
       return;
     }
-    resultat.appendChild(construireTableau(visibles));
+    resultat.appendChild(construireTableau(visibles, estAdmin));
   }
   recherche.addEventListener('input', rafraichir);
   statut.addEventListener('change', rafraichir);
@@ -129,7 +139,7 @@ export async function vueClients() {
       afficherToast('Aucun client à exporter.', { type: 'erreur' });
       return;
     }
-    telechargerCsv(`clients-${new Date().toISOString().slice(0, 10)}.csv`, genererCsv(visibles, COLONNES_CSV));
+    telechargerCsv(`clients-${new Date().toISOString().slice(0, 10)}.csv`, genererCsv(visibles, estAdmin ? [...COLONNES_CSV, ...COLONNES_CSV_FINANCE] : COLONNES_CSV));
   });
 
   rafraichir();

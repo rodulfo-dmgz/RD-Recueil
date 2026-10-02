@@ -105,15 +105,15 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 
 | Route | Écran | Contenu |
 |---|---|---|
-| `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. Un bloc « Aujourd'hui » liste mes tâches en retard et du jour (Terminer, Reporter) à côté d'un calendrier de mes échéances. |
-| `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. |
+| `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. Un bloc « Aujourd'hui » liste mes tâches en retard et du jour (Terminer, Reporter) à côté d'un calendrier de mes échéances. Pour l'admin, une ligne d'indicateurs financiers (pipeline, CA pondéré, CA signé de l'année, conversion en euros), le total en euros et le pondéré sous chaque colonne du pipeline, le montant de chaque demande et une alerte pour les demandes sans montant. |
+| `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. Pipeline par étape (demandes, montant, pondéré, sans montant) et CA signé des douze derniers mois, en HT. |
 | `#/clients` | Clients | Liste des clients et prospects : recherche (nom, SIRET, ville, contact), filtre de statut (archivés masqués), contact principal, nombre de demandes, dernière activité, export CSV. |
 | `#/clients/nouveau` | Nouveau client ou prospect | Fiche pré-remplie par la recherche SIRET (base SIRENE), statut `prospect` par défaut. |
 | `#/clients/:id` (+ `/activite`, `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Activité (tâches ouvertes, échanges notés, historique avec les étapes des demandes, ajout rapide d'un contact), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
 | `#/taches` | Tâches | Mes tâches par défaut (l'admin peut voir celles de l'équipe) ; filtres statut et client ; groupes En retard, Aujourd'hui, Cette semaine, Plus tard ; Terminer, Reporter, accès à la fiche. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation, consultant, date. |
 | `#/demandes/nouvelle` (+ `/:clientId`) | Création | Client existant (liste déroulante, présélectionné depuis sa fiche) ou nouveau (raison sociale, SIRET ; un SIRET déjà connu sélectionne le client existant), types pressentis (pré-coche TC-0.01), date limite. |
-| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». |
+| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». Carte « Enjeu commercial » (montant retenu et sa source, probabilité, pondéré ; estimation et probabilité modifiables). |
 | `#/demandes/:ref/entretien` | Mode entretien | Voir 4.3. |
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
 | `#/admin/questionnaire` | Versions | Import des `.md`, prévisualisation, publication. |
@@ -422,7 +422,8 @@ create table contacts (
 -- Vue v_clients (security_invoker) : clients + nb_demandes, nb_actives,
 -- nb_gagnees, derniere_activite (tient compte des échanges notés),
 -- contact_principal, nb_taches_ouvertes (selon les droits de l'appelant),
--- prochaine_echeance.
+-- prochaine_echeance, ca_signe (demandes gagnées) et pipeline_pondere
+-- (demandes en cours), en HT.
 
 -- Échanges notés avec un client (0034, 0035, 0036). Lecture et création pour
 -- tout le staff ; modification et suppression par l'auteur ou l'admin.
@@ -462,6 +463,32 @@ create table taches (
 );
 
 -- est_admin() (security definer) complète est_staff() dans les politiques.
+
+-- Montants (0038), tout en HT : RD Formation est en franchise de TVA
+-- (art. 293 B du CGI). Probabilité par défaut de chaque statut, modifiable
+-- par l'admin (brouillon 5, envoyée 10, en saisie 15, soumise 25, entretien
+-- planifié 35, en analyse 45, note envoyée 55, note à revoir 50, note
+-- validée 65, proposition envoyée 75, gagnée 100, perdue, réorientée,
+-- abandonnée 0).
+create table probabilites_statut (statut text primary key, pourcentage smallint not null check (pourcentage between 0 and 100));
+
+-- Estimation saisie avant la proposition et probabilité propre à la demande
+-- (vide : celle du statut). Table à part, réservée au staff : un client lit
+-- ses demandes ligne par ligne et verrait sinon ces colonnes internes.
+create table demande_enjeux (
+  demande_id uuid primary key references demandes on delete cascade,
+  montant_estime numeric(12,2) check (montant_estime is null or montant_estime >= 0),
+  probabilite smallint check (probabilite is null or probabilite between 0 and 100),
+  updated_at timestamptz not null default now()
+);
+
+-- Vue v_demandes_montants (security_invoker, lignes réservées au staff) :
+-- montant_propose (total de la proposition), montant_retenu (proposition si
+-- chiffrée, sinon estimation, sinon 0), source_montant (proposition,
+-- estimation ou aucun), probabilite effective (100 gagnée, 0 perdue,
+-- réorientée ou abandonnée, sinon celle de la demande, sinon celle du
+-- statut), montant_pondere, date_decision (réponse du client à la
+-- proposition, qui date le CA signé).
 
 create sequence demande_seq;
 
@@ -605,6 +632,8 @@ create table notifications (
 
 > Choix initial (V1.0) : lien magique par e-mail. Abandonné en cours de développement au profit d'un mot de passe temporaire généré par le consultant, la fiabilité de livraison des e-mails transactionnels s'étant révélée un point de friction récurrent en usage réel.
 
+> Limite connue (0038) : les chiffres agrégés (CA signé, pipeline) ne sont affichés qu'à l'admin, mais les colonnes `ca_signe` et `pipeline_pondere` de `v_clients` et la vue `v_demandes_montants` restent lisibles par tout le staff via l'API, comme le sont déjà les lignes des propositions.
+
 > Correctif (0033) : la politique `profils_staff` autorisait tout le staff, donc un simple consultant, à modifier ou supprimer n'importe quel profil depuis son navigateur, notamment à se donner le rôle `admin`. Elle est désormais en lecture seule ; l'application ne fait que lire `profils`.
 
 ### 8.2 Politiques RLS (`0003_rls.sql`)
@@ -614,6 +643,8 @@ create table notifications (
 | `questionnaires`, `questions`, `glossaire` | Lecture | Lecture (questions : uniquement sections `visible_client`) |
 | `clients`, `contacts`, vue `v_clients` | Lecture, création, modification ; suppression d'un client réservée à l'admin (0032) | Aucun accès |
 | `activites` | Lecture et création ; modification et suppression par l'auteur ou l'admin (0035) | Aucun accès |
+| `probabilites_statut` | Lecture ; modification réservée à l'admin (0038) | Aucun accès |
+| `demande_enjeux`, vue `v_demandes_montants` | Lecture et écriture (la vue : lecture) (0038) | Aucun accès |
 | `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, création pour lui seul, modification, suppression ; réassignation refusée) (0034) | Aucun accès |
 | `profils` | Lecture seule (0033) ; créations, changements de rôle et suppressions par les Edge Functions (`service_role`) | Lecture de son propre profil |
 | `demandes` | Lecture et écriture | Lecture si `a_acces()` |
@@ -804,7 +835,7 @@ L'application évolue vers un CRM autour de la demande, qui reste l'objet centra
 |---|---|---|
 | A | Fiche client, contacts, onglets Demandes et Documents, SIRET unique | réalisé (migrations 0030 à 0032) |
 | B | Échanges notés, tâches (droits par responsable), bloc « Aujourd'hui » et calendrier des échéances, relances en tâches | réalisé (migrations 0033 à 0036) |
-| C | Montants, CA pondéré, pipeline en euros | à faire |
+| C | Montants (estimation, proposition), probabilités par statut, CA pondéré et signé, pipeline en euros, indicateurs financiers (admin) | réalisé (migration 0038) |
 | D | Financements, références de factures (outil de facturation externe) | à faire |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |
