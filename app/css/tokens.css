@@ -3,6 +3,7 @@
 :root {
   --rd-bleu: #1F4590;
   --rd-turquoise: #1CA098;
+  --bleu-texte: #1F4590;
   --rd-orange: #FF570A;
   --fond: #F7F8FA;
   --surface: #FFFFFF;
@@ -29,5 +30,6 @@
   --succes: #35C6BC;
   --alerte: #FF8A4D;
   --erreur: #F27171;
+  --bleu-texte: #8FB4F5;
   --ombre: 0 2px 10px rgba(0, 0, 0, .45);
 }

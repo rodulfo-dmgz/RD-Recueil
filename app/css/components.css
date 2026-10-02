@@ -23,7 +23,7 @@
   font-family: var(--police-titre);
   font-weight: 700;
   font-size: 18px;
-  color: var(--rd-bleu);
+  color: var(--bleu-texte);
   text-decoration: none;
   margin-right: auto;
 }
@@ -47,7 +47,7 @@
 }
 .entete__lien:hover,
 .entete__lien:focus-visible { background: var(--fond); }
-.entete__lien svg { width: 18px; height: 18px; stroke: var(--rd-bleu); }
+.entete__lien svg { width: 18px; height: 18px; stroke: var(--bleu-texte); }
 .entete__compte {
   display: flex;
   align-items: center;
@@ -123,7 +123,7 @@
 .panneau-notifications__tout-lu {
   border: none;
   background: transparent;
-  color: var(--rd-bleu);
+  color: var(--bleu-texte);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -210,7 +210,7 @@
 }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
 .btn--primaire { background: var(--rd-bleu); color: #fff; }
-.btn--secondaire { background: var(--surface); color: var(--rd-bleu); border: 1px solid var(--bordure); }
+.btn--secondaire { background: var(--surface); color: var(--bleu-texte); border: 1px solid var(--bordure); }
 
 .bouton-retour {
   display: inline-flex;
@@ -225,7 +225,7 @@
   font-size: 14px;
   font-weight: 500;
 }
-.bouton-retour:hover { background: var(--fond); color: var(--rd-bleu); }
+.bouton-retour:hover { background: var(--fond); color: var(--bleu-texte); }
 .bouton-retour svg { width: 16px; height: 16px; }
 
 .champ {
@@ -693,7 +693,7 @@
   height: 36px;
   border-radius: 999px;
   background: var(--fond);
-  color: var(--rd-bleu);
+  color: var(--bleu-texte);
 }
 .section-carte__icone svg { width: 18px; height: 18px; }
 .section-carte--complete .section-carte__icone { background: var(--rd-turquoise); color: #fff; }
@@ -832,7 +832,7 @@
 .editeur-note__apercu h2 {
   font-family: var(--police-titre);
   font-size: 16px;
-  color: var(--rd-bleu);
+  color: var(--bleu-texte);
   margin: 32px 0 12px;
   padding-bottom: 6px;
   border-bottom: 2px solid var(--rd-turquoise);
@@ -1003,7 +1003,7 @@
   font-weight: 600;
   cursor: pointer;
 }
-.modale-signature__onglet--actif { color: var(--rd-bleu); border-bottom-color: var(--rd-bleu); }
+.modale-signature__onglet--actif { color: var(--bleu-texte); border-bottom-color: var(--rd-bleu); }
 .modale-signature__champ-nom { margin-bottom: 12px; }
 .modale-signature__canvas {
   width: 100%;
@@ -1037,7 +1037,7 @@
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
   background: var(--surface);
-  color: var(--rd-bleu);
+  color: var(--bleu-texte);
   cursor: pointer;
 }
 .btn-icone:hover { background: var(--fond); }
@@ -1119,7 +1119,7 @@
   height: 40px;
   border-radius: 999px;
   background: var(--fond);
-  color: var(--rd-bleu);
+  color: var(--bleu-texte);
   flex-shrink: 0;
 }
 .ligne-navigation__icone svg { width: 20px; height: 20px; }

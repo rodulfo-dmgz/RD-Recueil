@@ -253,7 +253,7 @@ body.menu-replie.layout-lateral #app { margin-left: 0; }
 .db-btn--verre:hover { background: rgba(255, 255, 255, .22); }
 .db-btn--primaire { background: var(--rd-bleu); color: #fff; }
 .db-btn--primaire:hover { filter: brightness(1.12); }
-.db-btn--discret { background: var(--surface); border-color: var(--bordure); color: var(--rd-bleu); }
+.db-btn--discret { background: var(--surface); border-color: var(--bordure); color: var(--bleu-texte); }
 .db-btn--discret:hover { background: var(--fond); }
 
 .db-kpis {
@@ -275,7 +275,7 @@ body.menu-replie.layout-lateral #app { margin-left: 0; }
 .db-grille { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
 .db-principale, .db-lateral { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .db-titre { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; font-size: 19px; }
-.db-titre svg { width: 20px; height: 20px; stroke: var(--rd-bleu); }
+.db-titre svg { width: 20px; height: 20px; stroke: var(--bleu-texte); }
 .db-vide { margin: 0; }
 .db-carte { background: var(--surface); border: 1px solid var(--bordure); border-radius: 16px; padding: 20px; box-shadow: var(--ombre); }
 
@@ -357,7 +357,7 @@ body.menu-replie.layout-lateral #app { margin-left: 0; }
   border-radius: 12px;
   background: color-mix(in srgb, var(--rd-bleu) 10%, var(--surface));
 }
-.db-acces__icone svg { width: 20px; height: 20px; stroke: var(--rd-bleu); }
+.db-acces__icone svg { width: 20px; height: 20px; stroke: var(--bleu-texte); }
 .db-acces__texte { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
 .db-acces__texte small { color: var(--texte-doux); font-size: 12px; }
 
