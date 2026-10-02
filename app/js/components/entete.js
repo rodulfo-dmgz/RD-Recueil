@@ -4,7 +4,7 @@ import { deconnecter } from '../auth.js';
 import { setProfil, getApercuRole, setApercuRole } from '../store.js';
 import { navigate } from '../router.js';
 import { listerNotifications, compterNonLues, marquerLue, marquerToutesLues } from '../services/notifications.js';
-import { listerDemandes } from '../services/demandes.js';
+import { listerClientsApercu } from '../services/comptes.js';
 
 const LIENS_CLIENT = [
   { href: '#/mes-demandes', icone: 'layout-list', libelle: 'Mes demandes' },
@@ -49,13 +49,13 @@ export function rendreEntete(profil) {
     `
     : '';
 
-  const selecteurDemandeApercu =
+  const selecteurClientApercu =
     estAdminReel && roleApercu === 'client'
       ? `
         <label class="entete__apercu">
-          <span class="entete__apercu-etiquette">Demande</span>
-          <select id="select-apercu-demande" class="entete__apercu-select">
-            <option value="">Choisir une demande…</option>
+          <span class="entete__apercu-etiquette">Client</span>
+          <select id="select-apercu-client" class="entete__apercu-select">
+            <option value="">Choisir un client…</option>
           </select>
         </label>
       `
@@ -85,7 +85,7 @@ export function rendreEntete(profil) {
       </nav>
       <div class="entete__compte">
         ${selecteurApercu}
-        ${selecteurDemandeApercu}
+        ${selecteurClientApercu}
         <span class="entete__nom">${profil.nom || profil.email}</span>
         <div class="entete__notifications">
           <button type="button" id="bouton-notifications" class="entete__theme" aria-label="Notifications" aria-expanded="false">
@@ -133,9 +133,9 @@ export function rendreEntete(profil) {
     });
   }
 
-  const selectApercuDemande = document.getElementById('select-apercu-demande');
-  if (selectApercuDemande) {
-    initialiserSelecteurDemandeApercu(selectApercuDemande);
+  const selectApercuClient = document.getElementById('select-apercu-client');
+  if (selectApercuClient) {
+    initialiserSelecteurClientApercu(selectApercuClient);
   }
 
   initialiserNotifications(profil);
@@ -144,27 +144,33 @@ export function rendreEntete(profil) {
   if (window.gestionnaireTheme) window.gestionnaireTheme.mettreAJourBoutons();
 }
 
-// Mise en cache pour le module : la liste des demandes ne change pas assez
+// Mise en cache pour le module : la liste des clients ne change pas assez
 // souvent pour justifier un rechargement à chaque navigation en aperçu client.
-let demandesApercuCache = null;
+let clientsApercuCache = null;
 
-async function initialiserSelecteurDemandeApercu(select) {
-  if (!demandesApercuCache) {
+// Un compte client par ligne (nom, e-mail, société) ; le choix ouvre sa
+// demande la plus récente, vue comme il la verrait.
+async function initialiserSelecteurClientApercu(select) {
+  if (!clientsApercuCache) {
     try {
-      demandesApercuCache = await listerDemandes();
+      clientsApercuCache = await listerClientsApercu();
     } catch {
-      demandesApercuCache = [];
+      clientsApercuCache = [];
     }
   }
   const refCourante = (location.hash.match(/^#\/d\/([^/]+)/) || [])[1] || '';
-  select.innerHTML =
-    '<option value="">Choisir une demande…</option>' +
-    demandesApercuCache
-      .map(
-        (d) =>
-          `<option value="${d.reference}" ${d.reference === refCourante ? 'selected' : ''}>${d.reference} · ${d.clients?.raison_sociale ?? 'Sans nom'}</option>`
-      )
-      .join('');
+  select.innerHTML = '';
+  const vide = document.createElement('option');
+  vide.value = '';
+  vide.textContent = 'Choisir un client…';
+  select.appendChild(vide);
+  for (const c of clientsApercuCache) {
+    const option = document.createElement('option');
+    option.value = c.references[0];
+    option.selected = c.references.includes(refCourante);
+    option.textContent = [c.nom, c.email, c.societes.join(', ')].filter(Boolean).join(' · ');
+    select.appendChild(option);
+  }
 
   select.addEventListener('change', () => {
     if (select.value) navigate(`/d/${select.value}`);

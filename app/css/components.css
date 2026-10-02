@@ -164,6 +164,8 @@
   color: var(--texte);
   font-family: var(--police-texte);
   font-size: 13px;
+  max-width: 320px;
+  text-overflow: ellipsis;
 }
 .entete__banniere-apercu {
   display: flex;

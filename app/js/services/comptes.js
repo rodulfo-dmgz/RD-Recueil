@@ -25,6 +25,32 @@ export async function listerComptes() {
   return data;
 }
 
+// Comptes clients avec leur société et leurs demandes (de la plus récente à
+// la plus ancienne) - sélecteur "Aperçu client" de l'en-tête admin.
+export async function listerClientsApercu() {
+  const [{ data: profils, error: erreurProfils }, { data: acces, error: erreurAcces }] = await Promise.all([
+    supabase.from('profils').select('user_id, email, nom').eq('role', 'client'),
+    supabase
+      .from('demande_acces')
+      .select('user_id, demandes(reference, created_at, clients(raison_sociale))')
+      .not('user_id', 'is', null),
+  ]);
+  if (erreurProfils) throw erreurProfils;
+  if (erreurAcces) throw erreurAcces;
+
+  return profils
+    .map((p) => {
+      const demandes = acces
+        .filter((a) => a.user_id === p.user_id && a.demandes)
+        .map((a) => a.demandes)
+        .sort((a, b) => b.created_at.localeCompare(a.created_at));
+      const societes = [...new Set(demandes.map((d) => d.clients?.raison_sociale).filter(Boolean))];
+      return { ...p, societes, references: demandes.map((d) => d.reference) };
+    })
+    .filter((c) => c.references.length > 0)
+    .sort((a, b) => (a.nom || a.email).localeCompare(b.nom || b.email));
+}
+
 // Demandes accessibles par ce compte (via demande_acces), pour afficher au
 // consultant/admin exactement ce qui serait supprimé avant confirmation.
 export async function listerDemandesDuCompte(userId) {
