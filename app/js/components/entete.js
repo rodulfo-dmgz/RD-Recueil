@@ -1,7 +1,7 @@
 // Barre d'en-tête persistante (logo, navigation, compte) - visible sur
 // toutes les pages protégées, masquée sur /connexion et /changer-mot-de-passe.
 import { deconnecter } from '../auth.js';
-import { setProfil, getApercuRole, setApercuRole } from '../store.js';
+import { setProfil, getApercuRole, setApercuRole, getClientApercuId, setClientApercuId } from '../store.js';
 import { navigate } from '../router.js';
 import { listerNotifications, compterNonLues, marquerLue, marquerToutesLues } from '../services/notifications.js';
 import { listerClientsApercu } from '../services/comptes.js';
@@ -260,14 +260,19 @@ async function initialiserSelecteurClientApercu(select) {
   select.appendChild(vide);
   for (const c of clientsApercuCache) {
     const option = document.createElement('option');
-    option.value = c.references[0];
-    option.selected = c.references.includes(refCourante);
+    option.value = c.user_id;
+    const choisi = getClientApercuId();
+    option.selected = choisi ? choisi === c.user_id : c.references.includes(refCourante);
     option.textContent = [c.nom, c.email, c.societes.join(', ')].filter(Boolean).join(' · ');
     select.appendChild(option);
   }
 
   select.addEventListener('change', () => {
-    if (select.value) navigate(`/d/${select.value}`);
+    setClientApercuId(select.value || null);
+    // Le tableau de bord du client choisi ; si on y est déjà, la route ne se
+    // relance pas toute seule.
+    if (location.hash === '#/accueil') window.dispatchEvent(new HashChangeEvent('hashchange'));
+    else navigate('/accueil');
   });
 }
 

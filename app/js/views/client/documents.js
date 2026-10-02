@@ -1,6 +1,7 @@
 // Documents du client, regroupés par demande : note de cadrage, proposition
 // commerciale, pièces déposées - 01_ARCHITECTURE.md section 4.1.
 import { listerMesDemandes } from '../../services/demandes.js';
+import { getClientApercuId } from '../../store.js';
 import { listerDocumentsClient, urlTelechargement } from '../../services/documents.js';
 import { listerLignes } from '../../services/propositions.js';
 import { chargerReponses } from '../../services/reponses.js';
@@ -74,7 +75,7 @@ export async function vueDocuments() {
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
 
   try {
-    const demandes = await listerMesDemandes();
+    const demandes = await listerMesDemandes({ userId: getClientApercuId() });
     const documents = await listerDocumentsClient(demandes.map((d) => d.id));
 
     const main = document.createElement('main');

@@ -26,6 +26,7 @@ export function surProfil(fn) {
 // RLS. Purement cosmétique, persistant en localStorage pour ce poste.
 const CLE_APERCU_ROLE = 'rd-recueil-apercu-role';
 const ROLES_APERCU_VALIDES = ['admin', 'consultant', 'client'];
+const CLE_APERCU_CLIENT = 'rd-recueil-apercu-client';
 
 export function getApercuRole() {
   try {
@@ -38,6 +39,7 @@ export function getApercuRole() {
 
 export function setApercuRole(role) {
   try {
+    if (role !== 'client') localStorage.removeItem(CLE_APERCU_CLIENT);
     if (!role || role === 'admin') {
       localStorage.removeItem(CLE_APERCU_ROLE);
     } else if (ROLES_APERCU_VALIDES.includes(role)) {
@@ -45,6 +47,27 @@ export function setApercuRole(role) {
     }
   } catch {
     // Stockage indisponible : l'aperçu ne persiste pas au-delà de la session en cours.
+  }
+}
+
+// Compte client consulté par l'admin en aperçu client : les vues client
+// (tableau de bord, demandes, documents) ne montrent alors que ses demandes.
+// Null hors aperçu client ou si aucun client n'est choisi.
+export function getClientApercuId() {
+  if (getProfil()?.role !== 'admin' || getApercuRole() !== 'client') return null;
+  try {
+    return localStorage.getItem(CLE_APERCU_CLIENT) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function setClientApercuId(userId) {
+  try {
+    if (userId) localStorage.setItem(CLE_APERCU_CLIENT, userId);
+    else localStorage.removeItem(CLE_APERCU_CLIENT);
+  } catch {
+    // non mémorisé.
   }
 }
 

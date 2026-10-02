@@ -3,7 +3,8 @@
 import { listerMesDemandes } from '../../services/demandes.js';
 import { listerDocumentsClient } from '../../services/documents.js';
 import { calculerPourcentage } from './mes-demandes.js';
-import { getProfil } from '../../store.js';
+import { getProfil, getClientApercuId } from '../../store.js';
+import { obtenirProfilClient } from '../../services/comptes.js';
 import { afficherToast } from '../../components/toast.js';
 import { prochaineAction } from '../../engine/suivi.js';
 import { el, icone, lienBouton, prenomDe, salutation, construireHero, construireKpis, construireEtapes } from '../../components/dashboard-ui.js';
@@ -125,11 +126,14 @@ export async function vueDashboardClient() {
   const app = document.getElementById('app');
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
 
+  let profilAffiche = getProfil();
   let demandes;
   let documents;
   let pourcentages;
   try {
-    demandes = await listerMesDemandes();
+    const clientApercu = getClientApercuId();
+    demandes = await listerMesDemandes({ userId: clientApercu });
+    if (clientApercu) profilAffiche = (await obtenirProfilClient(clientApercu)) ?? profilAffiche;
     documents = await listerDocumentsClient(demandes.map((d) => d.id));
     const actives = demandes.filter((d) => !STATUTS_FINAUX.has(d.statut)).slice(0, 3);
     pourcentages = new Map(await Promise.all(actives.map(async (d) => [d.id, await calculerPourcentage(d)])));
@@ -146,7 +150,7 @@ export async function vueDashboardClient() {
   const nbDocuments = documents.notes.length + documents.propositions.length + documents.fichiers.length;
 
   const main = el('main', 'db');
-  main.appendChild(heroClient(getProfil(), actionPrincipale));
+  main.appendChild(heroClient(profilAffiche, actionPrincipale));
   main.appendChild(
     construireKpis([
       { libelle: 'Demandes', valeur: demandes.length, nomIcone: 'layout-list' },

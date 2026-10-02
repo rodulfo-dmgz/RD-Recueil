@@ -1,4 +1,5 @@
 import { listerMesDemandes } from '../../services/demandes.js';
+import { getClientApercuId } from '../../store.js';
 import { afficherToast } from '../../components/toast.js';
 import { chargerQuestionnaire } from '../../services/questionnaire.js';
 import { chargerReponses } from '../../services/reponses.js';
@@ -88,7 +89,7 @@ export async function vueMesDemandes() {
 
   let data;
   try {
-    data = await listerMesDemandes();
+    data = await listerMesDemandes({ userId: getClientApercuId() });
   } catch (error) {
     afficherToast(error.message, { type: 'erreur' });
     main.innerHTML = '<h1>Mes demandes</h1><p>Impossible de charger vos demandes.</p>';

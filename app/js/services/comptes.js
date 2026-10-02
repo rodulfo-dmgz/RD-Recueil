@@ -52,6 +52,13 @@ export async function listerClientsApercu() {
     .sort((a, b) => (a.nom || a.email).localeCompare(b.nom || b.email));
 }
 
+// Nom et e-mail d'un compte, pour afficher le client consulté en aperçu.
+export async function obtenirProfilClient(userId) {
+  const { data, error } = await supabase.from('profils').select('user_id, nom, email').eq('user_id', userId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 // Demandes accessibles par ce compte (via demande_acces), pour afficher au
 // consultant/admin exactement ce qui serait supprimé avant confirmation.
 export async function listerDemandesDuCompte(userId) {

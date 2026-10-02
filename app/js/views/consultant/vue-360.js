@@ -19,7 +19,7 @@ import { construireDevisImprimable } from '../../components/devis-imprimable.js'
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { LIBELLES_STATUT, categorieStatut } from '../../engine/statuts.js';
 import { construireEtapes } from '../../components/dashboard-ui.js';
-import { getProfil, setApercuRole } from '../../store.js';
+import { getProfil, setApercuRole, setClientApercuId } from '../../store.js';
 import { navigate } from '../../router.js';
 
 const TRANSITIONS = {
@@ -130,7 +130,7 @@ function rendre({
     creerCarteListe(rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, lignesProposition }))
   );
 
-  const actionsRapides = rendreActionsRapides(demande);
+  const actionsRapides = rendreActionsRapides(demande, acces);
   if (actionsRapides) main.appendChild(actionsRapides);
 
   if (demande.statut === 'brouillon') {
@@ -256,7 +256,7 @@ function rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, li
   return elements;
 }
 
-function rendreActionsRapides(demande) {
+function rendreActionsRapides(demande, acces) {
   const transitions = TRANSITIONS[demande.statut] || [];
   const peutAbandonner = !STATUTS_FINAUX.has(demande.statut);
 
@@ -290,6 +290,7 @@ function rendreActionsRapides(demande) {
     voirClient.textContent = 'Voir comme le client';
     voirClient.addEventListener('click', () => {
       setApercuRole('client');
+      setClientApercuId(acces.find((a) => a.user_id)?.user_id ?? null);
       navigate(`/d/${demande.reference}`);
     });
     actions.appendChild(voirClient);

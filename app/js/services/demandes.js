@@ -25,13 +25,23 @@ export async function listerDemandes({ statut, type, inclureArchivees = false } 
 }
 
 // Demandes du client connecte (la RLS limite aux demandes accessibles),
-// hors archivees - tableau de bord et liste Mes demandes.
-export async function listerMesDemandes() {
-  const { data, error } = await supabase
+// hors archivees - tableau de bord et liste Mes demandes. userId : l'admin en
+// apercu client ne voit que les demandes de ce compte (sinon la RLS lui
+// donnerait toutes les demandes).
+export async function listerMesDemandes({ userId } = {}) {
+  let requete = supabase
     .from('demandes')
     .select('id, reference, statut, types, questionnaire_id, updated_at')
     .eq('archivee', false)
     .order('updated_at', { ascending: false });
+
+  if (userId) {
+    const { data: acces, error: erreurAcces } = await supabase.from('demande_acces').select('demande_id').eq('user_id', userId);
+    if (erreurAcces) throw erreurAcces;
+    requete = requete.in('id', acces.map((a) => a.demande_id));
+  }
+
+  const { data, error } = await requete;
   if (error) throw error;
   return data;
 }
