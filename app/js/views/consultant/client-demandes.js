@@ -6,10 +6,7 @@ import { creerCarteListe } from '../../components/liste-navigation.js';
 import { construireLignesDemande } from '../../components/documents-demande.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
 import { LIBELLES_STATUT, LIBELLES_TYPE, categorieStatut } from '../../engine/statuts.js';
-
-function formaterDate(date) {
-  return date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-}
+import { formaterDate } from '../../engine/dates.js';
 
 export function construireOngletDemandes({ client, demandes }) {
   const conteneur = el('div', 'cl-contacts');

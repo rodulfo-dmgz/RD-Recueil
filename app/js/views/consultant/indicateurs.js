@@ -2,7 +2,7 @@
 // taux de conversion - calculés à partir des jalons (rpc_jalons). Section 4.2.
 import { listerJalons } from '../../services/jalons.js';
 import { afficherToast } from '../../components/toast.js';
-import { el, construireKpis } from '../../components/dashboard-ui.js';
+import { el, construireKpis, tableau } from '../../components/dashboard-ui.js';
 import { grouperParDemande, delaisDemande, calculerKpis, formaterDelai, ETAPES_DELAIS } from '../../engine/jalons.js';
 import { listerMontants } from '../../services/montants.js';
 import { listerToutesFactures } from '../../services/factures.js';
@@ -21,29 +21,6 @@ export function formaterTaux(taux) {
 
 function titre(texte) {
   return el('h2', 'db-titre', texte);
-}
-
-function tableau(colonnes, lignes) {
-  const t = el('table', 'db-table');
-  const tete = el('thead');
-  const ligneTete = el('tr');
-  for (const c of colonnes) ligneTete.appendChild(el('th', null, c));
-  tete.appendChild(ligneTete);
-  const corps = el('tbody');
-  for (const cellules of lignes) {
-    const ligne = el('tr');
-    for (const cellule of cellules) {
-      const td = el('td');
-      if (cellule instanceof Node) td.appendChild(cellule);
-      else td.textContent = cellule;
-      ligne.appendChild(td);
-    }
-    corps.appendChild(ligne);
-  }
-  t.append(tete, corps);
-  const defilement = el('div', 'db-table-defilement');
-  defilement.appendChild(t);
-  return defilement;
 }
 
 function lienDemande(demande) {

@@ -26,6 +26,7 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 | D | Financements, références de factures (Shine) | terminé et commité (voir 3e) |
 | E | Recherche globale, fusion de doublons, clients dormants | terminé, commité et poussé (voir 3f) |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | terminé et commité (voir 3g) |
+| Design | Refonte de l'interface inspirée de Twenty (comportements et allure), sans toucher aux données | en cours (voir 3h) |
 
 ## 3. Lot A : fiche client et contacts
 
@@ -204,6 +205,28 @@ Origine : en répondant au plan du lot D, l'utilisateur a rappelé que "chaque c
 - [x] F4. Satisfaction (migration 0049)
 - [x] F5. Indicateurs qualité et export CSV
 - [x] F6. Documentation, tests, audit de sécurité, commit
+
+## 3h. Refonte de l'interface (inspirée de Twenty)
+
+Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `docs/` : `app/` est le dossier publié). Audit : `docs/AUDIT_CRM.md` et `docs/SUPABASE_SCHEMA.md`. Principe : s'inspirer des comportements et de l'allure de Twenty (jamais son code ni son identité), garder la stack, la base et l'identité RD (couleurs, polices), une phase à la fois sans casser l'existant.
+
+### Décisions validées
+- Garder l'application à page unique (routage par hash), pas de `pages/*.html` : le cahier des charges demande lui-même d'adapter à l'existant.
+- Hors périmètre : formations, sessions, stagiaires (tables du LMS, autre projet). Prospects = clients au statut `prospect` ; opportunités = demandes ; devis = propositions.
+- Sécurité des tables du LMS (politique "vrai pour tous") : à traiter avant d'ajouter de l'interface, ou à part (recommandé : avant).
+- Kanban des demandes : le glisser-déposer n'autorise que les passages que le flux de travail permet déjà (`rpc_changer_statut`).
+- **Allure** (réponse à "est-ce que cela donnera un look Twenty ?") : identité RD conservée (bleu, turquoise, orange, Space Grotesk, Plus Jakarta Sans) mais **sobriété et densité de Twenty** : menu latéral **clair et neutre** avec accents bleu RD (le thème sombre reste), tableaux **compacts** (texte de 14 px, lignes de 36 px, option "confortable"), pastilles de relation, panneau latéral. Un **prototype d'un seul écran** (liste des clients) sera montré avant de généraliser.
+
+### Phases
+- [x] 1. Socle commun, sans changement visuel
+- [ ] 1 bis. Prototype d'allure sur la liste des clients (tableau compact, pastilles, menu clair), à valider
+- [ ] 2. Composant tableau (tri, pagination, colonnes, sélection)
+- [ ] 3. Menu de commandes `Ctrl+K`
+- [ ] 4. Fil d'Ariane et création rapide dans l'en-tête
+- [ ] 5. Panneau latéral (aperçu d'un client depuis la liste)
+- [ ] 6. Filtres avancés et vues enregistrées (nouvelle table par utilisateur, avec RLS)
+- [ ] 7. Kanban des demandes
+- [ ] 8. Responsive, accessibilité, performance, audit final
 
 ## 4. Journal des étapes
 
@@ -894,6 +917,17 @@ Fait :
 
 Vérifié en base (transactions annulées, un consultant et un client simulés) : date future, date de plus de douze mois et importance inconnue refusées ; la date et la gravité choisies sont enregistrées (visibles côté équipe, origine client) ; valeurs par défaut (aujourd'hui, mineure) quand elles ne sont pas fournies ; l'interlocuteur affiché est le nom du consultant. Base propre ensuite.
 Vérifié : `node --test tests/*.test.mjs` 224 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : champs, listes d'importance et aide qui change au choix, aucun mot "gêne", date par défaut et maximum, date future refusée sans appel, dépôt avec les bons champs, suivi avec importance, date du problème et interlocuteur. Non testé avec la vraie base et de vrais comptes, ni en thème sombre.
+
+### 2026-10-03 : refonte de l'interface, audit et phase 1 (socle commun)
+
+Fait :
+- Audit : `docs/AUDIT_CRM.md` (inventaire du code, état des fonctions par rapport au cahier des charges, risques, écarts, plan) et `docs/SUPABASE_SCHEMA.md` (39 tables, 3 vues, 43 fonctions). Constat de sécurité : douze tables du LMS ont une politique "vrai pour tous" (voir `AUDIT_CRM.md`, section 7).
+- **Doublons supprimés** : `engine/dates.js` (nouveau : `formaterDateCourte`, `formaterDate`) remplace sept copies de `formaterDate` (il en reste quatre aux formats vraiment différents : devis imprimable, certification, mes demandes, rapport) ; `mini` (carte de chiffre) et `tableau` (tableau simple) passent dans `components/dashboard-ui.js` au lieu de cinq et deux copies ; `bouton` de `client-fiche.js` reprend celui de `champs-crm.js`. `engine/facturation.js` réexporte `formaterDateCourte` : aucun import existant ne casse. +2 tests (`tests/dates.test.mjs`).
+- **Squelettes de chargement** : `components/squelette.js` (`squelettePage` : tableau, fiche ou liste ; annoncé comme occupé aux lecteurs d'écran ; animation coupée si l'utilisateur la refuse) et **états vides utiles** : `components/etat-vide.js` (icône, titre, explication, bouton ou lien d'action). Appliqués à la liste des clients (squelette pendant le chargement ; "Aucun client pour le moment" avec "Nouveau client ou prospect" ; "Aucun client ne correspond" avec "Effacer la recherche" ; "Aucun client dormant avec ce seuil"). Styles dans `css/etats.css` (nouveau).
+- **CSS découpé sans changement** : les styles des lots D à F quittent `dashboard.css` (653 lignes restantes) pour `css/crm.css` (106 lignes), chargé juste après : l'ordre de la cascade est inchangé (vérifié : la concaténation des deux fichiers redonne exactement l'ancien fichier, règle par règle). `index.html` charge `crm.css` puis `etats.css`.
+- **Lucide figé** à la version 1.50.0 (`index.html`) au lieu de `latest` : le fichier est identique à celui servi jusque-là, donc aucun changement visible, mais une mise à jour de la bibliothèque ne peut plus changer ou retirer des icônes sans prévenir.
+
+Vérifié : `node --test tests/*.test.mjs` 226 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : squelette affiché pendant le chargement (7 lignes, état occupé, texte pour lecteurs d'écran, animation active) puis remplacé par le tableau ; états vides (aucun résultat avec bouton qui efface la recherche, aucun dormant, aucun client avec lien de création) et icône rendue ; `crm.css` et `etats.css` bien chargés dans l'ordre ; `mini` partagé produit la même structure. Non vérifié : les autres écrans qui utilisent les fonctions mutualisées n'ont pas été rechargés un par un dans le navigateur (syntaxe vérifiée partout, noms utilisés tous importés ou définis) ; rendu en thème sombre non vérifié ; pas de comparaison de captures avant et après sur tous les écrans.
 
 ## 5. Points ouverts
 

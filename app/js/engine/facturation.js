@@ -136,12 +136,7 @@ export function syntheseFacturation(montantRetenu, factures = []) {
 // Libellés proposés à la saisie d'une facture (le champ reste libre).
 export const LIBELLES_FACTURE = ['Acompte 50 %', 'Solde', 'Facture unique'];
 
-// "2026-10-01" -> "01/10/2026" (la date reste celle du jour saisi, sans fuseau).
-export function formaterDateCourte(cle) {
-  if (!cle || !DATE_ISO.test(cle)) return '';
-  const [annee, mois, jour] = cle.split('-');
-  return `${jour}/${mois}/${annee}`;
-}
+export { formaterDateCourte } from './dates.js';
 
 // ─── Tableau de bord (admin) ────────────────────────────────────────────────
 

@@ -11,13 +11,10 @@ import { el, icone } from '../../components/dashboard-ui.js';
 import { champ, champSelect, zoneTexte } from '../../components/champs-crm.js';
 import { cleJour } from '../../engine/jalons.js';
 import { IMPORTANCES_CLIENT, LONGUEUR_MAX_DESCRIPTION, LONGUEUR_MAX_OBJET, libelleEtatClient, libelleImportance, preparerDepot, validerDepot } from '../../engine/reclamations.js';
+import { formaterDateCourte as formaterDate } from '../../engine/dates.js';
 
 // État montré au client -> style du badge (mêmes couleurs que côté équipe).
 const STYLE_ETAT = { recue: 'ouverte', en_cours: 'en_cours', traitee: 'cloturee' };
-
-function formaterDate(cle) {
-  return cle ? `${cle.slice(8, 10)}/${cle.slice(5, 7)}/${cle.slice(0, 4)}` : '';
-}
 
 function construireFormulaire({ demandes, reference, onEnvoye }) {
   const form = el('form', 'cl-form');

@@ -4,10 +4,11 @@
 // l'action corrective.
 import { listerReclamations, listerDemandesDuClient, enregistrerReclamation } from '../services/reclamations.js';
 import { afficherToast } from './toast.js';
-import { el } from './dashboard-ui.js';
+import { el, mini } from './dashboard-ui.js';
 import { bouton, champ, champSelect, zoneTexte } from './champs-crm.js';
 import { ouvrirModaleCrm } from './modale-crm.js';
 import { cleJour } from '../engine/jalons.js';
+import { formaterDateCourte } from '../engine/dates.js';
 import {
   GRAVITES,
   STATUTS_RECLAMATION,
@@ -20,19 +21,10 @@ import {
   validerReclamation,
 } from '../engine/reclamations.js';
 
-function formaterDate(cle) {
-  return cle ? `${cle.slice(8, 10)}/${cle.slice(5, 7)}/${cle.slice(0, 4)}` : '-';
-}
-
-function mini(libelle, valeur, detail) {
-  const bloc = el('div', 'db-mini');
-  bloc.append(el('span', 'db-mini__valeur', valeur), el('span', 'db-mini__libelle', libelle));
-  if (detail) bloc.appendChild(el('span', 'db-mini__detail texte-doux', detail));
-  return bloc;
-}
-
 // clients : [{ id, raison_sociale }] proposés à la création ; responsables :
 // [{ user_id, nom, email }] ; reclamation : à modifier (sinon création).
+const formaterDate = (cle) => formaterDateCourte(cle) || '-';
+
 function ouvrirModale({ reclamation, clientId, clients, responsables, onEnregistre }) {
   const client = champSelect('client_id', 'Client *', clients.map((c) => ({ valeur: c.id, libelle: c.raison_sociale })), reclamation?.client_id ?? clientId ?? '', 'Choisir un client…');
   client.select.disabled = Boolean(reclamation || clientId);

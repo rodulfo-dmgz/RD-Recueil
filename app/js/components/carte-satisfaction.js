@@ -7,10 +7,7 @@ import { el, icone } from './dashboard-ui.js';
 import { bouton, champSelect, zoneTexte } from './champs-crm.js';
 import { ouvrirModaleCrm } from './modale-crm.js';
 import { MOMENTS_SATISFACTION, avisParMoment, etoiles, libelleMoment, preparerReponse, validerReponse } from '../engine/satisfactions.js';
-
-function formaterDate(cle) {
-  return cle ? `${cle.slice(8, 10)}/${cle.slice(5, 7)}/${cle.slice(0, 4)}` : '';
-}
+import { formaterDateCourte as formaterDate } from '../engine/dates.js';
 
 function ouvrirSaisie({ demande, moment, onEnregistre }) {
   const note = champSelect('note', 'Note *', [1, 2, 3, 4, 5].map((n) => ({ valeur: String(n), libelle: `${n} / 5  ${etoiles(n)}` })), '', 'Choisir une note…');

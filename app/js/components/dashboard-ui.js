@@ -95,3 +95,35 @@ export function construireEtapes(statut) {
   });
   return liste;
 }
+
+// Petite carte de chiffre : valeur, libellé et détail facultatif.
+export function mini(libelle, valeur, detail) {
+  const bloc = el('div', 'db-mini');
+  bloc.append(el('span', 'db-mini__valeur', String(valeur)), el('span', 'db-mini__libelle', libelle));
+  if (detail) bloc.appendChild(el('span', 'db-mini__detail texte-doux', detail));
+  return bloc;
+}
+
+// Tableau simple : colonnes = titres, lignes = tableaux de cellules (texte ou nœud).
+export function tableau(colonnes, lignes) {
+  const t = el('table', 'db-table');
+  const tete = el('thead');
+  const ligneTete = el('tr');
+  for (const c of colonnes) ligneTete.appendChild(el('th', null, c));
+  tete.appendChild(ligneTete);
+  const corps = el('tbody');
+  for (const cellules of lignes) {
+    const ligne = el('tr');
+    for (const cellule of cellules) {
+      const td = el('td');
+      if (cellule instanceof Node) td.appendChild(cellule);
+      else td.textContent = cellule;
+      ligne.appendChild(td);
+    }
+    corps.appendChild(ligne);
+  }
+  t.append(tete, corps);
+  const defilement = el('div', 'db-table-defilement');
+  defilement.appendChild(t);
+  return defilement;
+}

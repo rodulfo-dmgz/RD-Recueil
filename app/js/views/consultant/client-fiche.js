@@ -1,5 +1,7 @@
 // Fiche client (CRM, lot A) : en-tête, informations modifiables, import des
 // données d'une demande, dernières étapes. Réservé au staff. Section 4.2.
+import { bouton } from '../../components/champs-crm.js';
+import { formaterDate } from '../../engine/dates.js';
 import {
   obtenirClient,
   enregistrerClient,
@@ -18,7 +20,7 @@ import { construireListeJournal } from '../../components/liste-journal.js';
 import { construireListeReclamations } from '../../components/liste-reclamations.js';
 import { construireOngletActivite } from './client-activite.js';
 import { construireOngletDemandes, construireOngletDocuments } from './client-demandes.js';
-import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
+import { el, icone, lienBouton, mini } from '../../components/dashboard-ui.js';
 import { libelleJalon } from '../../engine/jalons.js';
 import { formaterMontant } from '../../engine/finance.js';
 import {
@@ -41,28 +43,6 @@ const ONGLETS = [
   // Journal d'audit de la fiche : admin seulement.
   { cle: 'modifications', libelle: 'Modifications', chemin: (id) => `#/clients/${id}/modifications`, admin: true },
 ];
-
-function formaterDate(date, avecHeure = false) {
-  if (!date) return '-';
-  const options = { day: 'numeric', month: 'short', year: 'numeric' };
-  if (avecHeure) Object.assign(options, { hour: '2-digit', minute: '2-digit' });
-  return new Date(date).toLocaleString('fr-FR', options);
-}
-
-function mini(libelle, valeur) {
-  const bloc = el('div', 'db-mini');
-  bloc.append(el('span', 'db-mini__valeur', String(valeur)), el('span', 'db-mini__libelle', libelle));
-  return bloc;
-}
-
-function bouton(classe, texte, nomIcone, action) {
-  const b = el('button', classe);
-  b.type = 'button';
-  if (nomIcone) b.appendChild(icone(nomIcone));
-  b.appendChild(el('span', null, texte));
-  b.addEventListener('click', action);
-  return b;
-}
 
 function construireOnglets(id, actif, estAdmin) {
   const nav = el('nav', 'cl-onglets');
@@ -174,7 +154,7 @@ function construireEtapes(jalons, demandes) {
     const ligne = el('li', 'cl-etapes__ligne');
     const lien = el('a', null, j.reference);
     lien.href = `#/demandes/${j.reference}`;
-    ligne.append(el('span', 'cl-etapes__date', formaterDate(j.date, true)), el('span', null, libelleJalon(j.type)), lien);
+    ligne.append(el('span', 'cl-etapes__date', formaterDate(j.date, { heure: true })), el('span', null, libelleJalon(j.type)), lien);
     liste.appendChild(ligne);
   }
   carte.appendChild(liste);

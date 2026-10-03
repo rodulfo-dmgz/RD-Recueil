@@ -4,12 +4,15 @@ import { listerClientsDetail } from '../../services/clients.js';
 import { creerTache } from '../../services/taches.js';
 import { afficherToast } from '../../components/toast.js';
 import { telechargerCsv } from '../../components/telechargement.js';
+import { afficherSquelette } from '../../components/squelette.js';
+import { construireEtatVide } from '../../components/etat-vide.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
 import { genererCsv } from '../../engine/csv.js';
 import { getProfil } from '../../store.js';
 import { formaterMontant } from '../../engine/finance.js';
 import { STATUTS_CLIENT, filtrerClients, libelleStatutClient } from '../../engine/fiche-client.js';
 import { SEUILS_DORMANT, SEUIL_DORMANT_DEFAUT, clientsDormants, libelleInactivite, preparerRelanceDormant } from '../../engine/dormants.js';
+import { formaterDate } from '../../engine/dates.js';
 
 const COLONNES_CSV = [
   { libelle: 'Raison sociale', valeur: (c) => c.raison_sociale },
@@ -29,10 +32,6 @@ const COLONNES_CSV_FINANCE = [
   { libelle: 'CA signé (HT)', valeur: (c) => c.ca_signe ?? 0 },
   { libelle: 'Pipeline pondéré (HT)', valeur: (c) => c.pipeline_pondere ?? 0 },
 ];
-
-function formaterDate(date) {
-  return date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-}
 
 function ligneClient(c, avecFinance) {
   const ligne = el('tr');
@@ -126,7 +125,7 @@ function construireTableauDormants(clients, avecFinance, profil) {
 export async function vueClients({ dormants = false } = {}) {
   const estAdmin = getProfil()?.role === 'admin';
   const app = document.getElementById('app');
-  app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
+  afficherSquelette(app, 'tableau');
 
   let clients;
   try {
@@ -183,7 +182,11 @@ export async function vueClients({ dormants = false } = {}) {
       visibles = clientsDormants(filtrerClients(clients, { recherche: recherche.value, statut: 'client' }), { mois: Number(seuil.value) });
       compteur.textContent = `${visibles.length} client${visibles.length > 1 ? 's' : ''} dormant${visibles.length > 1 ? 's' : ''} : déjà acheteurs, sans demande en cours et sans activité depuis ${seuil.value} mois ou plus`;
       resultat.innerHTML = '';
-      if (visibles.length === 0) resultat.appendChild(el('p', 'db-vide texte-doux', 'Aucun client dormant avec ce seuil.'));
+      if (visibles.length === 0) {
+        resultat.appendChild(
+          construireEtatVide({ icone: 'moon', titre: 'Aucun client dormant avec ce seuil', texte: 'Tous vos clients ont eu une activité récente, ou n’ont pas encore acheté. Essayez un seuil plus court.' })
+        );
+      }
       else resultat.appendChild(construireTableauDormants(visibles, estAdmin, getProfil()));
       if (window.lucide) window.lucide.createIcons();
       return;
@@ -192,7 +195,24 @@ export async function vueClients({ dormants = false } = {}) {
     compteur.textContent = `${visibles.length} sur ${clients.length} ${clients.length > 1 ? 'clients' : 'client'}`;
     resultat.innerHTML = '';
     if (visibles.length === 0) {
-      resultat.appendChild(el('p', 'db-vide texte-doux', clients.length === 0 ? 'Aucun client pour le moment.' : 'Aucun client ne correspond à cette recherche.'));
+      resultat.appendChild(
+        clients.length === 0
+          ? construireEtatVide({ icone: 'building-2', titre: 'Aucun client pour le moment', texte: 'Créez votre premier client ou prospect pour suivre ses demandes, ses contacts et ses échanges.', action: { libelle: 'Nouveau client ou prospect', href: '#/clients/nouveau' } })
+          : construireEtatVide({
+              icone: 'search-x',
+              titre: 'Aucun client ne correspond',
+              texte: 'Modifiez votre recherche ou le filtre de statut.',
+              action: {
+                libelle: 'Effacer la recherche',
+                onClick: () => {
+                  recherche.value = '';
+                  statut.value = '';
+                  rafraichir();
+                },
+              },
+            })
+      );
+      if (window.lucide) window.lucide.createIcons();
       return;
     }
     resultat.appendChild(construireTableau(visibles, estAdmin));

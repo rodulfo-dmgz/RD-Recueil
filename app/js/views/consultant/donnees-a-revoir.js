@@ -6,36 +6,11 @@ import { listerClientsDetail } from '../../services/clients.js';
 import { listerContactsPourRevue, listerConsentementsExpires } from '../../services/consentements.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
-import { el, icone } from '../../components/dashboard-ui.js';
+import { el, icone, tableau } from '../../components/dashboard-ui.js';
 import { donneesARevoir, libelleTypeConsentement, MOIS_CONSERVATION } from '../../engine/consentements.js';
 import { libelleStatutClient } from '../../engine/fiche-client.js';
 import { libelleInactivite } from '../../engine/dormants.js';
-
-function formaterDate(date) {
-  return date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-}
-
-function tableau(colonnes, lignes) {
-  const t = el('table', 'db-table');
-  const ligneTete = el('tr');
-  colonnes.forEach((c) => ligneTete.appendChild(el('th', null, c)));
-  t.appendChild(el('thead')).appendChild(ligneTete);
-  const corps = el('tbody');
-  for (const cellules of lignes) {
-    const tr = el('tr');
-    for (const cellule of cellules) {
-      const td = el('td');
-      if (cellule instanceof Node) td.appendChild(cellule);
-      else td.textContent = cellule;
-      tr.appendChild(td);
-    }
-    corps.appendChild(tr);
-  }
-  t.appendChild(corps);
-  const defilement = el('div', 'db-table-defilement');
-  defilement.appendChild(t);
-  return defilement;
-}
+import { formaterDate } from '../../engine/dates.js';
 
 function lien(href, texte) {
   const a = el('a', 'cl-nom', texte);

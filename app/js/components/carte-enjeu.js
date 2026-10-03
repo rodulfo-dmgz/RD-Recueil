@@ -4,20 +4,13 @@
 // carte charge ses propres données et se redessine après chaque enregistrement.
 import { obtenirMontantDemande, obtenirEnjeu, enregistrerEnjeu } from '../services/montants.js';
 import { afficherToast } from './toast.js';
-import { el, icone } from './dashboard-ui.js';
+import { el, icone, mini } from './dashboard-ui.js';
 import { champ } from './champs-crm.js';
 import { STATUTS_FINAUX } from '../engine/statuts.js';
 import { etapeCourante } from '../engine/suivi.js';
 import { formaterMontant, libelleSourceMontant, preparerEnjeu, validerEnjeu } from '../engine/finance.js';
 
 const AUTO = { decimales: 'auto' };
-
-function mini(libelle, valeur, detail) {
-  const bloc = el('div', 'db-mini');
-  bloc.append(el('span', 'db-mini__valeur', valeur), el('span', 'db-mini__libelle', libelle));
-  if (detail) bloc.appendChild(el('span', 'db-mini__detail texte-doux', detail));
-  return bloc;
-}
 
 export function construireCarteEnjeu({ demande }) {
   const carte = el('section', 'db-carte');

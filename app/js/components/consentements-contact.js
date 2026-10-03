@@ -7,6 +7,7 @@ import { el } from './dashboard-ui.js';
 import { bouton, champ, champSelect, zoneTexte } from './champs-crm.js';
 import { ouvrirModaleCrm } from './modale-crm.js';
 import { cleJour } from '../engine/jalons.js';
+import { formaterDateCourte as formaterDate } from '../engine/dates.js';
 import {
   SOURCES_CONSENTEMENT,
   STATUTS_CONSENTEMENT,
@@ -17,10 +18,6 @@ import {
   preparerConsentement,
   validerConsentement,
 } from '../engine/consentements.js';
-
-function formaterDate(cle) {
-  return cle ? `${cle.slice(8, 10)}/${cle.slice(5, 7)}/${cle.slice(0, 4)}` : '';
-}
 
 function detailEtat(c, etat) {
   if (!c) return '';

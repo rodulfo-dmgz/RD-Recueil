@@ -5,7 +5,7 @@
 import { listerFinancements, enregistrerFinancement, supprimerFinancement } from '../services/financements.js';
 import { obtenirMontantDemande } from '../services/montants.js';
 import { afficherToast } from './toast.js';
-import { el, icone } from './dashboard-ui.js';
+import { el, icone, mini } from './dashboard-ui.js';
 import { bouton, champ, champSelect, zoneTexte } from './champs-crm.js';
 import { ouvrirModaleCrm } from './modale-crm.js';
 import { formaterMontant } from '../engine/finance.js';
@@ -20,13 +20,6 @@ import {
 } from '../engine/facturation.js';
 
 const AUTO = { decimales: 'auto' };
-
-function mini(libelle, valeur, detail) {
-  const bloc = el('div', 'db-mini');
-  bloc.append(el('span', 'db-mini__valeur', valeur), el('span', 'db-mini__libelle', libelle));
-  if (detail) bloc.appendChild(el('span', 'db-mini__detail texte-doux', detail));
-  return bloc;
-}
 
 function ouvrirModaleFinancement({ financement, onEnregistre, demandeId }) {
   const type = champSelect('type', 'Type *', TYPES_FINANCEMENT, financement?.type ?? 'opco');

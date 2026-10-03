@@ -6,7 +6,7 @@
 import { listerFactures, enregistrerFacture, supprimerFacture } from '../services/factures.js';
 import { obtenirMontantDemande } from '../services/montants.js';
 import { afficherToast } from './toast.js';
-import { el, icone } from './dashboard-ui.js';
+import { el, icone, mini } from './dashboard-ui.js';
 import { bouton, champ } from './champs-crm.js';
 import { ouvrirModaleCrm } from './modale-crm.js';
 import { cleJour } from '../engine/jalons.js';
@@ -14,13 +14,6 @@ import { formaterMontant } from '../engine/finance.js';
 import { LIBELLES_FACTURE, estPayee, formaterDateCourte, preparerFacture, syntheseFacturation, validerFacture } from '../engine/facturation.js';
 
 const AUTO = { decimales: 'auto' };
-
-function mini(libelle, valeur, detail) {
-  const bloc = el('div', 'db-mini');
-  bloc.append(el('span', 'db-mini__valeur', valeur), el('span', 'db-mini__libelle', libelle));
-  if (detail) bloc.appendChild(el('span', 'db-mini__detail texte-doux', detail));
-  return bloc;
-}
 
 function nomFacture(f) {
   return f.numero ? `n° ${f.numero}` : f.libelle || 'sans numéro';
