@@ -160,9 +160,53 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
         <button type="button" class="entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
           <i data-lucide="moon"></i>
         </button>
+        <div class="profil-haut">
+          <button type="button" id="bouton-profil" class="profil-haut__bouton" aria-expanded="false" aria-haspopup="true">
+            <span class="profil-haut__avatar" id="profil-avatar" aria-hidden="true"></span>
+            <span class="profil-haut__nom" id="profil-nom"></span>
+            <i data-lucide="chevron-down" class="profil-haut__chevron"></i>
+          </button>
+          <div id="menu-profil" class="profil-haut__menu" hidden>
+            <div class="profil-haut__id">
+              <span class="profil-haut__avatar" id="profil-avatar-menu" aria-hidden="true"></span>
+              <span class="profil-haut__textes"><strong id="profil-nom-menu"></strong><small id="profil-email-menu"></small></span>
+            </div>
+            <button type="button" id="bouton-profil-deconnexion" class="profil-haut__action"><i data-lucide="log-out"></i><span>Déconnexion</span></button>
+          </div>
+        </div>
       </div>
     </div>
   `;
+}
+
+// Profil dans la barre du haut (nouvelle allure) : identité et déconnexion.
+// La déconnexion réutilise le bouton du menu latéral (même écouteur).
+function initialiserMenuProfil(profil) {
+  const nom = profil.nom || profil.email || '';
+  for (const [id, texte] of [['profil-avatar', initiales(nom)], ['profil-avatar-menu', initiales(nom)], ['profil-nom', nom], ['profil-nom-menu', nom], ['profil-email-menu', profil.email || '']]) {
+    document.getElementById(id).textContent = texte;
+  }
+  const bouton = document.getElementById('bouton-profil');
+  const menu = document.getElementById('menu-profil');
+  const fermer = () => {
+    menu.hidden = true;
+    bouton.setAttribute('aria-expanded', 'false');
+  };
+  bouton.addEventListener('click', (evenement) => {
+    evenement.stopPropagation();
+    menu.hidden = !menu.hidden;
+    bouton.setAttribute('aria-expanded', String(!menu.hidden));
+  });
+  document.addEventListener('click', (evenement) => {
+    if (!menu.hidden && !menu.contains(evenement.target)) fermer();
+  });
+  document.addEventListener('keydown', (evenement) => {
+    if (evenement.key === 'Escape' && !menu.hidden) {
+      fermer();
+      bouton.focus();
+    }
+  });
+  document.getElementById('bouton-profil-deconnexion').addEventListener('click', () => document.getElementById('bouton-deconnexion').click());
 }
 
 // Desktop : replie/déplie le menu (mémorisé). Mobile : ouvre/ferme le tiroir.
@@ -289,6 +333,7 @@ export function rendreEntete(profil) {
 
   initialiserNotifications(profil);
   initialiserBoutonAllure(document.getElementById('bouton-allure'));
+  initialiserMenuProfil(profil);
 
   if (window.lucide) window.lucide.createIcons();
   if (window.gestionnaireTheme) window.gestionnaireTheme.mettreAJourBoutons();

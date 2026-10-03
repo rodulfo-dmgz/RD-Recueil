@@ -966,6 +966,8 @@ Fait (nouvelle allure) : lignes de 33 px en compact ; **défilement horizontal**
 
 Vérifié : 227 tests, `check-coherence` 0 erreur, syntaxe. Non vérifié dans le navigateur (économie de jetons) : défilement et colonnes figées, ligne unique à largeur réduite.
 
+Retours sur l'itération 3 (même jour) : barre de défilement du tableau fine et sans flèches ; les points « ... » après les cases à cocher étaient le texte coupé de la cellule de la case (corrigé) ; menu latéral plus aéré (liens de 40 px, espaces entre blocs agrandis) ; **profil dans la barre du haut** (avatar, nom, menu avec identité, e-mail et déconnexion) à la place du pied du menu latéral, avec la nouvelle allure seulement. Non vérifié dans le navigateur.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
