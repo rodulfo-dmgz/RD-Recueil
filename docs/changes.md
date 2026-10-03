@@ -970,6 +970,8 @@ Retours sur l'itération 3 (même jour) : barre de défilement du tableau fine e
 
 Retour sur l'espacement : le contenu est une **carte inscrite** dans la page (marge de 16 px, bordure fine, coins arrondis de 8 px) au lieu de toucher le menu ; cellules plus aérées (compact : lignes de 37 px au lieu de 33, confortable : 49 px) ; barre de vue plus haute. Non vérifié dans le navigateur.
 
+Retour sur la comparaison avec le modèle fourni (NextAdmin) : **barre du haut et contenu forment une même carte** posée sur le fond gris (marge de 16 px, 8 px sur téléphone, coins arrondis), barre de 64 px ; menu latéral plus ample (marges de 24 px, liens de 42 px à 15 px) ; tableau en 15 px avec cellules de 41 px (compact) et 53 px (confortable) ; barre de vue avec 24 px de marge. Non vérifié dans le navigateur ; la règle `:has()` (coins carrés sous la barre pour les listes) demande un navigateur récent.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

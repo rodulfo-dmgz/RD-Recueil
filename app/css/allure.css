@@ -12,19 +12,19 @@
 
 /* ─── Gris neutres (thème clair) et sobriété ────────────────────────────── */
 :root:not(.dark) body.look-nouveau { --fond: #F8F8F8; --bordure: #EBEBEB; --texte: #333333; --texte-doux: #666666; }
-body.look-nouveau { --rayon: 6px; --ombre: none; --barre-hauteur: 48px; }
+body.look-nouveau { --rayon: 6px; --ombre: none; --barre-hauteur: 64px; --marge-page: 16px; }
 body.look-nouveau .db-carte { border: 1px solid var(--bordure); box-shadow: none; }
 body.look-nouveau .db-btn { min-height: 32px; padding: 0 12px; font-size: 14px; transition: background .1s ease; }
 body.look-nouveau .champ-saisie { min-height: 36px; }
 
 /* ─── Barre du haut fine ────────────────────────────────────────────────── */
 body.look-nouveau .barre-haut { padding: 0 16px 0 8px; gap: 8px; }
-body.look-nouveau .barre-haut__titre { font-family: var(--police-texte); font-size: 14px; font-weight: 600; }
+body.look-nouveau .barre-haut__titre { font-family: var(--police-texte); font-size: 16px; font-weight: 600; }
 body.look-nouveau .barre-haut__menu, body.look-nouveau .barre-haut .entete__theme { width: 36px; height: 36px; }
-body.look-nouveau .recherche-globale__champ { min-height: 34px; }
+body.look-nouveau .recherche-globale__champ { min-height: 40px; }
 
 /* ─── Menu latéral clair, par sections, icônes colorées ─────────────────── */
-body.look-nouveau .menu-lateral { background: var(--fond); color: var(--texte); border-right: 1px solid var(--bordure); padding: 16px 12px; gap: 24px; }
+body.look-nouveau .menu-lateral { background: var(--fond); color: var(--texte); border-right: 1px solid var(--bordure); padding: 24px 16px; gap: 28px; }
 body.look-nouveau .menu-lateral__logo { color: var(--texte); font-size: 14px; padding: 6px 8px; gap: 8px; border-radius: 6px; transition: background .1s ease; }
 body.look-nouveau .menu-lateral__logo:hover { background: var(--bordure); }
 body.look-nouveau .menu-lateral__logo img { width: 24px; height: 24px; }
@@ -34,7 +34,7 @@ body.look-nouveau .menu-lateral__titre { margin: 12px 8px 8px; font-family: var(
 body.look-nouveau .titre-actuel { display: none; }
 body.look-nouveau .titre-nouveau { display: inline; }
 body.look-nouveau .menu-lateral__titre--section { display: block; margin-top: 28px; }
-body.look-nouveau .menu-lateral__lien { min-height: 40px; padding: 0 8px; gap: 10px; border-radius: 6px; color: var(--texte); font-size: 14px; transition: background .1s ease; }
+body.look-nouveau .menu-lateral__lien { min-height: 42px; padding: 0 12px; gap: 12px; border-radius: 8px; color: var(--texte); font-size: 15px; transition: background .1s ease; }
 body.look-nouveau .menu-lateral__lien svg { width: 16px; height: 16px; stroke: var(--texte-doux); stroke-width: 1.6; }
 body.look-nouveau .menu-lateral__lien:hover,
 body.look-nouveau .menu-lateral__lien:focus-visible { background: var(--bordure); }
@@ -59,14 +59,13 @@ body.look-nouveau .menu-lateral__deconnexion:hover { background: var(--bordure);
 
 /* ─── Page de liste plein cadre : en-tête fin, barre de vue, tableau ────── */
 /* Une seule ligne : barre de vue à gauche, actions à droite (l'en-tête « disparaît », ses actions rejoignent la barre de vue). */
-body.look-nouveau .db.page-liste { display: flex; flex-flow: row wrap; align-items: stretch; min-width: 0; max-width: none; margin: 16px; padding: 0; gap: 0; overflow: hidden; border: 1px solid var(--bordure); border-radius: 8px; background: var(--surface); }
-@media (max-width: 640px) { body.look-nouveau .db.page-liste { margin: 8px; } }
+body.look-nouveau .db.page-liste { display: flex; flex-flow: row wrap; align-items: stretch; min-width: 0; max-width: none; margin: 0; padding: 0; gap: 0; overflow: hidden; border: 1px solid var(--bordure); border-top: none; border-radius: 0 0 8px 8px; background: var(--surface); }
 body.look-nouveau .page-liste .cl-entete { display: contents; }
 body.look-nouveau .page-liste .cl-entete h1 { display: none; }
-body.look-nouveau .page-liste .cl-entete__actions { order: 2; flex: 0 0 auto; align-items: center; gap: 8px; padding: 10px 16px 10px 0; border-bottom: 1px solid var(--bordure); background: var(--surface); }
+body.look-nouveau .page-liste .cl-entete__actions { order: 2; flex: 0 0 auto; align-items: center; gap: 8px; padding: 16px 24px 16px 0; border-bottom: 1px solid var(--bordure); background: var(--surface); }
 body.look-nouveau .page-liste .cl-entete .db-btn--discret { border-color: transparent; background: transparent; }
 body.look-nouveau .page-liste .cl-entete .db-btn--discret:hover { background: var(--fond); }
-body.look-nouveau .page-liste .cl-filtres { order: 1; flex: 1 1 0; min-width: 0; flex-wrap: nowrap; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--bordure); background: var(--surface); }
+body.look-nouveau .page-liste .cl-filtres { order: 1; flex: 1 1 0; min-width: 0; flex-wrap: nowrap; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--bordure); background: var(--surface); }
 body.look-nouveau .page-liste .db-carte { order: 3; flex: 1 0 100%; min-width: 0; }
 @media (max-width: 900px) { body.look-nouveau .page-liste .cl-filtres { flex-basis: 100%; flex-wrap: wrap; } body.look-nouveau .page-liste .cl-entete__actions { padding-left: 16px; } }
 body.look-nouveau .cl-vue-icone { display: inline-flex; color: var(--texte-doux); }
@@ -84,10 +83,10 @@ body.look-nouveau .page-liste .cl-compteur { display: none; }
 
 /* Tableau : quadrillage fin, en-têtes avec icône, cases, totaux */
 /* Largeurs fixes (variable --w posée par le tableau) : le tableau défile à l'horizontale, case et entreprise restent figées à gauche. */
-body.look-nouveau .db-table--dense { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+body.look-nouveau .db-table--dense { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 15px; }
 body.look-nouveau .db-table--dense th { width: var(--w, auto); }
 body.look-nouveau .db-table--dense th,
-body.look-nouveau .db-table--dense td { padding: 6px 12px; line-height: 24px; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--bordure); border-bottom: 1px solid var(--bordure); }
+body.look-nouveau .db-table--dense td { padding: 8px 14px; line-height: 24px; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--bordure); border-bottom: 1px solid var(--bordure); }
 body.look-nouveau .vide { visibility: hidden; }
 body.look-nouveau .db-table--dense .col-selection,
 body.look-nouveau .db-table--dense .col-nom { position: sticky; z-index: 2; background: var(--surface); }
@@ -115,7 +114,7 @@ body.look-nouveau .db-table--dense tfoot { display: table-footer-group; }
 body.look-nouveau .db-table--dense tfoot td { background: var(--surface); border-bottom: none; color: var(--texte-doux); font-size: 13px; }
 body.look-nouveau .db-table--dense tfoot .total-libelle { font-weight: 600; }
 body.look-nouveau .tableau-confortable .db-table--dense th,
-body.look-nouveau .tableau-confortable .db-table--dense td { padding: 12px 12px; }
+body.look-nouveau .tableau-confortable .db-table--dense td { padding: 14px 14px; }
 .cl-case-tableau { width: 16px; height: 16px; margin: 0; vertical-align: middle; accent-color: var(--rd-bleu); cursor: pointer; }
 
 /* Bouton d'aperçu : discret, visible au survol de la ligne ou au clavier. */
@@ -202,3 +201,14 @@ body.look-nouveau .menu-lateral__pied { display: none; }
 .profil-haut__action:hover, .profil-haut__action:focus-visible { background: var(--fond); }
 .profil-haut__action svg { width: 16px; height: 16px; stroke: var(--texte-doux); }
 @media (max-width: 640px) { .profil-haut__nom, .profil-haut__chevron { display: none; } .profil-haut__menu { position: fixed; top: 56px; right: 8px; width: min(280px, calc(100vw - 16px)); } }
+
+/* Barre du haut et contenu forment une même carte posée sur le fond gris (marges de 16 px) */
+body.look-nouveau.layout-lateral #app { margin-left: calc(var(--menu-largeur) + var(--marge-page)); margin-right: var(--marge-page); margin-bottom: var(--marge-page); padding-top: calc(var(--barre-hauteur) + var(--marge-page)); }
+body.look-nouveau .barre-haut { top: var(--marge-page); left: calc(var(--menu-largeur) + var(--marge-page)); right: var(--marge-page); padding: 0 24px; gap: 12px; border: 1px solid var(--bordure); border-radius: 8px; background: var(--surface); box-shadow: 0 calc(-1 * var(--marge-page)) 0 var(--fond); }
+body.look-nouveau:has(.page-liste) .barre-haut { border-radius: 8px 8px 0 0; }
+body.look-nouveau.menu-replie.layout-lateral #app { margin-left: var(--marge-page); }
+body.look-nouveau.menu-replie .barre-haut { left: var(--marge-page); }
+@media (max-width: 900px) {
+  body.look-nouveau.layout-lateral #app, body.look-nouveau.menu-replie.layout-lateral #app { margin-left: 8px; margin-right: 8px; }
+  body.look-nouveau .barre-haut, body.look-nouveau.menu-replie .barre-haut { left: 8px; right: 8px; padding: 0 12px; }
+}
