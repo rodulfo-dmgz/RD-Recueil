@@ -968,6 +968,8 @@ Vérifié : 227 tests, `check-coherence` 0 erreur, syntaxe. Non vérifié dans l
 
 Retours sur l'itération 3 (même jour) : barre de défilement du tableau fine et sans flèches ; les points « ... » après les cases à cocher étaient le texte coupé de la cellule de la case (corrigé) ; menu latéral plus aéré (liens de 40 px, espaces entre blocs agrandis) ; **profil dans la barre du haut** (avatar, nom, menu avec identité, e-mail et déconnexion) à la place du pied du menu latéral, avec la nouvelle allure seulement. Non vérifié dans le navigateur.
 
+Retour sur l'espacement : le contenu est une **carte inscrite** dans la page (marge de 16 px, bordure fine, coins arrondis de 8 px) au lieu de toucher le menu ; cellules plus aérées (compact : lignes de 37 px au lieu de 33, confortable : 49 px) ; barre de vue plus haute. Non vérifié dans le navigateur.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
