@@ -249,3 +249,10 @@ body.look-nouveau .cl-statut--cloture { background: color-mix(in srgb, var(--tex
 .palette__item--actif { background: var(--fond); box-shadow: inset 3px 0 0 var(--rd-bleu); }
 .palette__message { margin: 0; padding: 12px; font-size: 14px; }
 .palette__pied { margin: 0; padding: 8px 20px; border-top: 1px solid var(--bordure); font-size: 12px; }
+
+/* Fil d'Ariane de la barre du haut (dans les deux allures) */
+.fil-ariane__liste { display: flex; align-items: center; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.fil-ariane__liste li { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fil-ariane__liste li + li::before { content: '/'; margin: 0 8px; color: var(--texte-doux); font-weight: 400; }
+.fil-ariane__liste a { color: var(--texte-doux); font-weight: 500; text-decoration: none; }
+.fil-ariane__liste a:hover, .fil-ariane__liste a:focus-visible { color: var(--texte); text-decoration: underline; }

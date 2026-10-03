@@ -21,6 +21,7 @@ import { construireListeReclamations } from '../../components/liste-reclamations
 import { construireOngletActivite } from './client-activite.js';
 import { construireOngletDemandes, construireOngletDocuments } from './client-demandes.js';
 import { el, icone, lienBouton, mini } from '../../components/dashboard-ui.js';
+import { definirNomClientFil } from '../../components/entete.js';
 import { libelleJalon } from '../../engine/jalons.js';
 import { formaterMontant } from '../../engine/finance.js';
 import {
@@ -179,6 +180,8 @@ export async function vueClientFiche(id, onglet = 'apercu') {
     app.innerHTML = '<main class="conteneur"><h1>Client introuvable</h1><p class="texte-doux">Il n’existe pas, ou il n’est pas rattaché à votre compte.</p><p><a href="#/clients">Retour aux clients</a></p></main>';
     return;
   }
+
+  definirNomClientFil(id, client.raison_sociale);
 
   // Éléments secondaires : leur échec n'empêche pas d'afficher la fiche.
   const [jalons, importation] = await Promise.all([listerJalons().catch(() => []), lireImportDisponible(id).catch(() => null)]);

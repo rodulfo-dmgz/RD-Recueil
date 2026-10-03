@@ -222,7 +222,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 - [x] 1 bis. Prototype d'allure sur la liste des clients (tableau compact, pastilles, menu clair, tiroir) : fait, **à valider par l'utilisateur** avant de généraliser
 - [x] 2. Composant tableau (tri, colonnes, sélection) : clients, demandes et comptes migrés ; pagination non faite (volumes faibles)
 - [x] 3. Menu de commandes `Ctrl+K`
-- [ ] 4. Fil d'Ariane et création rapide dans l'en-tête
+- [x] 4. Fil d'Ariane et création rapide dans l'en-tête
 - [ ] 5. Panneau latéral (aperçu d'un client depuis la liste)
 - [ ] 6. Filtres avancés et vues enregistrées (nouvelle table par utilisateur, avec RLS)
 - [ ] 7. Kanban des demandes
@@ -996,6 +996,13 @@ Fait : **Ctrl+K** (ou Cmd+K) ouvre une fenêtre de commandes pour le personnel (
 - `engine/commandes.js` (filtrage pur, +3 tests), `components/palette-commandes.js`, branché dans `entete.js` ; le champ de recherche du haut annonce le raccourci. Le menu est le même avec les deux allures.
 
 Vérifié : 234 tests, `check-coherence` 0 erreur ; page de test avec données simulées (supprimée) : ouverture au clavier, liste complète, filtres « creer » et « acc », chargement puis résultats, flèches, Entrée (navigation, fermeture, retour du focus), action de thème, Échap, bascule par Ctrl+K, message sans résultat, aucune erreur console ; dimensions du panneau (640 px centré, lignes de 40 px). Non vérifié : le rendu en capture d'écran (elle a expiré), les vraies données et le vrai en-tête.
+
+### 2026-10-03 : refonte, phase 4 (fil d'Ariane)
+
+Fait : la barre du haut affiche un **fil d'Ariane** à la place du titre seul, dans les deux allures : « Clients / ACCENTEUR / Contacts », « Demandes / FOR-2026-001 / Note de cadrage », « Mes demandes / FOR-1 / Récapitulatif » côté client. Les pages parentes sont cliquables, la page courante est en gras (`aria-current="page"`). Le nom du client apparaît dès que la fiche est chargée (« Fiche client » en attendant). Les pages sans parent gardent leur titre. Sur téléphone, comme avant, le titre de la barre reste masqué (la page a son propre lien de retour).
+- `engine/fil-ariane.js` (pur, +4 tests), `entete.js` (rendu et `definirNomClientFil`), `client-fiche.js` (fournit le nom), styles dans `css/allure.css`.
+
+Vérifié : 238 tests, `check-coherence` 0 erreur, syntaxe. Non vérifié dans le navigateur : le rendu du fil dans la vraie barre du haut et la mise à jour du nom du client (le calcul des segments est testé, pas l'affichage). Une erreur de syntaxe dans une expression régulière a été trouvée et corrigée avant le commit.
 
 ## 5. Points ouverts
 

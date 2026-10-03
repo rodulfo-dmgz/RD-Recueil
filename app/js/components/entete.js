@@ -9,6 +9,7 @@ import { echapperHtml } from '../engine/formatage.js';
 import { monterRechercheGlobale } from './recherche-globale.js';
 import { initialiserBoutonAllure } from './allure.js';
 import { configurerPalette } from './palette-commandes.js';
+import { filAriane } from '../engine/fil-ariane.js';
 
 const LIENS_CLIENT = [
   { href: '#/accueil', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
@@ -91,6 +92,40 @@ const TITRES_PAGE = [
   ['#/d/', 'Ma demande'],
 ];
 
+// Nom du client de la fiche ouverte : fourni par la page une fois chargé (voir definirNomClientFil).
+let nomClientFil = null;
+
+// Fil d'Ariane de la barre du haut : pages parentes cliquables, page courante en gras.
+function rendreFil() {
+  const nav = document.getElementById('fil-ariane');
+  if (!nav) return;
+  const hash = location.hash || '#/';
+  const correspondance = hash.match(/^#\/clients\/([^/?]+)/);
+  const nomClient = correspondance && nomClientFil?.id === decodeURIComponent(correspondance[1]) ? nomClientFil.nom : null;
+  const liste = document.createElement('ol');
+  liste.className = 'fil-ariane__liste';
+  for (const segment of filAriane(hash, { nomClient, titreRepli: titrePage() })) {
+    const li = document.createElement('li');
+    if (segment.href) {
+      const lien = document.createElement('a');
+      lien.href = segment.href;
+      lien.textContent = segment.libelle;
+      li.appendChild(lien);
+    } else {
+      li.textContent = segment.libelle;
+      li.setAttribute('aria-current', 'page');
+    }
+    liste.appendChild(li);
+  }
+  nav.replaceChildren(liste);
+}
+
+// Appelé par la fiche client quand son nom est connu : le fil affiche le nom au lieu de « Fiche client ».
+export function definirNomClientFil(id, nom) {
+  nomClientFil = { id, nom };
+  rendreFil();
+}
+
 function titrePage() {
   const hash = location.hash || '#/';
   return TITRES_PAGE.find(([prefixe]) => hash.startsWith(prefixe))?.[1] ?? 'RD Recueil';
@@ -139,7 +174,7 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
         <i data-lucide="panel-left-close" class="barre-haut__ico-fermer"></i>
         <i data-lucide="panel-left-open" class="barre-haut__ico-ouvrir"></i>
       </button>
-      <span class="barre-haut__titre">${titrePage()}</span>
+      <nav class="barre-haut__titre fil-ariane" id="fil-ariane" aria-label="Fil d’Ariane"></nav>
       ${avecRecherche ? '<div id="recherche-globale"></div>' : ''}
       <div class="barre-haut__outils">
         <div class="entete__notifications">
@@ -335,6 +370,7 @@ export function rendreEntete(profil) {
   initialiserNotifications(profil);
   initialiserBoutonAllure(document.getElementById('bouton-allure'));
   initialiserMenuProfil(profil);
+  rendreFil();
   // Menu de commandes (Ctrl+K) : réservé au personnel, comme la recherche de la barre du haut.
   const cliquer = (selecteur) => () => document.querySelector(selecteur)?.click();
   configurerPalette(
