@@ -6,6 +6,8 @@ import { afficherToast } from '../../components/toast.js';
 import { telechargerCsv } from '../../components/telechargement.js';
 import { afficherSquelette } from '../../components/squelette.js';
 import { construireEtatVide } from '../../components/etat-vide.js';
+import { ouvrirApercuClient, pastillePersonne } from '../../components/apercu-client.js';
+import { basculerDensite, densiteConfortable } from '../../components/allure.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
 import { genererCsv } from '../../engine/csv.js';
 import { getProfil } from '../../store.js';
@@ -39,13 +41,35 @@ function ligneClient(c, avecFinance) {
   const nom = el('td');
   const lien = el('a', 'cl-nom', c.raison_sociale);
   lien.href = `#/clients/${c.id}`;
-  nom.appendChild(lien);
-  if (c.nom_commercial) nom.appendChild(el('small', 'cl-sous-nom', c.nom_commercial));
+  const blocNom = el('div');
+  blocNom.appendChild(lien);
+  if (c.nom_commercial) blocNom.appendChild(el('small', 'cl-sous-nom', c.nom_commercial));
+  const ligneNom = el('div', 'cl-nom-ligne');
+  ligneNom.appendChild(blocNom);
+  nom.appendChild(ligneNom);
+  // Aperçu dans le tiroir : bouton accessible au clavier, et clic sur la ligne à la souris.
+  const apercu = el('button', 'cl-apercu');
+  apercu.type = 'button';
+  apercu.setAttribute('aria-label', `Aperçu de ${c.raison_sociale}`);
+  apercu.appendChild(icone('panel-right-open'));
+  apercu.addEventListener('click', (evenement) => {
+    evenement.stopPropagation();
+    ouvrirApercuClient(c, { avecFinance });
+  });
+  ligneNom.appendChild(apercu);
+  ligne.addEventListener('click', (evenement) => {
+    // Clic sur la ligne : seulement avec la nouvelle allure (l'allure actuelle reste inchangée).
+    if (document.body.classList.contains('look-nouveau') && !evenement.target.closest('a, button')) ouvrirApercuClient(c, { avecFinance });
+  });
 
   const statut = el('td');
   const pastille = el('span', `cl-statut cl-statut--${c.statut}`);
   pastille.append(el('span', 'cl-statut__point'), libelleStatutClient(c.statut));
   statut.appendChild(pastille);
+
+  const contact = el('td');
+  if (c.contact_principal) contact.appendChild(pastillePersonne(c.contact_principal));
+  else contact.textContent = '-';
 
   const demandes = c.nb_demandes === 0 ? '-' : `${c.nb_demandes}${c.nb_actives > 0 ? ` (${c.nb_actives} en cours)` : ''}`;
   ligne.append(
@@ -53,7 +77,7 @@ function ligneClient(c, avecFinance) {
     el('td', null, c.siret || '-'),
     statut,
     el('td', null, c.ville || '-'),
-    el('td', null, c.contact_principal || '-'),
+    contact,
     el('td', null, demandes),
     el('td', null, c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : '-'),
     el('td', null, formaterDate(c.derniere_activite))
@@ -63,7 +87,7 @@ function ligneClient(c, avecFinance) {
 }
 
 function construireTableau(clients, avecFinance) {
-  const tableau = el('table', 'db-table');
+  const tableau = el('table', 'db-table db-table--dense');
   const tete = el('thead');
   const ligneTete = el('tr');
   for (const t of ['Entreprise', 'SIRET', 'Statut', 'Ville', 'Contact principal', 'Demandes', 'Tâches', ...(avecFinance ? ['CA signé'] : []), 'Dernière activité']) {
@@ -165,7 +189,13 @@ export async function vueClients({ dormants = false } = {}) {
   const seuil = el('select', 'champ-saisie cl-statut-filtre');
   seuil.setAttribute('aria-label', 'Sans activité depuis');
   seuil.innerHTML = SEUILS_DORMANT.map((m) => `<option value="${m}"${m === SEUIL_DORMANT_DEFAUT ? ' selected' : ''}>Sans activité depuis ${m} mois</option>`).join('');
-  filtres.append(recherche, statut, seuil);
+  // Densité des tableaux (visible seulement avec la nouvelle allure).
+  const densite = el('button', 'db-btn db-btn--discret cl-densite');
+  densite.type = 'button';
+  densite.appendChild(icone('rows-3'));
+  const libelleDensite = el('span');
+  densite.appendChild(libelleDensite);
+  filtres.append(recherche, statut, seuil, densite);
   main.appendChild(filtres);
 
   const carte = el('section', 'db-carte');
@@ -173,6 +203,17 @@ export async function vueClients({ dormants = false } = {}) {
   const resultat = el('div');
   carte.append(compteur, resultat);
   main.appendChild(carte);
+
+  function majDensite() {
+    resultat.classList.toggle('tableau-confortable', densiteConfortable());
+    libelleDensite.textContent = densiteConfortable() ? 'Confortable' : 'Compacte';
+    densite.setAttribute('aria-label', `Densité du tableau : ${libelleDensite.textContent.toLowerCase()}. Changer.`);
+  }
+  densite.addEventListener('click', () => {
+    basculerDensite();
+    majDensite();
+  });
+  majDensite();
 
   let visibles = [];
   function rafraichir() {

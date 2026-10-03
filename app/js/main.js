@@ -2,6 +2,7 @@ import { route, notFound, navigate, startRouter } from './router.js';
 import { obtenirSession, obtenirProfil, surChangementAuth } from './auth.js';
 import { getProfil, setProfil } from './store.js';
 import { rendreEntete, viderEntete } from './components/entete.js';
+import { appliquerAllure } from './components/allure.js';
 import { vueConnexion } from './views/client/connexion.js';
 import { vueChangerMotDePasse } from './views/client/changer-mot-de-passe.js';
 import { vueMesDemandes } from './views/client/mes-demandes.js';
@@ -75,6 +76,9 @@ async function garantirStaff() {
   }
   return profil;
 }
+
+// Allure choisie par l'utilisateur (prototype de la refonte), avant tout affichage.
+appliquerAllure();
 
 route('/connexion', async () => {
   const profil = await garantirProfil();

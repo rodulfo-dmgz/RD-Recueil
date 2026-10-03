@@ -18,6 +18,12 @@ export function normaliserMots(valeur) {
     .trim();
 }
 
+// "Marie Dupont" -> "MD" (première lettre du premier et du dernier mot).
+export function initiales(nom) {
+  const mots = String(nom ?? '').trim().split(/\s+/).filter(Boolean);
+  return ((mots[0]?.[0] ?? '') + (mots.length > 1 ? mots.at(-1)[0] : '')).toUpperCase();
+}
+
 // Chiffres seuls d'un numéro de téléphone ou d'un SIRET.
 export function chiffres(valeur) {
   return String(valeur ?? '').replace(/\D/g, '');

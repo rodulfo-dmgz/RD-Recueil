@@ -1,0 +1,88 @@
+/* Nouvelle allure (prototype de la refonte, inspirée de Twenty).
+   Tout est préfixé par `body.look-nouveau` : sans cette classe, l'interface reste
+   exactement celle d'avant. Identité RD conservée (couleurs, polices). */
+
+/* ─── Éléments du prototype, masqués avec l'allure actuelle ─────────────── */
+.cl-apercu, .cl-densite, .chip__avatar { display: none; }
+
+/* ─── Sobriété : petits arrondis, pas d'ombres ──────────────────────────── */
+body.look-nouveau { --rayon: 8px; --ombre: none; }
+body.look-nouveau .db-carte { border: 1px solid var(--bordure); box-shadow: none; }
+body.look-nouveau .db-btn { min-height: 36px; font-size: 14px; }
+body.look-nouveau .champ-saisie { min-height: 36px; }
+
+/* ─── Menu latéral clair et neutre, accents bleu RD ─────────────────────── */
+body.look-nouveau .menu-lateral { background: var(--fond); color: var(--texte); border-right: 1px solid var(--bordure); padding: 16px 10px; gap: 16px; }
+body.look-nouveau .menu-lateral__logo { color: var(--texte); font-size: 16px; }
+body.look-nouveau .menu-lateral__logo img { width: 32px; height: 32px; }
+body.look-nouveau .menu-lateral__titre { color: var(--texte-doux); }
+body.look-nouveau .menu-lateral__lien { min-height: 36px; padding: 0 10px; gap: 10px; border-radius: 6px; color: var(--texte); font-size: 14px; }
+body.look-nouveau .menu-lateral__lien svg { stroke: var(--texte-doux); }
+body.look-nouveau .menu-lateral__lien:hover,
+body.look-nouveau .menu-lateral__lien:focus-visible { background: var(--bordure); }
+body.look-nouveau .menu-lateral__lien--actif { background: var(--surface); color: var(--bleu-texte); font-weight: 600; box-shadow: 0 0 0 1px var(--bordure); }
+body.look-nouveau .menu-lateral__lien--actif svg { stroke: var(--bleu-texte); }
+body.look-nouveau .menu-lateral__apercu,
+body.look-nouveau .menu-lateral__pied { border-top-color: var(--bordure); }
+body.look-nouveau .menu-lateral__apercu .entete__apercu { color: var(--texte-doux); }
+body.look-nouveau .menu-lateral__identite small { color: var(--texte-doux); }
+body.look-nouveau .menu-lateral__retour,
+body.look-nouveau .menu-lateral__deconnexion { border-color: var(--bordure); color: var(--texte); }
+body.look-nouveau .menu-lateral__retour:hover,
+body.look-nouveau .menu-lateral__deconnexion:hover { background: var(--bordure); }
+
+/* ─── Tableaux denses (liste des clients) ───────────────────────────────── */
+body.look-nouveau .db-table--dense { font-size: 14px; }
+body.look-nouveau .db-table--dense th,
+body.look-nouveau .db-table--dense td { padding: 5px 12px; line-height: 24px; }
+body.look-nouveau .db-table--dense .chip,
+body.look-nouveau .db-table--dense .cl-statut { vertical-align: middle; }
+body.look-nouveau .db-table--dense th { position: sticky; top: 0; background: var(--surface); font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--texte-doux); }
+body.look-nouveau .db-table--dense tbody tr { cursor: pointer; }
+body.look-nouveau .db-table--dense tbody tr:hover { background: var(--fond); }
+body.look-nouveau .tableau-confortable .db-table--dense th,
+body.look-nouveau .tableau-confortable .db-table--dense td { padding: 12px 12px; }
+body.look-nouveau .cl-densite { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Bouton d'aperçu : discret, visible au survol de la ligne ou au clavier. */
+body.look-nouveau .cl-nom-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+body.look-nouveau .cl-apercu { display: inline-grid; place-items: center; flex-shrink: 0; width: 24px; height: 24px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--texte-doux); cursor: pointer; opacity: 0; }
+body.look-nouveau .cl-apercu svg { width: 14px; height: 14px; }
+/* Une seule ligne par client : nom commercial à côté du nom. */
+body.look-nouveau .cl-nom-ligne > div { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+body.look-nouveau .cl-nom-ligne .cl-nom, body.look-nouveau .cl-nom-ligne .cl-sous-nom { display: inline; }
+body.look-nouveau tr:hover .cl-apercu,
+body.look-nouveau .cl-apercu:focus-visible { opacity: 1; border-color: var(--bordure); background: var(--surface); }
+@media (hover: none) { body.look-nouveau .cl-apercu { opacity: 1; } }
+
+/* ─── Pastilles : statut et personne ────────────────────────────────────── */
+body.look-nouveau .cl-statut { padding: 1px 8px; border: none; border-radius: 4px; background: color-mix(in srgb, var(--texte-doux) 16%, transparent); font-weight: 500; }
+body.look-nouveau .cl-statut--client { background: color-mix(in srgb, var(--rd-turquoise) 18%, transparent); }
+body.look-nouveau .cl-statut--prospect { background: color-mix(in srgb, var(--rd-orange) 18%, transparent); }
+body.look-nouveau .chip { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px 1px 3px; border: 1px solid var(--bordure); border-radius: 999px; background: var(--surface); font-size: 13px; line-height: 20px; }
+body.look-nouveau .chip__avatar { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--rd-turquoise); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0; }
+body.look-nouveau .cl-nom { font-weight: 600; }
+
+/* ─── Tiroir latéral (actif dans les deux allures) ──────────────────────── */
+.tiroir-fond { position: fixed; inset: 0; z-index: 60; background: rgba(15, 23, 42, .25); }
+.tiroir { position: fixed; top: 0; right: 0; bottom: 0; z-index: 61; display: flex; flex-direction: column; width: min(440px, 100vw); background: var(--surface); color: var(--texte); border-left: 1px solid var(--bordure); box-shadow: -8px 0 32px rgba(15, 23, 42, .18); outline: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .tiroir { animation: tiroir-entree .18s ease-out; }
+  .tiroir-fond { animation: tiroir-fond .18s ease-out; }
+}
+@keyframes tiroir-entree { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes tiroir-fond { from { opacity: 0; } to { opacity: 1; } }
+.tiroir__entete { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 20px 12px; border-bottom: 1px solid var(--bordure); }
+.tiroir__textes { min-width: 0; }
+.tiroir__titre { margin: 0; font-family: var(--police-titre); font-size: 20px; overflow-wrap: anywhere; }
+.tiroir__sous-titre { margin: 2px 0 0; font-size: 13px; }
+.tiroir__fermer { flex-shrink: 0; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--texte-doux); cursor: pointer; }
+.tiroir__fermer:hover, .tiroir__fermer:focus-visible { background: var(--fond); border-color: var(--bordure); }
+.tiroir__corps { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.tiroir__pied { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--bordure); }
+.tiroir-fiche { margin: 0; display: flex; flex-direction: column; }
+.tiroir-fiche__ligne { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--bordure); font-size: 14px; }
+.tiroir-fiche__ligne:last-child { border-bottom: none; }
+.tiroir-fiche dt { color: var(--texte-doux); }
+.tiroir-fiche dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .tiroir { width: 100vw; border-left: none; } .tiroir-fiche__ligne { grid-template-columns: 110px minmax(0, 1fr); } }

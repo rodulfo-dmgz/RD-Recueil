@@ -7,6 +7,7 @@ import { listerNotifications, compterNonLues, marquerLue, marquerToutesLues } fr
 import { listerClientsApercu } from '../services/comptes.js';
 import { echapperHtml } from '../engine/formatage.js';
 import { monterRechercheGlobale } from './recherche-globale.js';
+import { initialiserBoutonAllure } from './allure.js';
 
 const LIENS_CLIENT = [
   { href: '#/accueil', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
@@ -144,6 +145,9 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
             <div id="liste-notifications" class="panneau-notifications__liste"></div>
           </div>
         </div>
+        <button type="button" id="bouton-allure" class="entete__theme" aria-pressed="false" aria-label="Essayer la nouvelle allure (prototype)" title="Nouvelle allure (prototype)">
+          <i data-lucide="sparkles"></i>
+        </button>
         <button type="button" class="entete__theme" data-theme-toggle aria-label="Basculer entre mode clair et mode sombre" aria-pressed="false">
           <i data-lucide="moon"></i>
         </button>
@@ -275,6 +279,7 @@ export function rendreEntete(profil) {
   }
 
   initialiserNotifications(profil);
+  initialiserBoutonAllure(document.getElementById('bouton-allure'));
 
   if (window.lucide) window.lucide.createIcons();
   if (window.gestionnaireTheme) window.gestionnaireTheme.mettreAJourBoutons();

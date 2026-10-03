@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { chiffres, normaliserMots, normaliserTexte } from '../app/js/engine/texte.js';
+import { chiffres, initiales, normaliserMots, normaliserTexte } from '../app/js/engine/texte.js';
 import { cleCouple, detecterDoublons, jetonsNom, nomsProches, planifierFusion } from '../app/js/engine/doublons.js';
 
 const client = (id, raison_sociale, extra = {}) => ({ id, raison_sociale, statut: 'client', ville: null, code_postal: null, ...extra });
@@ -11,6 +11,15 @@ test('texte : accents, casse, ponctuation, chiffres', () => {
   assert.equal(normaliserMots('Sté ABC-Formation (SAS)'), 'ste abc formation sas');
   assert.equal(chiffres('01 02.03-04'), '01020304');
   assert.equal(normaliserTexte(null), '');
+});
+
+test('initiales : premier et dernier mot, vide si pas de nom', () => {
+  assert.equal(initiales('Marie Dupont'), 'MD');
+  assert.equal(initiales('Lucie Martin-Bernard'), 'LM');
+  assert.equal(initiales('Anatol'), 'A');
+  assert.equal(initiales('  jean  de la fontaine '), 'JF');
+  assert.equal(initiales(''), '');
+  assert.equal(initiales(null), '');
 });
 
 test('jetonsNom : formes juridiques et mots de liaison ignorés, triés, sans doublon', () => {

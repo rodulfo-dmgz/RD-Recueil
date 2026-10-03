@@ -219,7 +219,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 
 ### Phases
 - [x] 1. Socle commun, sans changement visuel
-- [ ] 1 bis. Prototype d'allure sur la liste des clients (tableau compact, pastilles, menu clair), à valider
+- [x] 1 bis. Prototype d'allure sur la liste des clients (tableau compact, pastilles, menu clair, tiroir) : fait, **à valider par l'utilisateur** avant de généraliser
 - [ ] 2. Composant tableau (tri, pagination, colonnes, sélection)
 - [ ] 3. Menu de commandes `Ctrl+K`
 - [ ] 4. Fil d'Ariane et création rapide dans l'en-tête
@@ -928,6 +928,22 @@ Fait :
 - **Lucide figé** à la version 1.50.0 (`index.html`) au lieu de `latest` : le fichier est identique à celui servi jusque-là, donc aucun changement visible, mais une mise à jour de la bibliothèque ne peut plus changer ou retirer des icônes sans prévenir.
 
 Vérifié : `node --test tests/*.test.mjs` 226 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : squelette affiché pendant le chargement (7 lignes, état occupé, texte pour lecteurs d'écran, animation active) puis remplacé par le tableau ; états vides (aucun résultat avec bouton qui efface la recherche, aucun dormant, aucun client avec lien de création) et icône rendue ; `crm.css` et `etats.css` bien chargés dans l'ordre ; `mini` partagé produit la même structure. Non vérifié : les autres écrans qui utilisent les fonctions mutualisées n'ont pas été rechargés un par un dans le navigateur (syntaxe vérifiée partout, noms utilisés tous importés ou définis) ; rendu en thème sombre non vérifié ; pas de comparaison de captures avant et après sur tous les écrans.
+
+### 2026-10-03 : refonte de l'interface, phase 1 bis (prototype d'allure)
+
+Principe : l'allure se **teste et se désactive d'un clic** pour comparer. Un bouton « étincelles » dans la barre du haut (à côté du thème) bascule entre l'allure actuelle et la nouvelle ; le choix est mémorisé dans le navigateur. Tous les styles de la nouvelle allure sont dans `css/allure.css`, préfixés par `body.look-nouveau` : sans cette classe, rien ne change (le clic sur une ligne, le bouton d'aperçu, la pastille d'initiales et le bouton de densité sont même masqués ou inactifs).
+
+Fait :
+- `components/allure.js` (nouveau) : allure actuelle ou nouvelle, densité compacte ou confortable, mémorisées ; branché dans `entete.js` (bouton) et `main.js` (application au démarrage).
+- **Sobriété** (nouvelle allure) : arrondis de 8 px, plus d'ombres, cartes à bordure fine, boutons et champs de 36 px.
+- **Menu latéral clair et neutre** : fond gris très clair, texte sombre, rubrique active en blanc à bordure fine avec icône et texte bleu RD ; fonctionne en thème sombre (mêmes variables).
+- **Liste des clients** : tableau compact (texte de 14 px, lignes d'environ 38 px, en-têtes discrets en petit gris non capitalisés, survol de ligne), une seule ligne par client (nom commercial à côté du nom), pastilles de statut teintées (client turquoise, prospect orange) et pastille de personne avec initiales pour le contact principal ; bouton « Compacte / Confortable » dans la barre de filtres (lignes d'environ 52 px en confortable).
+- **Tiroir latéral** (`components/tiroir.js`, `components/apercu-client.js`, nouveaux) : un clic sur une ligne (ou le bouton d'aperçu au clavier) ouvre un panneau à droite avec l'essentiel du client (statut, SIRET, ville, contact principal, demandes, tâches ouvertes, dernière activité, CA signé pour l'admin, e-mail, téléphone) et les accès « Ouvrir la fiche », « Contacts », « Demandes ». Accessible : rôle dialogue, focus placé dans le panneau puis rendu à l'élément d'origine, Échap et clic sur le fond ferment, Tab reste dans le panneau, plein écran sur téléphone, animation coupée si l'utilisateur la refuse. Un clic sur le nom du client ouvre toujours la fiche.
+- `engine/texte.js` : `initiales` (+1 test).
+
+Vérifié : `node --test tests/*.test.mjs` 227 réussis, `check-coherence` 0 erreur. Page de test reconstituant le menu et la barre du haut avec des services simulés (supprimée ensuite) : les deux allures comparées (lignes de 45 px avant, 38 px après en compact, 52 px en confortable), bascule de densité mémorisée ; tiroir : ouverture par clic de ligne et par le bouton, contenu exact, focus dans le panneau puis rendu au bouton, Tab piégé, Échap, clic sur le fond, clic sur le nom sans effet ; allure actuelle inchangée (clic de ligne sans effet, éléments du prototype masqués) ; thème sombre (menu, tableau et pastilles bien recolorés) ; téléphone 375 px (tiroir plein écran, pas de défilement horizontal). Non vérifié : le vrai menu latéral et la vraie barre du haut ne sont pas chargés dans cette page de test (leur structure est reproduite ; le bouton d'allure et son branchement sont vérifiés par la syntaxe) ; les autres écrans sous la nouvelle allure (seules les règles générales, menu et cartes, les touchent) ; accessibilité complète au lecteur d'écran.
+
+À décider par l'utilisateur après essai : garder cette allure et la généraliser (phase 2 : composant tableau pour les autres listes), ajuster (densité, couleurs des pastilles, largeur du menu, contenu du tiroir) ou abandonner.
 
 ## 5. Points ouverts
 
