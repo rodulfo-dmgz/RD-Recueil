@@ -23,7 +23,7 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 | B | Activités, tâches, bloc "Aujourd'hui", relances dans le calendrier | terminé et commité ; reste un essai avec un vrai compte |
 | C | Montants, CA pondéré, pipeline en euros, KPI financiers | terminé et commité ; reste un essai avec un vrai compte |
 | Accès | Cloisonnement par consultant (avant le lot D, voir 3d) | terminé et commité ; reste un essai avec un vrai compte |
-| D | Financements, références de factures (Shine) | à faire (après le lot Accès) |
+| D | Financements, références de factures (Shine) | terminé et commité (voir 3e) |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |
 
@@ -154,6 +154,24 @@ Origine : en répondant au plan du lot D, l'utilisateur a rappelé que "chaque c
 - [x] S4. Application : création de client (SIRET), choix du consultant responsable (admin), messages d'accès refusé
 - [x] S5. Liste des demandes : colonne et filtre "Consultant" (admin)
 - [x] S6. Documentation, tests, audit de sécurité, commit
+
+## 3e. Lot D : financements et factures (références Shine)
+
+### Décisions validées
+- Factures réservées à l'admin au niveau de la base. Financements visibles du consultant, pour ses demandes seulement.
+- Plusieurs financements par demande (OPCO, région, entreprise...), avec un reste à charge calculé.
+- Plusieurs factures par demande (acompte 50 % et solde, jusqu'à 4 paiements) : un libellé libre, une date de paiement par facture, un "reste à facturer" calculé.
+- Import d'un export CSV Shine en dernière étape : aperçu avant application, idempotent par numéro de facture, aucune suppression. Il faut un export d'exemple dans `docs/exemples/` (non commité).
+- Tout en HT (franchise de TVA).
+
+### Étapes
+- [x] D1. Tables `financements` et `factures`, droits, tests en base (migration 0044)
+- [x] D2. Calculs purs et tests (reste à charge, reste à facturer, totaux)
+- [x] D3. Carte "Financements" dans la vue 360
+- [x] D4. Carte "Facturation" (admin)
+- [x] D5. Indicateurs de facturation (admin) sur le tableau de bord
+- [x] D6. Import CSV Shine, en deux temps : D6a lecteur de l'export et plan d'import ; D6b écran d'import (aperçu, choix de la demande, application)
+- [x] D7. Documentation, tests, audit de sécurité, commit
 
 ## 4. Journal des étapes
 
@@ -531,14 +549,125 @@ Fichiers du lot Accès (commit) :
 
 Les migrations 0039 à 0043 et la nouvelle version de l'Edge Function sont déjà en production ; le code du lot a été poussé ensuite sur GitHub (`ca97dc2`), donc base et application sont alignées. Le comportement réel pour un compte consultant ou client reste à confirmer lors de l'essai réel.
 
+### 2026-10-03 : lot D, étape D1 (migration 0044)
+
+Fait :
+- Migration `0044_financements_factures.sql` (appliquée) :
+  - `financements` (demande, type `opco`/`cpf`/`france_travail`/`region`/`entreprise`/`autre`, organisme, référence de dossier, montant, statut `en_attente`/`accorde`/`refuse`/`verse`, note). Droits : `peut_voir_demande(demande_id)`, donc l'admin voit tout et un consultant ceux de ses demandes.
+  - `factures` (demande, numéro, libellé, montant HT, date d'émission, date de paiement, source `manuelle`/`import`). Droits : admin seulement. Numéro unique quand il est renseigné (l'import s'en servira), jamais vide ou blanc. Une demande qui porte une facture ne peut pas être supprimée (archivage seulement).
+  - La notion "payée" se déduit de `date_paiement` ; pas de colonne de statut à tenir à jour.
+
+Vérifié en base (transaction annulée, un consultant simulé à partir d'un compte client) : le consultant crée un financement sur sa demande et pas sur celle d'un autre, ne voit que le sien, ne peut ni créer ni lire une facture ; l'admin voit tous les financements et toutes les factures ; un numéro de facture en double est refusé, deux factures sans numéro sont acceptées, un numéro blanc est refusé ; la suppression d'une demande qui a une facture est refusée ; un client ne voit rien. Après le test : aucune ligne restante, rôle et consultant d'origine intacts.
+
+### 2026-10-03 : lot D, étape D2 (calculs)
+
+Fait :
+- `app/js/engine/facturation.js` (nouveau, fonctions pures) : listes et libellés des types et statuts de financement ; `preparerFinancement` / `validerFinancement` et `preparerFacture` / `validerFacture` (virgule décimale acceptée, textes vides en `null`, date d'émission obligatoire, paiement non antérieur à l'émission) ; `syntheseFinancements` ; `estPayee` ; `syntheseFacturation`.
+- `engine/finance.js` : `lireNombre` est exporté pour être réutilisé.
+
+Règles de calcul (à relire) :
+- Reste à charge = montant retenu moins les financements **accordés ou versés**. Les financements en attente sont affichés à part, les refusés ne comptent pas. Jamais négatif ; l'excédent éventuel est signalé (`surfinance`).
+- Facturé = somme des références de factures ; encaissé = celles qui ont une date de paiement ; à encaisser = la différence. Reste à facturer = montant retenu moins facturé, jamais négatif ; un facturé supérieur au montant retenu (ou un montant retenu nul) est signalé en `depassement`.
+- Les sommes sont arrondies au centime à chaque ligne (pas d'erreur de virgule flottante).
+- Aucune limite à quatre factures par demande : c'est une pratique courante, pas une règle.
+
+Vérifié : `node --test tests/*.test.mjs` 149 réussis (12 nouveaux dans `tests/facturation.test.mjs`), `check-coherence` 0 erreur. Rien d'affichable à tester dans le navigateur à cette étape.
+
+### 2026-10-03 : lot D, étape D3 (carte Financements)
+
+Fait :
+- `services/financements.js` (nouveau) : `listerFinancements`, `enregistrerFinancement` (création ou modification), `supprimerFinancement`. Une écriture ou une suppression qui ne touche aucune ligne (droits) est signalée par un message, pas ignorée.
+- `components/modale-crm.js` (nouveau) : fenêtre de formulaire commune aux financements et, à l'étape suivante, aux factures (fermeture unique par bouton, fond, Échap ou après l'envoi ; `onEnvoi` retourne `false` pour rester ouverte, une erreur levée s'affiche dans la fenêtre).
+- `components/carte-financements.js` (nouveau), insérée dans la vue 360 sous la carte "Enjeu commercial", pour l'admin et le consultant de la demande : trois repères (Financé, En attente, Reste à charge sur le montant retenu), liste des financements (type, organisme, dossier, note, statut, montant) avec Modifier et Supprimer (confirmation), bouton "Ajouter un financement", alerte si les financements dépassent le montant retenu.
+- `css/dashboard.css` : lignes de financement (`fi-*`), adaptées au téléphone.
+- `engine/finance.js` : rien d'autre que l'export de `lireNombre` (D2).
+
+Vérifié : `node --test tests/*.test.mjs` 149 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : affichage correct des trois repères et de la liste ; ajout refusé sans montant (fenêtre ouverte, aucun appel) ; ajout valide (appel avec montant 800,5 et statut par défaut "en attente", repères et liste mis à jour) ; modification préremplie puis passage de "En attente" à "Accordé" (le reste à charge baisse en conséquence) ; suppression refusée puis acceptée à la confirmation ; Annuler ferme la fenêtre ; téléphone 375 px sans défilement horizontal. Non testé avec la vraie base et un vrai compte, ni en thème sombre (la page de test s'affiche toujours en clair).
+
+À savoir : le reste à charge part du montant retenu chargé à l'ouverture de la page. Si l'estimation est modifiée dans la carte "Enjeu commercial", la carte Financements ne se met à jour qu'au rechargement de la vue.
+
+### 2026-10-03 : lot D, étape D4 (carte Facturation, admin)
+
+Fait :
+- `services/factures.js` (nouveau) : `listerFactures` (triées par date d'émission), `enregistrerFacture` (création, modification, ou simple `date_paiement`), `supprimerFacture`. Un numéro déjà utilisé (erreur 23505) devient "Ce numéro de facture existe déjà." ; une écriture sans effet (droits) est signalée.
+- `components/carte-facturation.js` (nouveau), insérée dans la vue 360 **pour l'admin seulement**, entre les cartes Financements et Attribution : repères Facturé (nombre de factures), Encaissé (et reste à encaisser), Reste à facturer (sur le montant retenu) ; liste des factures (libellé, numéro, date d'émission, mention "importée", statut "Payée le ..." ou "À encaisser", montant) ; boutons Payée (date du jour en un clic), Modifier, Supprimer (confirmation précisant que la facture reste dans Shine) ; "Ajouter une facture" ; alerte si le facturé dépasse le montant retenu.
+- Formulaire de facture (fenêtre `modale-crm.js`) : numéro, libellé (avec suggestions "Acompte 50 %", "Solde", "Facture unique", saisie libre), montant HT, date d'émission (aujourd'hui par défaut), date de paiement (vide tant que non réglée).
+- `engine/facturation.js` : `LIBELLES_FACTURE` et `formaterDateCourte` (+1 test). `css/dashboard.css` : les lignes de financement et de facture passent sur deux lignes quand la place manque.
+
+Le consultant ne voit pas cette carte, et la base lui refuse de toute façon l'accès aux factures (étape D1).
+
+Vérifié : `node --test tests/*.test.mjs` 150 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : repères initiaux corrects (4 000 facturé, 2 500 encaissé, 1 000 à facturer sur 5 000) ; formulaire refusé sans montant ni date d'émission, puis paiement avant émission refusé (aucun appel envoyé) ; numéro en double : message affiché et fenêtre ouverte ; ajout valide (repères mis à jour) ; "Payée" envoie la date du jour ; modification préremplie ; dépassement signalé (facturé 6 600 sur 5 000) ; suppression après confirmation ; affichage propre à 560 px, sans défilement horizontal. Non testé avec la vraie base et un vrai compte, ni en thème sombre.
+
+### 2026-10-03 : lot D, étape D5 (indicateurs de facturation, admin)
+
+Fait :
+- `engine/facturation.js` : `kpisFacturation` (facturé et encaissé de l'année, à encaisser et son nombre de factures), `facturationParMois` (12 derniers mois, facturé et encaissé), `resteAFacturerGagnees` (demandes gagnées dont le montant n'est pas entièrement facturé, jamais négatif par demande). +4 tests.
+- `services/factures.js` : `listerToutesFactures` (colonnes utiles seulement).
+- Tableau de bord (admin seulement) : une ligne "Facturé {année}", "Encaissé {année}", "À encaisser", "Gagné, à facturer", sous la ligne des indicateurs de CA.
+- Page "Indicateurs" (admin) : les mêmes repères avec le nombre de factures ou de demandes concernées, et un tableau "Facturation des 12 derniers mois" (facturé, encaissé, total) avec une note sur les règles de datation.
+
+Règles de datation : facturé = date d'émission ; encaissé = date de paiement (une facture émise en décembre et payée en janvier compte dans les deux mois différents) ; à encaisser = toutes les factures non payées, quelle que soit leur date. Tout en HT.
+
+Vérifié : `node --test tests/*.test.mjs` 154 réussis, `check-coherence` 0 erreur. Pages de test avec services simulés (supprimées ensuite) : page Indicateurs et tableau de bord admin donnent les mêmes chiffres, calculés à la main (7 000 facturé, 5 500 encaissé, 1 500 à encaisser, 1 000 gagné à facturer, tableau mensuel correct) ; avec un rôle consultant, aucun chiffre de finance ni de facturation sur le tableau de bord. Non testé avec la vraie base et un vrai compte.
+
+Limite connue : la lecture de toutes les factures passe par l'API, dont la limite par défaut est de 1 000 lignes par requête (réglage du projet non vérifié). Au rythme actuel c'est très largement suffisant ; au-delà il faudra une vue agrégée côté base.
+
+### 2026-10-03 : lot D, étape D6a (lecteur de l'export Shine)
+
+Constat sur le fichier fourni (`BQ_2021-01-01_2021-12-31.csv`) : c'est l'**export des mouvements bancaires** de Shine, pas une liste de factures. Conséquences :
+- Une facture n'y apparaît que si elle a été **payée** (crédit sur le compte). Les factures émises et non payées n'y sont pas.
+- Le numéro de facture, le nom du client et la date d'émission ne se lisent que dans le **nom de la pièce jointe** (`FACTURE_3_Nom du client_2021-09-04.pdf`). Le client est un nom de personne ou de société, sans lien avec les fiches du CRM : la demande concernée devra être choisie à l'écran d'import.
+- Le fichier contient un IBAN et des noms de tiers : donnée sensible.
+
+Protection : le fichier avait été déposé dans `app/docs/exemples/`, dossier publié sur GitHub Pages et non ignoré par Git. Il a été déplacé dans `docs/exemples/` et ce dossier est ajouté à `.gitignore`. Le fichier n'a jamais été commité ni poussé.
+
+Fait :
+- `engine/import-shine.js` (nouveau, fonctions pures) : `decoderCsv` (UTF-8 sinon Windows-1252, BOM retiré), `lireCsv` (guillemets, séparateur, retours à la ligne dans une cellule), `lireMontantCsv`, `lireDateCsv`, `analyserExportBanque` (colonnes retrouvées par leur titre sans accents, message clair si le fichier n'a pas la forme attendue), `extraireFacturesPayees`, `planifierImport`.
+- Règles d'extraction : seuls les **crédits** dont la pièce est une facture donnent une facture ; numéro, client et date d'émission viennent du nom de la pièce, la date de paiement est la date d'opération, le montant est le montant HT (sinon le crédit). Plusieurs crédits pour la même facture sont additionnés (date de paiement du dernier). Les autres crédits sont seulement comptés.
+- Plan d'import (rien n'est jamais supprimé ni écrasé) : numéro inconnu = "nouvelle" (à créer) ; numéro connu sans date de paiement = "paiement à enregistrer" (on ajoute seulement la date) ; numéro connu avec date de paiement = "déjà à jour". Rejouer le même fichier ne change donc rien.
+- Le numéro stocké est celui du nom de la pièce, tel quel (`3`), supposé continu d'une année à l'autre chez Shine.
+
+Vérifié : `node --test tests/*.test.mjs` 163 réussis (9 nouveaux dans `tests/import-shine.test.mjs`, dont un contrôle de comptes sur le vrai fichier, sans donnée personnelle dans le test), `check-coherence` 0 erreur. Les tests utilisent un fichier fabriqué de même forme.
+
+Réponses de l'utilisateur avant D6b : (1) Shine ne propose pas d'export de la liste des factures ; son écran "Nouvel export comptable" propose les transactions (CSV, QIF, OFX) et les documents (factures et relevés en pièces jointes) : le CSV bancaire reste donc la seule source structurée ; (2) choix de la demande ligne par ligne avec suggestion : accepté ; (3) les factures sont numérotées à la suite, sans remise à zéro : le numéro tel quel convient.
+
+### 2026-10-03 : lot D, étape D6b (écran d'import)
+
+Fait :
+- `engine/import-shine.js` : `demandesCorrespondantes` (demandes dont le client ressemble au nom du fichier : accents, casse, civilités et formes juridiques ignorés, tous les mots de l'un retrouvés dans l'autre) et `preparerApplication` (plan + choix de l'utilisateur -> factures à créer, dates de paiement à ajouter, factures ignorées faute de demande). Le message d'erreur d'un mauvais fichier cite les vrais titres de colonnes de Shine.
+- `services/factures.js` : `listerFacturesImport` ; `appliquerImportFactures` (création en une seule requête, tout ou rien ; puis ajout des dates de paiement manquantes, uniquement quand la date est encore vide ; rien n'est supprimé).
+- `views/consultant/import-factures.js` (nouveau), route `#/admin/import-factures` réservée à l'admin, lien "Import Shine" dans le menu admin : choix du fichier, aperçu (nombre de nouvelles, de paiements à enregistrer, de déjà à jour, de virements sans facture ignorés), tableau (numéro, client du fichier, émise le, payée le, montant HT, action, demande), choix de la demande pour chaque facture nouvelle (présélectionnée avec une étoile seulement quand une seule demande correspond ; sinon "Ne pas importer"), résumé, confirmation, puis rechargement de l'aperçu.
+- Confidentialité : le fichier est lu dans le navigateur ; seuls le numéro, les dates et le montant des factures retenues partent en base, avec la source `import`. Ni l'IBAN, ni les noms, ni les libellés bancaires ne sont enregistrés.
+
+Vérifié : `node --test tests/*.test.mjs` 165 réussis, `check-coherence` 0 erreur. Page de test avec services simulés et un fichier CSV fabriqué en Windows-1252 (supprimée ensuite) : aperçu exact (une facture à ajouter au paiement, une déjà à jour, deux nouvelles ; la facture payée en deux virements additionnée), présélection correcte quand une seule demande correspond et aucune quand deux correspondent, bouton désactivé tant qu'il n'y a rien à importer, confirmation refusée sans appel, appel exact après confirmation (création des deux factures choisies, date de paiement ajoutée, source `import`), aperçu rechargé ensuite avec tout "déjà à jour" (rejeu sans effet), fichier d'un autre format et fichier vide refusés avec un message clair, affichage lisible. Le vrai fichier d'exemple est aussi lu correctement par les tests (13 mouvements, 4 factures). Non testé avec la vraie base et un vrai compte.
+
+À savoir :
+- Le montant importé est la somme encaissée : une facture seulement en partie payée serait enregistrée pour ce qui a été reçu. Il est modifiable ensuite dans la carte Facturation.
+- Les factures émises et non payées ne sont pas dans l'export bancaire : elles restent à saisir à la main (ou à compléter par import quand elles sont payées).
+- Les factures importées n'ont pas de libellé ("Acompte", "Solde") : à compléter à la main si besoin.
+
+### 2026-10-03 : lot D, étape D7 (clôture)
+
+Fait :
+- `docs/01_ARCHITECTURE.md` : routes (carte Financements et Facturation dans la vue 360, facturation dans Indicateurs, `#/admin/import-factures`), tables `financements` et `factures` (section 7), droits (section 8.2), ligne du lot D (section 17).
+- Contrôle d'ensemble : 165 tests réussis, `check-coherence` 0 erreur, aucun tiret cadratin dans les lignes ajoutées.
+- Audit de sécurité Supabase relancé après la migration 0044 : aucune alerte nouvelle ; les nouvelles tables ont leur RLS (aucune alerte "RLS désactivée"). Restent les alertes d'avant le lot : `get_my_role` et `update_updated_at_column` sans `search_path` fixe, `est_staff`, `get_my_role`, `handle_new_user` et `rls_auto_enable` appelables sans connexion, fonctions `security definer` appelables par un compte connecté (19, aucune nouvelle : le lot D n'ajoute pas de fonction), protection contre les mots de passe compromis désactivée.
+
+Fichiers du lot D (commit) :
+- Nouveaux : `supabase/migrations/0044_financements_factures.sql`, `app/js/engine/facturation.js`, `app/js/engine/import-shine.js`, `app/js/services/financements.js`, `app/js/services/factures.js`, `app/js/components/carte-financements.js`, `app/js/components/carte-facturation.js`, `app/js/components/modale-crm.js`, `app/js/views/consultant/import-factures.js`, `tests/facturation.test.mjs`, `tests/import-shine.test.mjs`.
+- Modifiés : `app/js/engine/finance.js` (export de `lireNombre`), `app/js/views/consultant/vue-360.js`, `tableau-de-bord.js`, `indicateurs.js`, `app/js/main.js`, `app/js/components/entete.js`, `app/css/dashboard.css`, `.gitignore` (`docs/exemples/`), `docs/01_ARCHITECTURE.md`, `docs/changes.md`.
+- Non inclus (travaux sans rapport avec ce lot) : `app/assets/images/logo.svg`, `supabase/functions/creer-compte/mail.ts`, `supabase/functions/envoyer-notification-email/index.ts` (nouveau gabarit, déjà en production dans son ancienne version), `app/crm_app.md`, `app/new_design.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.html`, `.claude/skills/`, `docs/05_SKELETONS.md`. Le dossier `docs/exemples/` (export bancaire réel) est ignoré par Git.
+
+La migration 0044 est appliquée sur la base de production.
+
 ## 5. Points ouverts
 
 - **Tables d'autres applications ouvertes à tout compte connecté** (voir le constat de l'étape S1) : à décider avec l'utilisateur.
 - **Alertes de sécurité Supabase déjà présentes avant le CRM (non traitées)** : `rpc_valider_cadrage(uuid, text)` est exécutable par le rôle `anon` (le `revoke` de 0005 portait sur l'ancienne signature) ; `est_staff`, `get_my_role`, `handle_new_user`, `rls_auto_enable`, `fn_historiser_reponse`, `fn_notifier_evenement` sont exécutables par `anon` ; `get_my_role` et `update_updated_at_column` n'ont pas de `search_path` fixe ; la protection contre les mots de passe compromis est désactivée côté Auth. S'ajoute le trou déjà signalé : `rpc_valider_cadrage` et `rpc_accepter_proposition` ne vérifient pas que l'appelant a accès à la demande. À traiter dans une migration dédiée, avec accord.
 - **Fichiers d'essais d'e-mails dans `app/`** : `app/mail.html` n'est pas de moi, sans doute un essai d'e-mail (`app/mail.ts` et `app/preview.ts` n'existent plus). `app/` est publié sur GitHub Pages : à ne pas commiter tels quels, un gabarit d'e-mail n'a pas de raison d'y être. Le fichier `app/assets/images/logo.svg` est aussi modifié sans être commité : à relire avant de le commiter.
 
-- **Essai réel des lots A, B, C et Accès** (pour le lot Accès : créer un compte consultant, lui attribuer une demande, vérifier qu'il ne voit ni les autres demandes ni leurs clients, fichiers ou notifications, et qu'un client peut accepter ou refuser une proposition et réserver un rendez-vous) : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
+- **Essai réel des lots A, B, C, D et Accès** (pour le lot D : saisir un financement et des factures sur une demande, importer un export Shine avec un vrai compte admin, vérifier qu'un consultant ne voit ni la carte Facturation ni les factures ; pour le lot Accès : créer un compte consultant, lui attribuer une demande, vérifier qu'il ne voit ni les autres demandes ni leurs clients, fichiers ou notifications, et qu'un client peut accepter ou refuser une proposition et réserver un rendez-vous) : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
 
 - `app/crm_app.md` est dans `app/` (dossier publié sur GitHub Pages) et n'est pas versionné : le déplacer dans `docs/` avant tout `git add app`.
-- Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub  et le lot C (`a780eb1`) aussi. Le lot Accès (`ca97dc2`) est poussé lui aussi. Toutes les migrations (0030 à 0043) sont appliquées sur la base de production ; le code du lot Accès est publié sur GitHub Pages avec ce push (essai réel avec un compte consultant et un compte client toujours à faire).
+- Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub  et le lot C (`a780eb1`) aussi. Le lot Accès (`ca97dc2`) est poussé lui aussi. Le lot D est commité en local, pas encore poussé. Toutes les migrations (0030 à 0044) sont appliquées sur la base de production ; le code des lots A à Accès est publié sur GitHub Pages (essai réel avec un compte consultant et un compte client toujours à faire). Tant que le lot D n'est pas poussé, la base contient les tables `financements` et `factures` que le code publié n'utilise pas encore : sans effet.
 - Hors CRM, toujours en attente : modèles d'e-mails refondus (`creer-compte/mail.ts`, `envoyer-notification-email/index.ts`) à ne pas déployer sans accord ; `docs/05_SKELETONS.md` non commité ; fichiers locaux non versionnés (`.claude/skills/`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`) ; trou de droits sur `rpc_valider_cadrage` et `rpc_accepter_proposition` (accès à vérifier par demande), proposé et non traité.

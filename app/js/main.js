@@ -10,6 +10,7 @@ import { vueDocuments } from './views/client/documents.js';
 import { vueCharteRgpd } from './views/client/charte-rgpd.js';
 import { vueRapport } from './views/client/rapport.js';
 import { vueIndicateurs } from './views/consultant/indicateurs.js';
+import { vueImportFactures } from './views/consultant/import-factures.js';
 import { vueClients } from './views/consultant/clients.js';
 import { vueTaches } from './views/consultant/taches.js';
 import { vueClientFiche } from './views/consultant/client-fiche.js';
@@ -113,6 +114,16 @@ route('/indicateurs', async () => {
     return;
   }
   vueIndicateurs();
+});
+
+route('/admin/import-factures', async () => {
+  const profil = await garantirStaff();
+  if (!profil) return;
+  if (profil.role !== 'admin') {
+    navigate('/tableau-de-bord');
+    return;
+  }
+  vueImportFactures();
 });
 
 route('/charte-rgpd', async () => {

@@ -650,3 +650,20 @@ button.cal__case:hover { background: var(--fond); }
 .db-mini__detail { font-size: 12px; }
 
 .db-pipeline__montant { margin: 4px 0 8px; font-size: 12px; }
+
+/* Financements et factures (CRM, lot D) */
+.fi-liste { list-style: none; margin: 14px 0 4px; padding: 0; }
+.fi-ligne { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 0; border-bottom: 1px solid var(--bordure); }
+.fi-ligne:last-child { border-bottom: none; }
+.fi-ligne__corps { flex: 1 1 200px; min-width: 0; }
+.fi-ligne__corps strong { overflow-wrap: anywhere; }
+.fi-ligne__meta { margin: 2px 0 0; font-size: 13px; overflow-wrap: anywhere; }
+.fi-ligne__montant { font-family: var(--police-code); font-weight: 500; white-space: nowrap; }
+.fi-ligne__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.fi-statut--accorde, .fi-statut--verse { border-color: var(--succes); }
+.fi-statut--refuse { border-color: var(--erreur); }
+@media (max-width: 640px) {
+  .fi-ligne { flex-wrap: wrap; }
+  .fi-ligne__corps { flex-basis: 100%; }
+  .fi-ligne__actions { width: 100%; }
+}

@@ -28,6 +28,7 @@ const LIENS_ADMIN = [
   { href: '#/comptes/nouveau', icone: 'user-plus', libelle: 'Créer un compte' },
   { href: '#/admin/utilisateurs', icone: 'users', libelle: 'Comptes' },
   { href: '#/indicateurs', icone: 'chart-column', libelle: 'Indicateurs' },
+  { href: '#/admin/import-factures', icone: 'file-up', libelle: 'Import Shine' },
 ];
 
 const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Client' };
@@ -67,6 +68,7 @@ const TITRES_PAGE = [
   ['#/demandes', 'Demandes'],
   ['#/comptes/nouveau', 'Créer un compte'],
   ['#/admin/utilisateurs', 'Comptes'],
+  ['#/admin/import-factures', 'Import Shine'],
   ['#/d/', 'Ma demande'],
 ];
 

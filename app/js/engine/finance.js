@@ -106,7 +106,7 @@ export function kpisFinance(montants, maintenant = new Date()) {
 }
 
 // Saisie "4 800,50" ou "4800.5" -> nombre ; vide -> null ; illisible -> NaN.
-function lireNombre(texte) {
+export function lireNombre(texte) {
   if (texte == null || String(texte).trim() === '') return null;
   return Number(String(texte).replace(/[\s  ]/g, '').replace(',', '.'));
 }

@@ -5,6 +5,8 @@ import { afficherToast } from '../../components/toast.js';
 import { el, construireKpis } from '../../components/dashboard-ui.js';
 import { grouperParDemande, delaisDemande, calculerKpis, formaterDelai, ETAPES_DELAIS } from '../../engine/jalons.js';
 import { listerMontants } from '../../services/montants.js';
+import { listerToutesFactures } from '../../services/factures.js';
+import { facturationParMois, kpisFacturation, resteAFacturerGagnees } from '../../engine/facturation.js';
 import { agregerPipeline, caSigneParMois, formaterMontant, kpisFinance } from '../../engine/finance.js';
 
 export function formaterTaux(taux) {
@@ -110,6 +112,36 @@ export async function vueIndicateurs() {
     );
     ca.appendChild(el('p', 'texte-doux', 'Daté par l’acceptation de la proposition par le client.'));
     main.appendChild(ca);
+
+    let factures = null;
+    try {
+      factures = await listerToutesFactures();
+    } catch {
+      factures = null;
+    }
+    if (factures) {
+      const kfact = kpisFacturation(factures);
+      const reste = resteAFacturerGagnees(montants, factures);
+      main.appendChild(
+        construireKpis([
+          { libelle: `Facturé ${kfact.annee}`, valeur: formaterMontant(kfact.factureAnnee), nomIcone: 'receipt' },
+          { libelle: `Encaissé ${kfact.annee}`, valeur: formaterMontant(kfact.encaisseAnnee), nomIcone: 'wallet' },
+          { libelle: 'À encaisser', valeur: `${formaterMontant(kfact.aEncaisser)} (${kfact.nbAEncaisser})`, nomIcone: 'hourglass' },
+          { libelle: 'Gagné, à facturer', valeur: `${formaterMontant(reste.montant)} (${reste.nbDemandes})`, nomIcone: 'file-plus' },
+        ])
+      );
+      const parMois = facturationParMois(factures);
+      const fact = el('section', 'db-carte');
+      fact.appendChild(titre('Facturation des 12 derniers mois'));
+      fact.appendChild(
+        tableau(
+          ['Mois', 'Facturé', 'Encaissé'],
+          [...parMois.map((m) => [m.libelle, formaterMontant(m.facture), formaterMontant(m.encaisse)]), ['Total', formaterMontant(parMois.reduce((t, m) => t + m.facture, 0)), formaterMontant(parMois.reduce((t, m) => t + m.encaisse, 0))]]
+        )
+      );
+      fact.appendChild(el('p', 'texte-doux', 'Facturé : daté par l’émission de la facture. Encaissé : daté par le paiement. « Gagné, à facturer » : demandes gagnées dont le montant n’est pas encore entièrement facturé. Montants HT (franchise de TVA).'));
+      main.appendChild(fact);
+    }
   }
 
   const moyennes = el('section', 'db-carte');

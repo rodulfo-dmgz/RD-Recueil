@@ -106,18 +106,19 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 | Route | Écran | Contenu |
 |---|---|---|
 | `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. Un bloc « Aujourd'hui » liste mes tâches en retard et du jour (Terminer, Reporter) à côté d'un calendrier de mes échéances. Pour l'admin, une ligne d'indicateurs financiers (pipeline, CA pondéré, CA signé de l'année, conversion en euros), le total en euros et le pondéré sous chaque colonne du pipeline, le montant de chaque demande et une alerte pour les demandes sans montant. |
-| `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. Pipeline par étape (demandes, montant, pondéré, sans montant) et CA signé des douze derniers mois, en HT. |
+| `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. Pipeline par étape (demandes, montant, pondéré, sans montant) et CA signé des douze derniers mois, en HT. Facturation (admin) : facturé et encaissé de l'année, à encaisser, demandes gagnées à facturer, tableau des 12 derniers mois. |
 | `#/clients` | Clients | Liste des clients et prospects : recherche (nom, SIRET, ville, contact), filtre de statut (archivés masqués), contact principal, nombre de demandes, dernière activité, export CSV. |
 | `#/clients/nouveau` | Nouveau client ou prospect | Fiche pré-remplie par la recherche SIRET (base SIRENE), statut `prospect` par défaut. |
 | `#/clients/:id` (+ `/activite`, `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Activité (tâches ouvertes, échanges notés, historique avec les étapes des demandes, ajout rapide d'un contact), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
 | `#/taches` | Tâches | Mes tâches par défaut (l'admin peut voir celles de l'équipe) ; filtres statut et client ; groupes En retard, Aujourd'hui, Cette semaine, Plus tard ; Terminer, Reporter, accès à la fiche. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation et, pour l'admin, consultant (ou « non attribuées »). Un consultant ne reçoit que ses demandes. |
 | `#/demandes/nouvelle` (+ `/:clientId`) | Création | Client existant (liste déroulante, présélectionné depuis sa fiche) ou nouveau (raison sociale, SIRET ; un SIRET déjà connu sélectionne le client existant), types pressentis (pré-coche TC-0.01), date limite. |
-| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». Carte « Enjeu commercial » (montant retenu et sa source, probabilité, pondéré ; estimation et probabilité modifiables). Pour l'admin, carte « Consultant responsable » (attribution de la demande). |
+| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». Carte « Enjeu commercial » (montant retenu et sa source, probabilité, pondéré ; estimation et probabilité modifiables). Pour l'admin, carte « Consultant responsable » (attribution de la demande). Cartes « Financements » (admin et consultant de la demande : OPCO, région..., reste à charge) et « Facturation » (admin seulement : références de factures, facturé, encaissé, reste à facturer). |
 | `#/demandes/:ref/entretien` | Mode entretien | Voir 4.3. |
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
 | `#/admin/questionnaire` | Versions | Import des `.md`, prévisualisation, publication. |
 | `#/admin/glossaire` | Glossaire | Consultation de la version publiée. |
+| `#/admin/import-factures` | Import Shine (admin) | Lecture de l'export bancaire Shine (CSV) : aperçu des factures payées, choix de la demande pour chaque facture nouvelle, création des références ou ajout de la date de paiement. Rien n'est supprimé ni écrasé ; le même fichier peut être importé plusieurs fois. |
 | `#/admin/utilisateurs` | Comptes | Consultants et clients invités ; suppression définitive d'un compte (admin uniquement, voir section 8.1). |
 
 ### 4.3 Mode entretien
@@ -490,6 +491,40 @@ create table demande_enjeux (
 -- statut), montant_pondere, date_decision (réponse du client à la
 -- proposition, qui date le CA signé).
 
+-- Financements et factures (0044), tout en HT. Les factures restent émises
+-- dans Shine : on n'en garde que la référence (aucun accès à Shine par
+-- l'API, qui est bancaire). Une facture est « payée » quand date_paiement
+-- est renseignée.
+create table financements (
+  id uuid primary key default gen_random_uuid(),
+  demande_id uuid not null references demandes on delete cascade,
+  type text not null check (type in ('opco', 'cpf', 'france_travail', 'region', 'entreprise', 'autre')),
+  organisme text,
+  reference_dossier text,
+  montant numeric(12,2) not null check (montant >= 0),
+  statut text not null default 'en_attente' check (statut in ('en_attente', 'accorde', 'refuse', 'verse')),
+  note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Une demande qui porte une facture ne peut pas être supprimée (archivage
+-- seulement). Numéro unique quand il est renseigné : l'import s'en sert pour
+-- ne rien dupliquer ; les numéros de Shine se suivent sans remise à zéro.
+create table factures (
+  id uuid primary key default gen_random_uuid(),
+  demande_id uuid not null references demandes on delete restrict,
+  numero text check (numero is null or btrim(numero) <> ''),
+  libelle text,                          -- libre : Acompte 50 %, Solde...
+  montant_ht numeric(12,2) not null check (montant_ht >= 0),
+  date_emission date not null default current_date,
+  date_paiement date,
+  source text not null default 'manuelle' check (source in ('manuelle', 'import')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index uq_factures_numero on factures (numero) where numero is not null;
+
 create sequence demande_seq;
 
 create table demandes (
@@ -650,6 +685,8 @@ create table notifications (
 | `activites` | Lecture et création ; modification et suppression par l'auteur ou l'admin (0035) | Aucun accès |
 | `probabilites_statut` | Lecture ; modification réservée à l'admin (0038) | Aucun accès |
 | `demande_enjeux`, vue `v_demandes_montants` | Lecture et écriture (la vue : lecture) (0038) | Aucun accès |
+| `financements` | Admin : tout. Consultant : ceux de ses demandes (`peut_voir_demande`) en lecture et écriture (0044) | Aucun accès |
+| `factures` | Admin uniquement : un consultant ne les lit ni ne les écrit (0044) | Aucun accès |
 | `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, modification, suppression ; création pour lui seul et sur un client qu'il voit ; réassignation refusée). Une tâche confiée par l'admin reste visible même sur un client que le consultant ne voit pas (0034, 0039) | Aucun accès |
 | `profils` | Lecture seule (0033) : le personnel est lisible par tous, un profil client seulement s'il est invité sur une demande visible (0039) ; créations, changements de rôle et suppressions par les Edge Functions (`service_role`) | Lecture de son propre profil |
 | `demandes` | Lecture et écriture | Lecture si `a_acces()` |
@@ -842,6 +879,6 @@ L'application évolue vers un CRM autour de la demande, qui reste l'objet centra
 | B | Échanges notés, tâches (droits par responsable), bloc « Aujourd'hui » et calendrier des échéances, relances en tâches | réalisé (migrations 0033 à 0036) |
 | C | Montants (estimation, proposition), probabilités par statut, CA pondéré et signé, pipeline en euros, indicateurs financiers (admin) | réalisé (migration 0038) |
 | Accès | Cloisonnement par consultant : chacun ne voit que ses demandes, seul l'admin voit tout ; correctifs de sécurité (fonctions, e-mails, transitions client) | réalisé (migrations 0039 à 0043) |
-| D | Financements, références de factures (outil de facturation externe) | à faire |
+| D | Financements (plusieurs par demande, reste à charge), références de factures (admin), indicateurs de facturation, import de l'export bancaire Shine | réalisé (migration 0044) |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |

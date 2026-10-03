@@ -15,6 +15,8 @@ import { construireCalendrier } from '../../components/calendrier.js';
 import { construireLigneTache, echeanceApresReport } from '../../components/ligne-tache.js';
 import { classerTaches, tachesVersJalons } from '../../engine/taches.js';
 import { listerMontants } from '../../services/montants.js';
+import { listerToutesFactures } from '../../services/factures.js';
+import { kpisFacturation, resteAFacturerGagnees } from '../../engine/facturation.js';
 import { agregerPipeline, demandesSansMontant, formaterMontant, kpisFinance } from '../../engine/finance.js';
 
 const LIBELLES_ROLE = { admin: 'Administrateur', consultant: 'Espace consultant' };
@@ -161,7 +163,18 @@ export async function vueTableauDeBord() {
       // montants indisponibles : le reste du tableau de bord s'affiche.
     }
   }
+  // Facturation : réservée à l'admin comme les factures elles-mêmes (lot D).
+  let factures = null;
+  if (montants) {
+    try {
+      factures = await listerToutesFactures();
+    } catch {
+      // factures indisponibles : le reste du tableau de bord s'affiche.
+    }
+  }
   const kpisFin = montants ? kpisFinance(montants) : null;
+  const kpisFact = factures ? kpisFacturation(factures) : null;
+  const resteFact = factures ? resteAFacturerGagnees(montants, factures) : null;
   const finance = montants ? { montants: new Map(montants.map((m) => [m.demande_id, m])), etapes: agregerPipeline(montants).etapes } : null;
   const actives = demandes.filter((d) => !STATUTS_FINAUX.has(d.statut));
   const aTraiter = actives.filter((d) => actionConsultant(d.statut));
@@ -207,6 +220,16 @@ export async function vueTableauDeBord() {
         { libelle: 'CA pondéré', valeur: formaterMontant(kpisFin.pondere), nomIcone: 'scale' },
         { libelle: `CA signé ${new Date().getFullYear()}`, valeur: formaterMontant(kpisFin.caSigneAnnee), nomIcone: 'badge-check' },
         { libelle: 'Conversion (en €)', valeur: formaterTaux(kpisFin.conversion.taux), nomIcone: 'trending-up' },
+      ])
+    );
+  }
+  if (kpisFact) {
+    main.appendChild(
+      construireKpis([
+        { libelle: `Facturé ${kpisFact.annee}`, valeur: formaterMontant(kpisFact.factureAnnee), nomIcone: 'receipt' },
+        { libelle: `Encaissé ${kpisFact.annee}`, valeur: formaterMontant(kpisFact.encaisseAnnee), nomIcone: 'wallet' },
+        { libelle: 'À encaisser', valeur: formaterMontant(kpisFact.aEncaisser), nomIcone: 'hourglass', accent: kpisFact.aEncaisser > 0 },
+        { libelle: 'Gagné, à facturer', valeur: formaterMontant(resteFact.montant), nomIcone: 'file-plus', accent: resteFact.montant > 0 },
       ])
     );
   }
