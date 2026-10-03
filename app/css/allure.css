@@ -105,7 +105,8 @@ body.look-nouveau .db-table--dense th { position: sticky; top: 0; background: va
 body.look-nouveau .th-icone { display: inline-flex; margin-right: 6px; vertical-align: middle; }
 body.look-nouveau .th-icone svg { width: 14px; height: 14px; stroke-width: 1.6; }
 body.look-nouveau .col-proto { display: table-cell; }
-body.look-nouveau .db-table--dense td.col-selection, body.look-nouveau .db-table--dense th.col-selection { padding: 0; text-align: center; overflow: visible; text-overflow: clip; }
+body.look-nouveau .db-table--dense td.col-selection, body.look-nouveau .db-table--dense th.col-selection,
+body.look-nouveau .tableau-confortable .db-table--dense td.col-selection, body.look-nouveau .tableau-confortable .db-table--dense th.col-selection { padding: 0; text-align: center; overflow: visible; text-overflow: clip; }
 body.look-nouveau .col-selection .cl-case-tableau { display: block; margin: 0 auto; }
 body.look-nouveau .db-table--dense tbody tr { cursor: pointer; transition: background .1s ease; }
 body.look-nouveau .db-table--dense tbody tr:hover { background: var(--fond); }
