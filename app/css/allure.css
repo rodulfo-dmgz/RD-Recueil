@@ -451,7 +451,20 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
   select:not([multiple]):not([size]) option:focus-visible { background: var(--fond); }
   select:not([multiple]):not([size]) option:checked { background: color-mix(in srgb, var(--rd-bleu) 10%, transparent); color: var(--bleu-texte); font-weight: 600; }
   select:not([multiple]):not([size]) option::checkmark { order: 1; margin-left: auto; }
-  select:not([multiple]):not([size])::picker-icon { color: var(--texte-doux); transition: rotate .1s ease; }
+  /* Chevron fin, de la couleur du texte secondaire, à la place du triangle noir du navigateur. */
+  select:not([multiple]):not([size]) { gap: 8px; }
+  select:not([multiple]):not([size])::picker-icon {
+    content: "";
+    display: inline-block;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+    background-color: var(--texte-doux);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: rotate .1s ease;
+  }
   select:not([multiple]):not([size]):open::picker-icon { rotate: 180deg; }
   /* Les pastilles du formulaire de tâche ont déjà leur propre chevron. */
   .pastille-champ select::picker-icon { display: none; }
@@ -459,3 +472,4 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
 @supports not (appearance: base-select) {
   select.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
 }
+body.look-nouveau .champ-saisie { border-radius: 10px; }

@@ -1087,6 +1087,8 @@ Limites connues : Firefox et Safari gardent pour l'instant la liste native (le f
 
 Vérifié : styles calculés sur une page de test (supprimée) : mode appliqué aux listes simples et pas à la liste multiple, fenêtre de choix arrondie, bordure, fond, option arrondie, option choisie teintée, coche présente, flèche masquée dans les pastilles. Non vérifié : l'ouverture réelle de la liste (aucune capture possible, le clic de test ne l'a pas ouverte), le thème sombre.
 
+Suite (même retour) : le triangle noir du navigateur est remplacé, sur toutes les listes déroulantes, par le **chevron fin gris** des pastilles (même dessin, même couleur, il se retourne à l'ouverture) ; les champs et listes de la nouvelle allure ont des coins de 10 px comme les pastilles. Vérifié sur une page de test (supprimée) : chevron de 16 px de la couleur du texte secondaire, écart de 8 px avec le texte. Non vérifié en capture.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
