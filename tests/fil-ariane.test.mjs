@@ -41,3 +41,8 @@ test('filAriane : espace client', () => {
   assert.deepEqual(lib(filAriane('#/d/FOR-1/recap')), ['Mes demandes', 'FOR-1', 'Récapitulatif']);
   assert.deepEqual(lib(filAriane('#/reclamation/REC-9')), ['Signaler un problème', 'REC-9']);
 });
+
+test('filAriane : tâches, liste et Kanban', () => {
+  assert.deepEqual(lib(filAriane('#/taches')), ['Tâches', 'Liste']);
+  assert.deepEqual(lib(filAriane('#/taches/kanban')), ['Tâches', 'Kanban']);
+});

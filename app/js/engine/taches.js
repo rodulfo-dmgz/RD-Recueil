@@ -20,6 +20,23 @@ export const TYPES_TACHE = [
   { valeur: 'autre', libelle: 'Autre' },
 ];
 
+// Statuts d'une tâche, dans l'ordre des colonnes du Kanban. « terminee » s'affiche
+// « Complet » ; « annulee » n'a pas de colonne (visible seulement dans la liste).
+export const STATUTS_TACHE = [
+  { valeur: 'a_faire', libelle: 'À faire', couleur: 'neutre' },
+  { valeur: 'en_cours', libelle: 'En cours', couleur: 'info' },
+  { valeur: 'a_reviser', libelle: 'À réviser', couleur: 'attention' },
+  { valeur: 'terminee', libelle: 'Complet', couleur: 'succes' },
+];
+export const STATUTS_OUVERTS = ['a_faire', 'en_cours', 'a_reviser'];
+
+export const estOuverte = (tache) => STATUTS_OUVERTS.includes(tache?.statut);
+
+export function libelleStatutTache(valeur) {
+  if (valeur === 'annulee') return 'Annulée';
+  return STATUTS_TACHE.find((s) => s.valeur === valeur)?.libelle ?? valeur;
+}
+
 const MS_JOUR = 24 * 60 * 60 * 1000;
 const FORMAT_CLE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -79,7 +96,7 @@ export function classerTaches(taches, maintenant = new Date()) {
   const aujourdhui = numeroDeJour(cleJour(maintenant));
   const groupes = { enRetard: [], aujourdhui: [], semaine: [], plusTard: [] };
   const ouvertes = (taches || [])
-    .filter((t) => t.statut === 'a_faire')
+    .filter(estOuverte)
     .sort((a, b) => a.echeance.localeCompare(b.echeance) || String(a.created_at).localeCompare(String(b.created_at)));
   for (const t of ouvertes) {
     const ecart = numeroDeJour(t.echeance) - aujourdhui;
@@ -174,7 +191,7 @@ export function fusionnerHistorique(activites, jalons, maintenant = new Date()) 
 // `reference` le nom du client (tache.clients?.raison_sociale ou tache.client).
 export function tachesVersJalons(taches) {
   return (taches || [])
-    .filter((t) => t.statut === 'a_faire')
+    .filter(estOuverte)
     .map((t) => {
       const [a, m, j] = t.echeance.split('-').map(Number);
       return {
@@ -194,4 +211,29 @@ export function versChampDatetime(date = new Date()) {
   const d = new Date(date);
   const deux = (n) => String(n).padStart(2, '0');
   return `${cleJour(d)}T${deux(d.getHours())}:${deux(d.getMinutes())}`;
+}
+
+// Colonnes du Kanban : une par statut, avec les tâches ouvertes et celles terminées
+// depuis `joursComplet` jours (les annulées n'ont pas de colonne). Ouvertes triées par
+// échéance puis création, terminées de la plus récente à la plus ancienne.
+export function colonnesKanban(taches, { maintenant = new Date(), joursComplet = 30 } = {}) {
+  const limite = new Date(maintenant.getTime() - joursComplet * MS_JOUR).toISOString();
+  return STATUTS_TACHE.map((statut) => {
+    const liste = (taches || []).filter((t) => t.statut === statut.valeur);
+    if (statut.valeur === 'terminee') {
+      const recentes = liste.filter((t) => !t.terminee_le || t.terminee_le >= limite);
+      return { ...statut, taches: recentes.sort((a, b) => String(b.terminee_le ?? b.updated_at).localeCompare(String(a.terminee_le ?? a.updated_at))) };
+    }
+    return { ...statut, taches: liste.sort((a, b) => a.echeance.localeCompare(b.echeance) || String(a.created_at).localeCompare(String(b.created_at))) };
+  });
+}
+
+// Copie de la liste avec la tâche `id` passée au statut donné (affichage immédiat d'un
+// déplacement, avant la réponse du serveur). Une tâche qui reprend « Complet » reçoit
+// une date de fin ; une tâche qui le quitte la perd (comme le fait la base).
+export function deplacerTache(taches, id, statut, maintenant = new Date()) {
+  return (taches || []).map((t) => {
+    if (t.id !== id) return t;
+    return { ...t, statut, terminee_le: statut === 'terminee' ? maintenant.toISOString() : null };
+  });
 }

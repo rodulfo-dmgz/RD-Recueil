@@ -2,6 +2,7 @@
 // consultant ne reçoit que les tâches qui lui sont assignées, l'admin voit
 // tout et peut désigner le responsable (politiques de 0034).
 import { supabase } from '../supabase.js';
+import { STATUTS_OUVERTS, STATUTS_TACHE } from '../engine/taches.js';
 
 const SELECTION = '*, clients(raison_sociale), contacts(prenom, nom), demandes(reference), assignee:profils!assignee_id(nom, email)';
 
@@ -13,11 +14,12 @@ async function idUtilisateur() {
   return session.user.id;
 }
 
-// statut : 'a_faire' par défaut, 'terminee', 'annulee' ou null pour toutes ;
+// statut : 'ouvertes' par défaut (à faire, en cours, à réviser), un statut précis ou null pour toutes ;
 // clientId et assigneeId restreignent la liste ; triées par échéance.
-export async function listerTaches({ clientId, assigneeId, statut = 'a_faire' } = {}) {
+export async function listerTaches({ clientId, assigneeId, statut = 'ouvertes' } = {}) {
   let requete = supabase.from('taches').select(SELECTION).order('echeance', { ascending: true }).order('created_at', { ascending: true });
-  if (statut) requete = requete.eq('statut', statut);
+  if (statut === 'ouvertes') requete = requete.in('statut', STATUTS_OUVERTS);
+  else if (statut) requete = requete.eq('statut', statut);
   if (clientId) requete = requete.eq('client_id', clientId);
   if (assigneeId) requete = requete.eq('assignee_id', assigneeId);
   const { data, error } = await requete;
@@ -42,6 +44,12 @@ export async function modifierTache(id, champs) {
   const { data, error } = await supabase.from('taches').update(champs).eq('id', id).select(SELECTION).single();
   if (error) throw error;
   return data;
+}
+
+// Changement de colonne du Kanban (ou du sélecteur de statut d'une ligne).
+export function changerStatutTache(id, statut) {
+  if (statut !== 'annulee' && !STATUTS_TACHE.some((s) => s.valeur === statut)) throw new Error('Statut de tâche inconnu.');
+  return modifierTache(id, { statut });
 }
 
 export function terminerTache(id) {

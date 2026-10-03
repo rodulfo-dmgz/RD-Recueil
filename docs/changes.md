@@ -1029,6 +1029,23 @@ Non vérifié : avec un vrai compte consultant (la base n'en contient pas encore
 
 À noter : pas de limite du nombre de vues par personne (seulement 20 filtres par vue).
 
+### 2026-10-03 : tâches en liste et en Kanban (demande de l'utilisateur, d'après un modèle fourni)
+
+Demande : un groupe « Tâches » dans le menu avec « Liste » et « Kanban », des onglets par statut, et un Kanban où l'on **glisse et dépose une carte d'un statut à l'autre**. Statuts voulus : **À faire, En cours, À réviser, Complet**.
+
+Fait :
+- **Migration 0053** (appliquée en production) : la tâche peut aussi être `en_cours` ou `a_reviser` (en plus de `a_faire`, `terminee`, `annulee`). `v_clients` compte désormais les trois statuts ouverts dans `nb_taches_ouvertes` et `prochaine_echeance`. Le déclencheur de date de fin n'a pas changé. Les tâches existantes gardent leur statut.
+- **Moteur** (`engine/taches.js`, +6 tests) : `STATUTS_TACHE` (« terminee » s'affiche **Complet**), `estOuverte`, `libelleStatutTache`, `colonnesKanban` (les terminées des 30 derniers jours, les annulées sans colonne), `deplacerTache` (affichage immédiat). Le classement par échéance et le calendrier comptent les trois statuts ouverts. `listerTaches` renvoie par défaut les tâches ouvertes ; `changerStatutTache` est nouveau.
+- **Menu** : groupe « Tâches » (Liste, Kanban) déplié, repliable ; le menu de commandes propose « Tâches : Liste » et « Tâches : Kanban » ; le fil d'Ariane affiche « Tâches / Liste » ou « Tâches / Kanban ». Routes `#/taches` et `#/taches/kanban`.
+- **Liste** (`views/consultant/taches.js`, réécrite) : onglets Toutes les tâches, À faire, En cours, À réviser, Complet, Annulées ; une carte par statut avec point de couleur, nombre et repli ; chaque ligne garde « Terminer » et « Reporter » et gagne un sélecteur de statut. L'ancien regroupement par échéance (en retard, aujourd'hui…) est remplacé par le regroupement par statut ; une tâche en retard reste signalée en rouge.
+- **Kanban** : quatre colonnes ; cartes (titre, client, échéance en rouge si en retard, type, responsable, sélecteur de statut). Glisser-déposer : la carte change de colonne tout de suite, puis le serveur est appelé ; en cas de refus, la carte revient et un message l'explique. Le sélecteur de la carte est l'alternative au clavier et sur écran tactile.
+
+Vérifié : 252 tests, `check-coherence` 0 erreur ; **base** (transaction annulée) : les statuts en cours et à réviser sont acceptés, un statut inconnu refusé, `nb_taches_ouvertes` suit (ouvert, ouvert, terminé), droits de `v_clients` conservés. **Navigateur** (services simulés, supprimés ensuite) : glisser-déposer entre colonnes (survol, déplacement, refus du serveur et retour arrière, message), sélecteur de la carte, onglets, historique complet de l'onglet Complet, annulées, changement de statut depuis une ligne, repli d'un groupe.
+
+Non vérifié : le rendu visuel en capture d'écran (les captures ont expiré), le groupe du menu latéral dans le vrai en-tête, le glisser-déposer à la souris réelle (les événements ont été simulés), un vrai compte consultant, l'écran tactile.
+
+Pas encore fait : le bouton « Ajouter une tâche » du modèle (une tâche est rattachée à un client : elle se crée depuis sa fiche), l'ordre des cartes à l'intérieur d'une colonne (trié par échéance), le Kanban des demandes prévu en phase 7.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

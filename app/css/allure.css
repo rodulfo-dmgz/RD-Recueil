@@ -275,3 +275,46 @@ body.look-nouveau .cl-filtres .outils-vue__bouton:hover, body.look-nouveau .cl-f
 .outils-vues__nom:hover, .outils-vues__nom:focus-visible { background: var(--fond); }
 .outils-vues__nouvelle .champ-saisie { flex: 1; min-height: 36px; }
 @media (max-width: 640px) { .outils-filtre { flex-wrap: wrap; } }
+
+/* Menu latéral : groupe de liens (Tâches : Liste, Kanban) */
+.menu-lateral__groupe > summary { display: flex; align-items: center; cursor: pointer; list-style: none; }
+.menu-lateral__groupe > summary::-webkit-details-marker { display: none; }
+.menu-lateral__groupe-fleche { margin-left: auto; width: 16px; height: 16px; transition: transform .1s ease; }
+.menu-lateral__groupe:not([open]) .menu-lateral__groupe-fleche { transform: rotate(-90deg); }
+.menu-lateral__sous { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 4px 16px; }
+
+/* Pages des tâches : liste par statut et Kanban (views/consultant/taches.js) */
+.taches-page--kanban { max-width: none; }
+.taches-barre { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 16px; }
+.taches-onglets { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 4px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--fond); }
+.taches-onglet { min-height: 36px; padding: 0 12px; border: none; border-radius: 8px; background: transparent; color: var(--texte-doux); font: inherit; font-weight: 500; cursor: pointer; }
+.taches-onglet:hover { color: var(--texte); }
+.taches-onglet[aria-pressed="true"] { background: var(--surface); color: var(--texte); box-shadow: 0 0 0 1px var(--bordure); }
+.taches-liste { display: flex; flex-direction: column; gap: 16px; }
+.taches-groupe__tete { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--texte); font: inherit; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; }
+.taches-groupe__tete svg { width: 16px; height: 16px; transition: transform .1s ease; }
+.taches-groupe__tete[aria-expanded="false"] svg { transform: rotate(-90deg); }
+.taches-point { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--texte-doux); }
+.taches-point--info { background: var(--rd-bleu); }
+.taches-point--attention { background: var(--rd-orange); }
+.taches-point--succes { background: var(--rd-turquoise); }
+.taches-compte { padding: 0 8px; border-radius: 999px; background: var(--fond); color: var(--texte-doux); font-size: 12px; font-weight: 600; line-height: 20px; }
+.cl-tache__statut { width: auto; min-width: 120px; }
+.kanban { overflow-x: auto; padding-bottom: 8px; }
+.kanban__plateau { display: grid; grid-template-columns: repeat(4, minmax(270px, 1fr)); align-items: start; gap: 16px; }
+.kanban__colonne { display: flex; flex-direction: column; gap: 12px; min-height: 260px; padding: 12px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--fond); transition: background .1s ease, box-shadow .1s ease; }
+.kanban__colonne--survol { background: color-mix(in srgb, var(--rd-bleu) 6%, var(--fond)); box-shadow: inset 0 0 0 2px var(--rd-bleu); }
+.kanban__tete { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-weight: 600; }
+.kanban__cartes { display: flex; flex: 1; flex-direction: column; gap: 12px; }
+.kanban__carte { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); cursor: grab; }
+.kanban__carte:active { cursor: grabbing; }
+.kanban__carte--deplacee { opacity: .45; }
+.kanban__carte--retard .kanban__echeance { color: var(--erreur); }
+.kanban__titre { font-weight: 500; overflow-wrap: anywhere; }
+.kanban__infos { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--texte-doux); font-size: 13px; }
+.kanban__echeance { display: inline-flex; align-items: center; gap: 6px; }
+.kanban__echeance svg { width: 14px; height: 14px; }
+.kanban__type { padding: 0 8px; border-radius: 4px; background: color-mix(in srgb, var(--rd-bleu) 12%, transparent); color: var(--bleu-texte); font-size: 12px; font-weight: 600; line-height: 20px; }
+.kanban__pied { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid var(--bordure); }
+.kanban__statut { width: auto; min-height: 32px; margin-left: auto; font-size: 13px; }
+.kanban__vide { margin: 0; padding: 16px 8px; border: 1px dashed var(--bordure); border-radius: 10px; font-size: 14px; text-align: center; }

@@ -3,7 +3,7 @@
 // clair, report rapide, suppression facultative.
 import { el, icone } from './dashboard-ui.js';
 import { nomComplet } from '../engine/fiche-client.js';
-import { ajouterJours, joursDeRetard, libelleEcheance, libelleTypeTache } from '../engine/taches.js';
+import { STATUTS_TACHE, ajouterJours, joursDeRetard, libelleEcheance, libelleStatutTache, libelleTypeTache } from '../engine/taches.js';
 import { cleJour } from '../engine/jalons.js';
 
 const REPORTS = [
@@ -23,8 +23,9 @@ export function echeanceApresReport(jours) {
 
 // opts : estAdmin, profilId (pour afficher le responsable quand ce n'est pas
 // soi), avecClient (nom du client en lien vers sa fiche), onTerminer,
-// onReporter(jours), onSupprimer (facultatif : sans lui, pas de bouton).
-export function construireLigneTache(tache, { estAdmin = false, profilId = null, avecClient = false, onTerminer, onReporter, onSupprimer }) {
+// onReporter(jours), onSupprimer (facultatif : sans lui, pas de bouton),
+// onStatut(statut) (facultatif : ajoute le sélecteur de statut).
+export function construireLigneTache(tache, { estAdmin = false, profilId = null, avecClient = false, onTerminer, onReporter, onSupprimer, onStatut }) {
   const retard = joursDeRetard(tache.echeance);
   const ligne = el('li', `cl-tache${retard > 0 ? ' cl-tache--retard' : ''}`);
 
@@ -51,6 +52,15 @@ export function construireLigneTache(tache, { estAdmin = false, profilId = null,
   if (tache.description) corps.appendChild(el('p', 'cl-tache__description', tache.description));
 
   const actions = el('div', 'cl-tache__actions');
+  if (onStatut) {
+    const statut = el('select', 'champ-saisie cl-tache__statut');
+    statut.setAttribute('aria-label', `Statut : ${tache.titre}`);
+    const choix = STATUTS_TACHE.some((s) => s.valeur === tache.statut) ? STATUTS_TACHE : [...STATUTS_TACHE, { valeur: tache.statut, libelle: libelleStatutTache(tache.statut) }];
+    for (const c of choix) statut.appendChild(Object.assign(document.createElement('option'), { value: c.valeur, textContent: c.libelle }));
+    statut.value = tache.statut;
+    statut.addEventListener('change', () => onStatut(statut.value));
+    actions.appendChild(statut);
+  }
   const reporter = el('select', 'champ-saisie cl-tache__reporter');
   reporter.setAttribute('aria-label', `Reporter : ${tache.titre}`);
   reporter.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: 'Reporter…' }));

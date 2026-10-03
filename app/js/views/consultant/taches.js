@@ -1,31 +1,28 @@
-// Page des tâches (CRM, lot B) : mes tâches par défaut ; l'admin peut voir
-// celles de toute l'équipe. Un consultant ne reçoit que les siennes (RLS).
-import { listerTaches, terminerTache, reporterTache } from '../../services/taches.js';
+// Pages des tâches (CRM, lot B ; refonte de l'interface) : la liste, groupée par
+// statut avec des onglets, et le Kanban où l'on glisse une carte d'une colonne à
+// l'autre pour changer son statut. Un consultant ne reçoit que ses tâches (RLS) ;
+// l'admin peut voir celles de toute l'équipe.
+import { listerTaches, changerStatutTache, terminerTache, reporterTache } from '../../services/taches.js';
 import { listerResponsables } from '../../services/clients.js';
 import { getProfil } from '../../store.js';
 import { afficherToast } from '../../components/toast.js';
-import { el } from '../../components/dashboard-ui.js';
+import { el, icone } from '../../components/dashboard-ui.js';
 import { champSelect } from '../../components/champs-crm.js';
 import { construireLigneTache, echeanceApresReport } from '../../components/ligne-tache.js';
-import { classerTaches } from '../../engine/taches.js';
+import { construireEtatVide } from '../../components/etat-vide.js';
+import { pastillePersonne } from '../../components/apercu-client.js';
+import { STATUTS_TACHE, colonnesKanban, deplacerTache, joursDeRetard, libelleEcheance, libelleStatutTache, libelleTypeTache } from '../../engine/taches.js';
 
-const STATUTS = [
-  { valeur: 'a_faire', libelle: 'À faire' },
-  { valeur: 'terminee', libelle: 'Terminées' },
+const ONGLETS = [
+  { valeur: 'toutes', libelle: 'Toutes les tâches' },
+  ...STATUTS_TACHE.map((s) => ({ valeur: s.valeur, libelle: s.libelle })),
   { valeur: 'annulee', libelle: 'Annulées' },
 ];
 
-function groupe(titre, taches, rendreLigne, classe = '') {
-  if (taches.length === 0) return null;
-  const carte = el('section', `db-carte${classe}`);
-  carte.appendChild(el('h2', 'db-titre', `${titre} (${taches.length})`));
-  const liste = el('ul', 'cl-taches');
-  for (const t of taches) liste.appendChild(rendreLigne(t));
-  carte.appendChild(liste);
-  return carte;
-}
+const nomResponsable = (profil) => profil?.nom || profil?.email || null;
 
-export async function vueTaches() {
+async function monterPage(mode) {
+  const kanban = mode === 'kanban';
   const app = document.getElementById('app');
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
 
@@ -40,12 +37,36 @@ export async function vueTaches() {
     }
   }
 
-  const main = el('main', 'db');
-  main.appendChild(el('h1', null, 'Tâches'));
+  const main = el('main', `db taches-page${kanban ? ' taches-page--kanban' : ''}`);
+  main.appendChild(el('h1', null, kanban ? 'Tâches Kanban' : 'Liste des tâches'));
+  if (kanban) main.appendChild(el('p', 'texte-doux', 'Glissez une carte vers une autre colonne pour changer son statut (ou utilisez le sélecteur de la carte). Colonne « Complet » : tâches terminées depuis 30 jours.'));
 
-  const filtres = el('div', 'cl-filtres');
-  const statut = champSelect('statut', 'Statut', STATUTS, 'a_faire');
-  filtres.appendChild(statut.wrapper);
+  const barre = el('div', 'taches-barre');
+  let onglet = 'toutes';
+  const boutonsOnglets = new Map();
+  if (!kanban) {
+    const liste = el('div', 'taches-onglets');
+    liste.setAttribute('role', 'group');
+    liste.setAttribute('aria-label', 'Statut des tâches');
+    for (const o of ONGLETS) {
+      const bouton = el('button', 'taches-onglet', o.libelle);
+      bouton.type = 'button';
+      bouton.addEventListener('click', () => {
+        onglet = o.valeur;
+        majOnglets();
+        rendre();
+      });
+      boutonsOnglets.set(o.valeur, bouton);
+      liste.appendChild(bouton);
+    }
+    barre.appendChild(liste);
+  }
+  function majOnglets() {
+    for (const [valeur, bouton] of boutonsOnglets) bouton.setAttribute('aria-pressed', String(valeur === onglet));
+  }
+  majOnglets();
+
+  const filtres = el('div', 'cl-filtres taches-filtres');
   let responsable = null;
   if (estAdmin) {
     responsable = champSelect(
@@ -58,51 +79,152 @@ export async function vueTaches() {
   }
   const clientFiltre = champSelect('client', 'Client', [], '', 'Tous les clients');
   filtres.appendChild(clientFiltre.wrapper);
-  main.appendChild(filtres);
+  barre.appendChild(filtres);
+  main.appendChild(barre);
 
-  const resultat = el('div', 'db-principale');
+  const resultat = el('div', kanban ? 'kanban' : 'taches-liste');
   main.appendChild(resultat);
 
-  let taches = [];
+  let taches = []; // toutes les tâches chargées (tous statuts)
 
+  // ─── Actions ───────────────────────────────────────────────────────────────
+  async function changerStatut(id, statut) {
+    const avant = taches;
+    if (avant.find((t) => t.id === id)?.statut === statut) return;
+    taches = deplacerTache(taches, id, statut); // affichage immédiat, annulé si le serveur refuse
+    rendre();
+    try {
+      await changerStatutTache(id, statut);
+      afficherToast(`Tâche passée en « ${libelleStatutTache(statut)} ».`, { type: 'succes' });
+    } catch (err) {
+      taches = avant;
+      rendre();
+      afficherToast(err.message, { type: 'erreur' });
+    }
+  }
+  const agir = (promesse, message) =>
+    promesse
+      .then(() => {
+        afficherToast(message, { type: 'succes' });
+        return charger();
+      })
+      .catch((err) => afficherToast(err.message, { type: 'erreur' }));
+
+  // ─── Liste ─────────────────────────────────────────────────────────────────
+  function groupe(statut, liste) {
+    const carte = el('section', 'db-carte taches-groupe');
+    const tete = el('button', 'taches-groupe__tete');
+    tete.type = 'button';
+    tete.setAttribute('aria-expanded', 'true');
+    tete.append(icone('chevron-down'), el('span', `taches-point taches-point--${statut.couleur}`), el('span', 'taches-groupe__titre', statut.libelle), el('span', 'taches-compte', String(liste.length)));
+    const ul = el('ul', 'cl-taches');
+    for (const t of liste) {
+      ul.appendChild(
+        construireLigneTache(t, {
+          estAdmin,
+          profilId: profil?.user_id,
+          avecClient: true,
+          onTerminer: () => agir(terminerTache(t.id), 'Tâche terminée.'),
+          onReporter: (jours) => agir(reporterTache(t.id, echeanceApresReport(jours)), 'Échéance reportée.'),
+          onStatut: (valeur) => changerStatut(t.id, valeur),
+        })
+      );
+    }
+    tete.addEventListener('click', () => {
+      const ouvert = tete.getAttribute('aria-expanded') === 'true';
+      tete.setAttribute('aria-expanded', String(!ouvert));
+      ul.hidden = ouvert;
+    });
+    carte.append(tete, ul);
+    return carte;
+  }
+
+  function rendreListe(filtrees) {
+    const groupes = onglet === 'annulee'
+      ? [{ valeur: 'annulee', libelle: 'Annulées', couleur: 'cloture', taches: filtrees.filter((t) => t.statut === 'annulee') }]
+      : colonnesKanban(filtrees, { joursComplet: onglet === 'terminee' ? 36500 : 30 }).filter((c) => onglet === 'toutes' || c.valeur === onglet);
+    const affiches = groupes.filter((g) => g.taches.length > 0);
+    if (affiches.length === 0) {
+      resultat.appendChild(construireEtatVide({ icone: 'list-checks', titre: 'Aucune tâche', texte: 'Aucune tâche ne correspond à ces filtres.' }));
+      return;
+    }
+    for (const g of affiches) resultat.appendChild(groupe(g, g.taches));
+  }
+
+  // ─── Kanban ────────────────────────────────────────────────────────────────
+  function carteKanban(t) {
+    const retard = t.statut !== 'terminee' && joursDeRetard(t.echeance) > 0;
+    const carte = el('article', `kanban__carte${retard ? ' kanban__carte--retard' : ''}`);
+    carte.draggable = true;
+    carte.dataset.id = t.id;
+    carte.addEventListener('dragstart', (evenement) => {
+      evenement.dataTransfer.setData('text/plain', t.id);
+      evenement.dataTransfer.effectAllowed = 'move';
+      carte.classList.add('kanban__carte--deplacee');
+    });
+    carte.addEventListener('dragend', () => carte.classList.remove('kanban__carte--deplacee'));
+
+    carte.appendChild(el('strong', 'kanban__titre', t.titre));
+    if (t.clients?.raison_sociale) {
+      const lien = el('a', 'cl-tache__client', t.clients.raison_sociale);
+      lien.href = `#/clients/${t.client_id}/activite`;
+      carte.appendChild(lien);
+    }
+    const infos = el('div', 'kanban__infos');
+    const echeance = el('span', 'kanban__echeance');
+    echeance.append(icone('calendar'), document.createTextNode(libelleEcheance(t.echeance)));
+    infos.append(echeance, el('span', 'kanban__type', libelleTypeTache(t.type)));
+    carte.appendChild(infos);
+
+    const pied = el('div', 'kanban__pied');
+    const assigne = nomResponsable(t.assignee);
+    if (assigne && (estAdmin || t.assignee_id !== profil?.user_id)) pied.appendChild(pastillePersonne(assigne));
+    const statut = el('select', 'champ-saisie kanban__statut');
+    statut.setAttribute('aria-label', `Statut : ${t.titre}`);
+    for (const s of STATUTS_TACHE) statut.appendChild(Object.assign(document.createElement('option'), { value: s.valeur, textContent: s.libelle }));
+    statut.value = t.statut;
+    statut.addEventListener('change', () => changerStatut(t.id, statut.value));
+    pied.appendChild(statut);
+    carte.appendChild(pied);
+    return carte;
+  }
+
+  function rendreKanban(filtrees) {
+    const plateau = el('div', 'kanban__plateau');
+    for (const colonne of colonnesKanban(filtrees)) {
+      const section = el('section', 'kanban__colonne');
+      section.setAttribute('aria-label', `${colonne.libelle} : ${colonne.taches.length} tâche${colonne.taches.length > 1 ? 's' : ''}`);
+      const tete = el('header', 'kanban__tete');
+      tete.append(el('span', `taches-point taches-point--${colonne.couleur}`), el('span', 'kanban__titre-colonne', colonne.libelle), el('span', 'taches-compte', String(colonne.taches.length)));
+      const cartes = el('div', 'kanban__cartes');
+      if (colonne.taches.length === 0) cartes.appendChild(el('p', 'kanban__vide texte-doux', 'Déposez une tâche ici.'));
+      for (const t of colonne.taches) cartes.appendChild(carteKanban(t));
+      section.addEventListener('dragover', (evenement) => {
+        evenement.preventDefault();
+        evenement.dataTransfer.dropEffect = 'move';
+        section.classList.add('kanban__colonne--survol');
+      });
+      section.addEventListener('dragleave', (evenement) => {
+        if (!section.contains(evenement.relatedTarget)) section.classList.remove('kanban__colonne--survol');
+      });
+      section.addEventListener('drop', (evenement) => {
+        evenement.preventDefault();
+        section.classList.remove('kanban__colonne--survol');
+        const id = evenement.dataTransfer.getData('text/plain');
+        if (id) changerStatut(id, colonne.valeur);
+      });
+      section.append(tete, cartes);
+      plateau.appendChild(section);
+    }
+    resultat.appendChild(plateau);
+  }
+
+  // ─── Chargement et rendu ───────────────────────────────────────────────────
   function rendre() {
     resultat.innerHTML = '';
     const filtrees = clientFiltre.select.value ? taches.filter((t) => t.client_id === clientFiltre.select.value) : taches;
-    if (filtrees.length === 0) {
-      resultat.appendChild(el('p', 'db-vide texte-doux', statut.select.value === 'a_faire' ? 'Aucune tâche à faire.' : 'Aucune tâche.'));
-      return;
-    }
-    const agir = (promesse, message) =>
-      promesse
-        .then(() => {
-          afficherToast(message, { type: 'succes' });
-          return charger();
-        })
-        .catch((err) => afficherToast(err.message, { type: 'erreur' }));
-    const ligne = (t) =>
-      construireLigneTache(t, {
-        estAdmin,
-        profilId: profil?.user_id,
-        avecClient: true,
-        onTerminer: () => agir(terminerTache(t.id), 'Tâche terminée.'),
-        onReporter: (jours) => agir(reporterTache(t.id, echeanceApresReport(jours)), 'Échéance reportée.'),
-      });
-
-    if (statut.select.value === 'a_faire') {
-      const g = classerTaches(filtrees);
-      for (const [titre, liste, classe] of [
-        ['En retard', g.enRetard, ' db-carte--alerte'],
-        ['Aujourd’hui', g.aujourdhui, ''],
-        ['Cette semaine', g.semaine, ''],
-        ['Plus tard', g.plusTard, ''],
-      ]) {
-        const carte = groupe(titre, liste, ligne, classe);
-        if (carte) resultat.appendChild(carte);
-      }
-    } else {
-      const triees = [...filtrees].sort((a, b) => String(b.terminee_le ?? b.updated_at).localeCompare(String(a.terminee_le ?? a.updated_at)));
-      resultat.appendChild(groupe(statut.select.value === 'terminee' ? 'Terminées' : 'Annulées', triees, ligne));
-    }
+    if (kanban) rendreKanban(filtrees);
+    else rendreListe(filtrees);
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -111,7 +233,7 @@ export async function vueTaches() {
     resultat.appendChild(el('p', 'texte-doux', 'Chargement…'));
     try {
       taches = await listerTaches({
-        statut: statut.select.value,
+        statut: null,
         assigneeId: responsable ? (responsable.select.value === 'tous' ? undefined : responsable.select.value) : undefined,
       });
     } catch (err) {
@@ -131,7 +253,6 @@ export async function vueTaches() {
     rendre();
   }
 
-  statut.select.addEventListener('change', charger);
   if (responsable) responsable.select.addEventListener('change', charger);
   clientFiltre.select.addEventListener('change', rendre);
 
@@ -140,3 +261,6 @@ export async function vueTaches() {
   await charger();
   if (window.lucide) window.lucide.createIcons();
 }
+
+export const vueTaches = () => monterPage('liste');
+export const vueTachesKanban = () => monterPage('kanban');

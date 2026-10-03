@@ -18,7 +18,7 @@ import { vueDonneesARevoir } from './views/consultant/donnees-a-revoir.js';
 import { vueReclamations } from './views/consultant/reclamations.js';
 import { vueReclamationClient } from './views/client/reclamation.js';
 import { vueClients } from './views/consultant/clients.js';
-import { vueTaches } from './views/consultant/taches.js';
+import { vueTaches, vueTachesKanban } from './views/consultant/taches.js';
 import { vueClientFiche } from './views/consultant/client-fiche.js';
 import { vueClientNouveau } from './views/consultant/client-nouveau.js';
 import { vueAccueilDemande } from './views/client/accueil.js';
@@ -203,6 +203,11 @@ route('/glossaire', async () => {
 route('/tableau-de-bord', async () => {
   if (!(await garantirStaff())) return;
   vueTableauDeBord();
+});
+
+route('/taches/kanban', async () => {
+  if (!(await garantirStaff())) return;
+  vueTachesKanban();
 });
 
 route('/taches', async () => {

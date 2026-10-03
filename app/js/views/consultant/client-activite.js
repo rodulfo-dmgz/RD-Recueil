@@ -16,6 +16,7 @@ import {
   TYPES_TACHE,
   ajouterJours,
   classerTaches,
+  estOuverte,
   fusionnerHistorique,
   libelleTypeActivite,
   preparerActivite,
@@ -414,7 +415,7 @@ export function construireOngletActivite({ client, demandes, jalons, responsable
 
     const carteTaches = el('section', 'db-carte');
     const titreTaches = el('h3', 'db-titre');
-    titreTaches.append(icone('list-checks'), el('span', null, `Tâches ouvertes (${taches.filter((t) => t.statut === 'a_faire').length})`));
+    titreTaches.append(icone('list-checks'), el('span', null, `Tâches ouvertes (${taches.filter(estOuverte).length})`));
     carteTaches.appendChild(titreTaches);
     const groupes = classerTaches(taches);
     const ordonnees = [...groupes.enRetard, ...groupes.aujourdhui, ...groupes.semaine, ...groupes.plusTard];

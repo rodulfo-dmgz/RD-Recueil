@@ -24,7 +24,15 @@ const LIENS_CLIENT = [
 const LIENS_STAFF = [
   { href: '#/tableau-de-bord', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
   { href: '#/clients', icone: 'building-2', libelle: 'Clients' },
-  { href: '#/taches', icone: 'list-checks', libelle: 'Tâches' },
+  {
+    groupe: true,
+    icone: 'list-checks',
+    libelle: 'Tâches',
+    enfants: [
+      { href: '#/taches', icone: 'list', libelle: 'Liste' },
+      { href: '#/taches/kanban', icone: 'kanban', libelle: 'Kanban' },
+    ],
+  },
   { href: '#/reclamations', icone: 'message-square-warning', libelle: 'Réclamations' },
   { href: '#/demandes', icone: 'list', libelle: 'Demandes' },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
@@ -43,6 +51,7 @@ const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Clien
 
 function estLienActif(href) {
   const hash = location.hash || '#/';
+  if (href === '#/taches') return hash === '#/taches' || hash.startsWith('#/taches?');
   if (href === '#/mes-demandes') return hash.startsWith('#/mes-demandes') || hash.startsWith('#/d/');
   return hash.startsWith(href);
 }
@@ -52,7 +61,24 @@ function initiales(profil) {
   return ((mots[0]?.[0] || '?') + (mots[1]?.[0] || '')).toUpperCase();
 }
 
+// Groupe de liens (ex. Tâches : Liste, Kanban) : déplié, à replier au besoin.
+function groupeLateral(g) {
+  const enfants = g.enfants
+    .map((e) => {
+      const actif = estLienActif(e.href);
+      return `<a href="${e.href}" class="menu-lateral__lien menu-lateral__lien--enfant${actif ? ' menu-lateral__lien--actif' : ''}"${actif ? ' aria-current="page"' : ''}><i data-lucide="${e.icone}"></i><span>${e.libelle}</span></a>`;
+    })
+    .join('');
+  return `<details class="menu-lateral__groupe" open><summary class="menu-lateral__lien menu-lateral__lien--groupe"><i data-lucide="${g.icone}"></i><span>${g.libelle}</span><i data-lucide="chevron-down" class="menu-lateral__groupe-fleche"></i></summary><div class="menu-lateral__sous">${enfants}</div></details>`;
+}
+
+// Liens à plat (menu de commandes) : les groupes deviennent « Groupe : enfant ».
+function aplatir(liens) {
+  return liens.flatMap((l) => (l.groupe ? l.enfants.map((e) => ({ ...e, libelle: `${l.libelle} : ${e.libelle}` })) : [l]));
+}
+
 function lienLateral(l) {
+  if (l.groupe) return groupeLateral(l);
   const actif = estLienActif(l.href);
   return `<a href="${l.href}" class="menu-lateral__lien${actif ? ' menu-lateral__lien--actif' : ''}"${actif ? ' aria-current="page"' : ''}><i data-lucide="${l.icone}"></i><span>${l.libelle}</span></a>`;
 }
@@ -377,7 +403,7 @@ export function rendreEntete(profil) {
     roleEffectif === 'client'
       ? null
       : {
-          liens,
+          liens: aplatir(liens),
           admin: roleEffectif === 'admin',
           actions: [
             { id: 'action:nouveau-client', libelle: 'Nouveau client ou prospect', icone: 'plus', mots: 'creer ajouter', href: '#/clients/nouveau' },

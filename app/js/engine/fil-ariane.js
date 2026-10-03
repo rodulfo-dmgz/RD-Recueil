@@ -56,6 +56,7 @@ export function filAriane(hash, { nomClient = null, titreRepli = 'RD Recueil' } 
     if (troisieme) return [mesDemandes, { libelle: deuxieme, href: `#/d/${deuxieme}` }, { libelle: ETAPES_DEMANDE_CLIENT[troisieme] ?? troisieme }];
     return [mesDemandes, { libelle: deuxieme }];
   }
+  if (racine === 'taches') return [{ libelle: 'Tâches' }, { libelle: deuxieme === 'kanban' ? 'Kanban' : 'Liste' }];
   if (racine === 'reclamation' && deuxieme) return [{ libelle: 'Signaler un problème', href: '#/reclamation' }, { libelle: deuxieme }];
   return repli;
 }
