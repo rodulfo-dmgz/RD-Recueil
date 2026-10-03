@@ -10,6 +10,8 @@ import { ouvrirApercuClient, pastillePersonne } from '../../components/apercu-cl
 import { basculerDensite, densiteConfortable } from '../../components/allure.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
 import { boutonApercu, tableauListe } from '../../components/tableau-liste.js';
+import { creerOutilsVue } from '../../components/outils-vue.js';
+import { appliquerFiltres } from '../../engine/filtres.js';
 import { genererCsv } from '../../engine/csv.js';
 import { getProfil } from '../../store.js';
 import { formaterMontant } from '../../engine/finance.js';
@@ -63,6 +65,21 @@ function celluleEntreprise(c, avecFinance) {
   const ligne = el('div', 'cl-nom-ligne');
   ligne.append(bloc, boutonApercu(`Aperçu de ${c.raison_sociale}`, () => ouvrirApercuClient(c, { avecFinance })));
   return ligne;
+}
+
+// Filtres avancés de la liste (barre de vue) : une définition par colonne filtrable.
+function definitionsClients(avecFinance) {
+  return [
+    { cle: 'ville', libelle: 'Ville', type: 'texte', valeur: (c) => c.ville },
+    { cle: 'statut', libelle: 'Statut', type: 'choix', choix: STATUTS_CLIENT.map((s) => ({ valeur: s.valeur, libelle: s.libelle })), valeur: (c) => c.statut },
+    { cle: 'contact', libelle: 'Contact principal', type: 'texte', valeur: (c) => c.contact_principal },
+    { cle: 'siret', libelle: 'SIRET', type: 'texte', valeur: (c) => c.siret },
+    { cle: 'demandes', libelle: 'Nombre de demandes', type: 'nombre', valeur: (c) => c.nb_demandes },
+    { cle: 'actives', libelle: 'Demandes en cours', type: 'nombre', valeur: (c) => c.nb_actives },
+    { cle: 'taches', libelle: 'Tâches ouvertes', type: 'nombre', valeur: (c) => c.nb_taches_ouvertes },
+    ...(avecFinance ? [{ cle: 'ca', libelle: 'CA signé', type: 'nombre', valeur: (c) => c.ca_signe }] : []),
+    { cle: 'activite', libelle: 'Dernière activité', type: 'date', valeur: (c) => c.derniere_activite },
+  ];
 }
 
 const somme = (lignes, cle) => lignes.reduce((total, c) => total + (Number(c[cle]) || 0), 0);
@@ -201,7 +218,17 @@ export async function vueClients({ dormants = false } = {}) {
   const nombreVue = el('span', 'cl-vue-nombre texte-doux');
   const infoSelection = el('span', 'cl-selection');
   infoSelection.setAttribute('aria-live', 'polite');
-  filtres.append(statut, nombreVue, seuil, infoSelection, recherche, densite);
+  const definitions = definitionsClients(estAdmin);
+  const outils = creerOutilsVue({
+    ecran: 'clients',
+    definitions,
+    lireContexte: () => ({ recherche: recherche.value }),
+    appliquerContexte: ({ recherche: texte }) => {
+      recherche.value = texte;
+    },
+    onChange: () => rafraichir(),
+  });
+  filtres.append(statut, nombreVue, seuil, infoSelection, recherche, outils.boutonFiltres, outils.boutonVues, densite);
   main.appendChild(filtres);
 
   const carte = el('section', 'db-carte');
@@ -240,7 +267,7 @@ export async function vueClients({ dormants = false } = {}) {
     const modeDormants = statut.value === 'dormants';
     seuil.hidden = !modeDormants;
     if (modeDormants) {
-      visibles = clientsDormants(filtrerClients(clients, { recherche: recherche.value, statut: 'client' }), { mois: Number(seuil.value) });
+      visibles = appliquerFiltres(clientsDormants(filtrerClients(clients, { recherche: recherche.value, statut: 'client' }), { mois: Number(seuil.value) }), outils.filtres(), definitions);
       nombreVue.textContent = `· ${visibles.length}`;
       compteur.textContent = `${visibles.length} client${visibles.length > 1 ? 's' : ''} dormant${visibles.length > 1 ? 's' : ''} : déjà acheteurs, sans demande en cours et sans activité depuis ${seuil.value} mois ou plus`;
       resultat.innerHTML = '';
@@ -253,7 +280,7 @@ export async function vueClients({ dormants = false } = {}) {
       if (window.lucide) window.lucide.createIcons();
       return;
     }
-    visibles = filtrerClients(clients, { recherche: recherche.value, statut: statut.value });
+    visibles = appliquerFiltres(filtrerClients(clients, { recherche: recherche.value, statut: statut.value }), outils.filtres(), definitions);
     compteur.textContent = `${visibles.length} sur ${clients.length} ${clients.length > 1 ? 'clients' : 'client'}`;
     nombreVue.textContent = `· ${visibles.length}`;
     resultat.innerHTML = '';
@@ -264,12 +291,13 @@ export async function vueClients({ dormants = false } = {}) {
           : construireEtatVide({
               icone: 'search-x',
               titre: 'Aucun client ne correspond',
-              texte: 'Modifiez votre recherche ou le filtre de statut.',
+              texte: 'Modifiez votre recherche, le filtre de statut ou vos filtres avancés.',
               action: {
-                libelle: 'Effacer la recherche',
+                libelle: 'Tout effacer',
                 onClick: () => {
                   recherche.value = '';
                   statut.value = '';
+                  outils.effacer();
                   rafraichir();
                 },
               },

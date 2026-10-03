@@ -256,3 +256,22 @@ body.look-nouveau .cl-statut--cloture { background: color-mix(in srgb, var(--tex
 .fil-ariane__liste li + li::before { content: '/'; margin: 0 8px; color: var(--texte-doux); font-weight: 400; }
 .fil-ariane__liste a { color: var(--texte-doux); font-weight: 500; text-decoration: none; }
 .fil-ariane__liste a:hover, .fil-ariane__liste a:focus-visible { color: var(--texte); text-decoration: underline; }
+
+/* Filtres avancés et vues enregistrées (components/outils-vue.js), dans les deux allures */
+.outils-vue__bouton--actif { color: var(--bleu-texte); font-weight: 600; }
+body.look-nouveau .cl-filtres .outils-vue__bouton { min-height: 32px; border-color: transparent; background: transparent; }
+body.look-nouveau .cl-filtres .outils-vue__bouton:hover, body.look-nouveau .cl-filtres .outils-vue__bouton[aria-expanded="true"] { background: var(--fond); }
+.outils-panneau { position: fixed; z-index: 75; width: min(520px, calc(100vw - 16px)); max-height: 70vh; overflow-y: auto; padding: 12px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--surface); color: var(--texte); box-shadow: 0 8px 24px rgba(15, 23, 42, .16); }
+.outils-panneau__vide { margin: 4px 4px 12px; font-size: 14px; }
+.outils-filtre { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.outils-filtre .champ-saisie { flex: 1 1 0; min-width: 0; min-height: 36px; }
+.outils-filtre__retirer { display: grid; place-items: center; flex: 0 0 auto; width: 36px; height: 36px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--texte-doux); cursor: pointer; }
+.outils-filtre__retirer:hover, .outils-filtre__retirer:focus-visible { background: var(--fond); border-color: var(--bordure); }
+.outils-filtre__retirer svg { width: 16px; height: 16px; }
+.outils-panneau__pied { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--bordure); }
+.outils-vues { margin: 0 0 8px; padding: 0; list-style: none; }
+.outils-vues__ligne { display: flex; align-items: center; gap: 4px; }
+.outils-vues__nom { flex: 1; min-height: 36px; padding: 0 10px; border: none; border-radius: 8px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.outils-vues__nom:hover, .outils-vues__nom:focus-visible { background: var(--fond); }
+.outils-vues__nouvelle .champ-saisie { flex: 1; min-height: 36px; }
+@media (max-width: 640px) { .outils-filtre { flex-wrap: wrap; } }

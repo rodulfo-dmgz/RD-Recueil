@@ -224,7 +224,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 - [x] 3. Menu de commandes `Ctrl+K`
 - [x] 4. Fil d'Ariane et création rapide dans l'en-tête
 - [x] 5. Panneau latéral (aperçu d'un client et d'une demande depuis la liste)
-- [ ] 6. Filtres avancés et vues enregistrées (nouvelle table par utilisateur, avec RLS)
+- [x] 6. Filtres avancés et vues enregistrées (migration 0052, vues personnelles, clients et demandes)
 - [ ] 7. Kanban des demandes
 - [ ] 8. Responsive, accessibilité, performance, audit final
 
@@ -1012,6 +1012,22 @@ L'aperçu d'un client dans le tiroir existait depuis la phase 1 bis ; cette éta
 - Tâches, réclamations, journal d'audit : pas de tiroir pour l'instant (leurs détails se déplient déjà dans la page).
 
 Vérifié : 238 tests, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée) : ouverture par le bouton d'aperçu, contenu (consultant présent pour l'admin, « Non attribuée »), liens, fermeture par Échap, ouverture par un clic de ligne, aucune erreur console. Non vérifié : la requête réelle avec `client_id` (la colonne est utilisée à l'insertion des demandes), le rendu en capture d'écran.
+
+### 2026-10-03 : refonte, phase 6 (filtres avancés et vues enregistrées)
+
+Décisions validées : vues **personnelles seulement** (chacun voit les siennes), sur **Clients et Demandes**.
+
+Fait :
+- **Migration 0052** (`vues_enregistrees`, appliquée en production) : une vue = écran (`clients` ou `demandes`), nom (1 à 60 caractères, unique par personne, écran et sans tenir compte de la casse), filtres (liste de 20 au plus), tri, recherche. RLS : on ne voit, crée, modifie et supprime que ses propres vues, et seulement pour le personnel (`est_staff()`). Les filtres sont stockés sous la forme décrite par l'interface ; une colonne retirée plus tard est simplement ignorée à la lecture.
+- **Filtres avancés** (bouton « Filtrer · n » dans la barre de vue) : conditions cumulées, une par ligne (colonne, condition, valeur). Types : texte (contient, est, renseigné, vide), choix (est, n'est pas, y compris sur la liste des types d'une demande), nombre (au moins, au plus, égal à, virgule décimale acceptée), date (avant, après, renseignée, vide). Clients : ville, statut, contact principal, SIRET, nombre de demandes, demandes en cours, tâches ouvertes, CA signé (admin), dernière activité. Demandes : statut, type, client, consultant (admin), date limite, date de création. Un filtre incomplet est ignoré. Les filtres s'ajoutent à la recherche et aux sélecteurs déjà présents ; l'export CSV et le total suivent la liste filtrée ; les demandes ne sont pas rechargées à chaque filtre.
+- **Vues enregistrées** (bouton « Vues ») : liste des vues, clic pour appliquer (filtres, tri, recherche), corbeille avec confirmation, champ « Nom de la vue actuelle » pour enregistrer. Nom déjà pris : message clair.
+- `engine/filtres.js` (pur, +7 tests), `services/vues.js`, `components/outils-vue.js`, `lireTri` et `definirTri` dans `tableau-liste.js`. Panneaux à position fixe (la carte de la liste coupe ce qui dépasse), fermés par Échap, clic à côté ou changement de page.
+
+Vérifié : 245 tests, `check-coherence` 0 erreur. **Base** (transaction annulée) : insertion pour soi acceptée, doublon de nom (casse et espaces différents) refusé, insertion au nom d'un autre refusée, écran inconnu, filtres qui ne sont pas une liste et nom vide refusés, un client ne voit ni ne crée rien. **Navigateur** (services simulés, supprimés ensuite) : Demandes et Clients : ajout, modification et retrait de filtres, compteur du bouton, filtres cumulés, totaux, enregistrement d'une vue (avec tri et recherche), nom en double, application d'une vue avec filtre inconnu ignoré, suppression, Échap, changement de page.
+
+Non vérifié : avec un vrai compte consultant (la base n'en contient pas encore : seul l'admin a été testé comme membre du personnel) ; les vraies requêtes sur le service `vues.js` ; le rendu en capture d'écran ; l'ergonomie sur téléphone.
+
+À noter : pas de limite du nombre de vues par personne (seulement 20 filtres par vue).
 
 ## 5. Points ouverts
 

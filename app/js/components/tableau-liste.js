@@ -58,6 +58,13 @@ const cellule = (colonne, ligne) => {
 // Tri retenu par tableau : { titre, sens: 'asc' | 'desc' }.
 const tris = new Map();
 
+// Lecture et remplacement du tri d'un tableau (vues enregistrées) ; null efface le tri.
+export const lireTri = (id) => tris.get(id) ?? null;
+export function definirTri(id, etat) {
+  if (etat && typeof etat.titre === 'string' && (etat.sens === 'asc' || etat.sens === 'desc')) tris.set(id, { titre: etat.titre, sens: etat.sens });
+  else tris.delete(id);
+}
+
 // options : { id, colonnes, lignes, cle, libelleLigne, selection, onSelection(ids, coche, toutes), onLigne(ligne), libelleTotal(lignes) }
 export function tableauListe({ id, colonnes, lignes, cle = (l) => l.id, libelleLigne = () => 'cette ligne', selection, onSelection, onLigne, libelleTotal }) {
   const defilement = el('div', 'db-table-defilement');

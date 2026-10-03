@@ -11,6 +11,8 @@ import { formaterDate } from '../../engine/dates.js';
 import { el, icone } from '../../components/dashboard-ui.js';
 import { construireEtatVide } from '../../components/etat-vide.js';
 import { boutonApercu, tableauListe } from '../../components/tableau-liste.js';
+import { creerOutilsVue } from '../../components/outils-vue.js';
+import { appliquerFiltres } from '../../engine/filtres.js';
 import { ouvrirApercuDemande } from '../../components/apercu-demande.js';
 
 const COLONNES_CSV = [
@@ -46,6 +48,18 @@ function pastilleStatutDemande(d) {
   const bloc = el('span');
   bloc.append(pastille, document.createTextNode(' (archivée)'));
   return bloc;
+}
+
+// Filtres avancés de la liste (barre de vue) : une définition par colonne filtrable.
+function definitionsDemandes(estAdmin) {
+  return [
+    { cle: 'statut', libelle: 'Statut', type: 'choix', choix: STATUTS.map((s) => ({ valeur: s, libelle: LIBELLES_STATUT[s] ?? s })), valeur: (d) => d.statut },
+    { cle: 'types', libelle: 'Type', type: 'choix', choix: TYPES, valeur: (d) => d.types || [] },
+    { cle: 'client', libelle: 'Client', type: 'texte', valeur: (d) => d.clients?.raison_sociale },
+    ...(estAdmin ? [{ cle: 'consultant', libelle: 'Consultant', type: 'texte', valeur: (d) => nomConsultant(d) }] : []),
+    { cle: 'limite', libelle: 'Date limite', type: 'date', valeur: (d) => d.date_limite },
+    { cle: 'creee', libelle: 'Créée le', type: 'date', valeur: (d) => d.created_at },
+  ];
 }
 
 function ouvrirApercu(demande, estAdmin) {
@@ -130,7 +144,9 @@ export function vueListeDemandes() {
   boutonExporter.className = 'db-btn db-btn--discret';
   boutonExporter.append(icone('download'), el('span', null, 'Exporter en CSV'));
   actions.appendChild(boutonExporter);
-  filtres.append(selectStatut, nombreVue, selectType, selectConsultant, labelArchivees);
+  const definitions = definitionsDemandes(estAdmin);
+  const outils = creerOutilsVue({ ecran: 'demandes', definitions, onChange: () => afficher() });
+  filtres.append(selectStatut, nombreVue, selectType, selectConsultant, labelArchivees, outils.boutonFiltres, outils.boutonVues);
   main.appendChild(filtres);
 
   const carte = el('section', 'db-carte');
@@ -138,7 +154,8 @@ export function vueListeDemandes() {
   carte.appendChild(liste);
   main.appendChild(carte);
 
-  let dernieresDemandes = [];
+  let toutes = []; // chargées du serveur, avant les filtres avancés
+  let dernieresDemandes = []; // affichées (export CSV)
 
   boutonExporter.addEventListener('click', async () => {
     if (dernieresDemandes.length === 0) {
@@ -170,26 +187,33 @@ export function vueListeDemandes() {
         consultantId: estAdmin ? selectConsultant.value || undefined : undefined,
         inclureArchivees: caseArchivees.checked,
       });
-      dernieresDemandes = demandes;
-      nombreVue.textContent = `· ${demandes.length}`;
-      liste.innerHTML = '';
-      if (demandes.length === 0) {
-        liste.appendChild(construireEtatVide({ icone: 'layout-list', titre: 'Aucune demande', texte: 'Aucune demande ne correspond à ces filtres.' }));
-        return;
-      }
-      liste.appendChild(
-        tableauListe({
-          id: 'demandes',
-          colonnes: colonnesDemandes(estAdmin),
-          lignes: demandes,
-          onLigne: (d) => ouvrirApercu(d, estAdmin),
-          libelleTotal: (lignes) => `${lignes.length} demande${lignes.length > 1 ? 's' : ''}`,
-        })
-      );
-      if (window.lucide) window.lucide.createIcons();
+      toutes = demandes;
+      afficher();
     } catch (err) {
       afficherToast(err.message, { type: 'erreur' });
     }
+  }
+
+  // Filtres avancés : appliqués ici, sans nouvel appel au serveur.
+  function afficher() {
+    const demandes = appliquerFiltres(toutes, outils.filtres(), definitions);
+    dernieresDemandes = demandes;
+    nombreVue.textContent = `· ${demandes.length}`;
+    liste.innerHTML = '';
+    if (demandes.length === 0) {
+      liste.appendChild(construireEtatVide({ icone: 'layout-list', titre: 'Aucune demande', texte: 'Aucune demande ne correspond à ces filtres.' }));
+      return;
+    }
+    liste.appendChild(
+      tableauListe({
+        id: 'demandes',
+        colonnes: colonnesDemandes(estAdmin),
+        lignes: demandes,
+        onLigne: (d) => ouvrirApercu(d, estAdmin),
+        libelleTotal: (lignes) => `${lignes.length} demande${lignes.length > 1 ? 's' : ''}`,
+      })
+    );
+    if (window.lucide) window.lucide.createIcons();
   }
 
   if (estAdmin) {
