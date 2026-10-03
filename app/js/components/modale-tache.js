@@ -204,5 +204,6 @@ export function ouvrirModaleTache({ clients, equipe, profil, estAdmin, clientId 
       onCree(tache);
     },
   });
+  if (window.lucide) window.lucide.createIcons();
   titre.input.focus();
 }

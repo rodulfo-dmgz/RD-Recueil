@@ -1089,6 +1089,8 @@ Vérifié : styles calculés sur une page de test (supprimée) : mode appliqué 
 
 Suite (même retour) : le triangle noir du navigateur est remplacé, sur toutes les listes déroulantes, par le **chevron fin gris** des pastilles (même dessin, même couleur, il se retourne à l'ouverture) ; les champs et listes de la nouvelle allure ont des coins de 10 px comme les pastilles. Vérifié sur une page de test (supprimée) : chevron de 16 px de la couleur du texte secondaire, écart de 8 px avec le texte. Non vérifié en capture.
 
+Suite (même retour) : texte et chevron des listes sont **centrés verticalement** (alignement du bouton de la liste). Captures d'écran désormais possibles : vérification visuelle de la liste, du Kanban et de la fenêtre de création. Corrigés grâce à elles : icônes de la fenêtre (membres, date, urgence, type, trombone, croix) qui ne s'affichaient pas faute d'appel à `createIcons`, double chevron dans les pastilles (règle de masquage trop faible), pastille « Type » qui passait à la ligne (fenêtre portée à 820 px : les cinq pastilles tiennent sur une ligne).
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

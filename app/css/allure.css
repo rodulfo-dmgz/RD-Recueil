@@ -382,7 +382,7 @@ span.tl-fait { cursor: default; }
 .tache-urgence--erreur { background: color-mix(in srgb, var(--erreur) 14%, transparent); color: var(--erreur); }
 
 /* Fenêtre « Créer une nouvelle tâche » */
-.modale-tache { width: min(760px, 94vw); max-width: none; padding: 26px 28px 20px; overflow: visible; border-radius: 16px; }
+.modale-tache { width: min(820px, 94vw); max-width: none; padding: 26px 28px 20px; overflow: visible; border-radius: 16px; }
 .modale-tache h2 { margin: 0 0 6px; padding-right: 40px; font-size: 22px; }
 .modale-tache .cl-form { gap: 14px; }
 .modale-tache .champ-saisie { border-radius: 10px; }
@@ -452,7 +452,7 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
   select:not([multiple]):not([size]) option:checked { background: color-mix(in srgb, var(--rd-bleu) 10%, transparent); color: var(--bleu-texte); font-weight: 600; }
   select:not([multiple]):not([size]) option::checkmark { order: 1; margin-left: auto; }
   /* Chevron fin, de la couleur du texte secondaire, à la place du triangle noir du navigateur. */
-  select:not([multiple]):not([size]) { gap: 8px; }
+  select:not([multiple]):not([size]) { align-items: center; gap: 8px; }
   select:not([multiple]):not([size])::picker-icon {
     content: "";
     display: inline-block;
@@ -467,7 +467,7 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
   }
   select:not([multiple]):not([size]):open::picker-icon { rotate: 180deg; }
   /* Les pastilles du formulaire de tâche ont déjà leur propre chevron. */
-  .pastille-champ select::picker-icon { display: none; }
+  .pastille-champ select:not([multiple]):not([size])::picker-icon { display: none; }
 }
 @supports not (appearance: base-select) {
   select.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
