@@ -66,6 +66,15 @@ export async function vueImportFactures() {
   const apercu = el('div', 'db-principale');
   main.appendChild(apercu);
 
+  // Annuler : on oublie le fichier et l'aperçu, rien n'a été enregistré.
+  function abandonner() {
+    facturesFichier = null;
+    entree.value = '';
+    for (const cle of Object.keys(choix)) delete choix[cle];
+    apercu.innerHTML = '';
+    entree.focus();
+  }
+
   async function afficher() {
     apercu.innerHTML = '';
     if (!facturesFichier) return;
@@ -164,7 +173,10 @@ export async function vueImportFactures() {
           : `À importer : ${r.creations.length} facture(s) à créer, ${r.paiements.length} paiement(s) à enregistrer${r.ignorees.length > 0 ? `, ${r.ignorees.length} ignorée(s) faute de demande` : ''}.`;
     }
     majBouton();
-    carte.append(resume, erreurGenerale, appliquer);
+    const annuler = bouton('db-btn db-btn--discret', 'Annuler', 'x', abandonner);
+    const actions = el('div', 'cl-form__actions');
+    actions.append(appliquer, annuler);
+    carte.append(resume, erreurGenerale, actions);
     apercu.appendChild(carte);
     if (window.lucide) window.lucide.createIcons();
   }

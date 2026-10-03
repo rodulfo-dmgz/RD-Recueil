@@ -660,6 +660,16 @@ Fichiers du lot D (commit) :
 
 La migration 0044 est appliquée sur la base de production.
 
+### 2026-10-03 : lot D, retouche de l'écran d'import (retour de l'utilisateur)
+
+Premier essai de l'écran avec le vrai fichier d'exemple : l'aperçu et le choix des demandes fonctionnent (4 factures nouvelles, 1 virement sans facture ignoré). Demande : un bouton "Annuler".
+
+Fait :
+- `views/consultant/import-factures.js` : bouton "Annuler" à côté de "Appliquer l'import". Il oublie le fichier et l'aperçu (champ fichier vidé, choix de demandes effacés, focus rendu au champ fichier) ; rien n'a été enregistré avant "Appliquer". Le même fichier peut être rechoisi ensuite.
+- `css/dashboard.css` : un bouton `db-btn` désactivé est maintenant grisé (opacité réduite, curseur interdit). Avant, "Appliquer l'import" gardait l'aspect d'un bouton actif quand il n'y avait rien à importer.
+
+Vérifié : `node --test tests/*.test.mjs` 165 réussis, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée ensuite) : Annuler vide l'aperçu et le champ fichier, le même fichier se recharge, le bouton Appliquer est grisé et désactivé quand aucune demande n'est choisie.
+
 ## 5. Points ouverts
 
 - **Tables d'autres applications ouvertes à tout compte connecté** (voir le constat de l'étape S1) : à décider avec l'utilisateur.

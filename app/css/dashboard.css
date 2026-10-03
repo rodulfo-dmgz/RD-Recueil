@@ -667,3 +667,5 @@ button.cal__case:hover { background: var(--fond); }
   .fi-ligne__corps { flex-basis: 100%; }
   .fi-ligne__actions { width: 100%; }
 }
+
+.db-btn:disabled { opacity: .5; cursor: not-allowed; }
