@@ -945,6 +945,19 @@ Vérifié : `node --test tests/*.test.mjs` 227 réussis, `check-coherence` 0 err
 
 À décider par l'utilisateur après essai : garder cette allure et la généraliser (phase 2 : composant tableau pour les autres listes), ajuster (densité, couleurs des pastilles, largeur du menu, contenu du tiroir) ou abandonner.
 
+### 2026-10-03 : phase 1 bis, itération 2 (plus proche de l'esprit Twenty)
+
+Retour de l'utilisateur : le premier prototype était trop timide. Reprise après lecture du système de design de Twenty (`packages/twenty-ui`, valeurs seulement, aucun code copié) : gris neutres, arrondis de 4 et 8 px, cellules de 8 px, colonne de cases de 32 px, icônes fines de 14 à 16 px, panneau de 500 px, transitions de 0,1 s.
+
+Fait (nouvelle allure uniquement, l'allure actuelle reste masquée par défaut) :
+- **Liste des clients plein cadre** : plus de carte ni de titre, barre de vue (statut choisi + nombre, sélection, recherche, densité), tableau quadrillé fin avec en-têtes à icône, colonnes E-mail et Téléphone, ligne de totaux (clients, demandes, tâches ouvertes, CA signé pour l'admin).
+- **Cases à cocher** (une par ligne et « tout sélectionner ») : le nombre sélectionné s'affiche et **l'export CSV ne porte que sur la sélection** quand il y en a une.
+- **Pastilles** : entreprise en puce grise à carré d'initiales bleu RD, personne en puce à rond turquoise, e-mail et téléphone en pilule, statut teinté.
+- **Menu latéral** : sections (« Espace de travail », « Administration »), icônes colorées par rubrique, chevron sur le logo, barre du haut de 48 px.
+- Tiroir porté à 500 px.
+
+Vérifié : tests 227 réussis, `check-coherence` 0 erreur, syntaxe des fichiers modifiés. **Non vérifié dans le navigateur** (économie de jetons demandée) : le rendu visuel est à juger par l'utilisateur avec le bouton d'allure ; les règles CSS n'ont pas été testées en thème sombre ni à 375 px dans cette itération.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

@@ -15,6 +15,7 @@ import { formaterMontant } from '../../engine/finance.js';
 import { STATUTS_CLIENT, filtrerClients, libelleStatutClient } from '../../engine/fiche-client.js';
 import { SEUILS_DORMANT, SEUIL_DORMANT_DEFAUT, clientsDormants, libelleInactivite, preparerRelanceDormant } from '../../engine/dormants.js';
 import { formaterDate } from '../../engine/dates.js';
+import { initiales } from '../../engine/texte.js';
 
 const COLONNES_CSV = [
   { libelle: 'Raison sociale', valeur: (c) => c.raison_sociale },
@@ -35,11 +36,47 @@ const COLONNES_CSV_FINANCE = [
   { libelle: 'Pipeline pondéré (HT)', valeur: (c) => c.pipeline_pondere ?? 0 },
 ];
 
-function ligneClient(c, avecFinance) {
+// Colonnes supplémentaires du prototype (cases, e-mail, téléphone) : classe
+// "col-proto", masquées par css/allure.css tant que l'allure actuelle est choisie.
+const proto = (noeud) => {
+  noeud.classList.add('col-proto');
+  return noeud;
+};
+
+function caseACocherTableau(libelle, coche, onChange) {
+  const input = el('input', 'cl-case-tableau');
+  input.type = 'checkbox';
+  input.checked = coche;
+  input.setAttribute('aria-label', libelle);
+  input.addEventListener('click', (evenement) => evenement.stopPropagation());
+  input.addEventListener('change', () => onChange(input.checked));
+  return input;
+}
+
+function pastilleContact(valeur, href) {
+  if (!valeur) return document.createTextNode('-');
+  const pastille = el('a', 'pastille-contact', valeur);
+  pastille.href = href;
+  return pastille;
+}
+
+function ligneClient(c, avecFinance, { selection, onSelection }) {
   const ligne = el('tr');
+  ligne.classList.toggle('ligne-selectionnee', selection.has(c.id));
+
+  const cocher = proto(el('td', 'col-selection'));
+  cocher.appendChild(
+    caseACocherTableau(`Sélectionner ${c.raison_sociale}`, selection.has(c.id), (coche) => {
+      ligne.classList.toggle('ligne-selectionnee', coche);
+      onSelection(c.id, coche);
+    })
+  );
 
   const nom = el('td');
-  const lien = el('a', 'cl-nom', c.raison_sociale);
+  const lien = el('a', 'cl-nom');
+  const avatar = el('span', 'chip__avatar chip__avatar--carre', initiales(c.raison_sociale));
+  avatar.setAttribute('aria-hidden', 'true');
+  lien.append(avatar, document.createTextNode(c.raison_sociale));
   lien.href = `#/clients/${c.id}`;
   const blocNom = el('div');
   blocNom.appendChild(lien);
@@ -59,7 +96,7 @@ function ligneClient(c, avecFinance) {
   ligneNom.appendChild(apercu);
   ligne.addEventListener('click', (evenement) => {
     // Clic sur la ligne : seulement avec la nouvelle allure (l'allure actuelle reste inchangée).
-    if (document.body.classList.contains('look-nouveau') && !evenement.target.closest('a, button')) ouvrirApercuClient(c, { avecFinance });
+    if (document.body.classList.contains('look-nouveau') && !evenement.target.closest('a, button, input')) ouvrirApercuClient(c, { avecFinance });
   });
 
   const statut = el('td');
@@ -71,13 +108,21 @@ function ligneClient(c, avecFinance) {
   if (c.contact_principal) contact.appendChild(pastillePersonne(c.contact_principal));
   else contact.textContent = '-';
 
+  const email = proto(el('td'));
+  email.appendChild(pastilleContact(c.email_general, `mailto:${c.email_general}`));
+  const telephone = proto(el('td'));
+  telephone.appendChild(pastilleContact(c.telephone, `tel:${String(c.telephone ?? '').replace(/\s/g, '')}`));
+
   const demandes = c.nb_demandes === 0 ? '-' : `${c.nb_demandes}${c.nb_actives > 0 ? ` (${c.nb_actives} en cours)` : ''}`;
   ligne.append(
+    cocher,
     nom,
     el('td', null, c.siret || '-'),
     statut,
     el('td', null, c.ville || '-'),
     contact,
+    email,
+    telephone,
     el('td', null, demandes),
     el('td', null, c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : '-'),
     el('td', null, formaterDate(c.derniere_activite))
@@ -86,17 +131,63 @@ function ligneClient(c, avecFinance) {
   return ligne;
 }
 
-function construireTableau(clients, avecFinance) {
+// En-têtes : icône (masquée avec l'allure actuelle) et titre.
+const COLONNES = [
+  { titre: 'Entreprise', icone: 'building-2' },
+  { titre: 'SIRET', icone: 'hash' },
+  { titre: 'Statut', icone: 'circle-dot' },
+  { titre: 'Ville', icone: 'map-pin' },
+  { titre: 'Contact principal', icone: 'user-round' },
+  { titre: 'E-mail', icone: 'mail', proto: true },
+  { titre: 'Téléphone', icone: 'phone', proto: true },
+  { titre: 'Demandes', icone: 'layout-list' },
+  { titre: 'Tâches', icone: 'list-checks' },
+  { titre: 'CA signé', icone: 'euro', finance: true },
+  { titre: 'Dernière activité', icone: 'clock' },
+];
+
+function enteteColonne({ titre, icone: nomIcone, proto: estProto }) {
+  const th = el('th');
+  const pastille = el('span', 'th-icone');
+  pastille.appendChild(icone(nomIcone));
+  th.append(pastille, document.createTextNode(titre));
+  return estProto ? proto(th) : th;
+}
+
+function construireTableau(clients, avecFinance, selection, onSelection) {
   const tableau = el('table', 'db-table db-table--dense');
   const tete = el('thead');
   const ligneTete = el('tr');
-  for (const t of ['Entreprise', 'SIRET', 'Statut', 'Ville', 'Contact principal', 'Demandes', 'Tâches', ...(avecFinance ? ['CA signé'] : []), 'Dernière activité']) {
-    ligneTete.appendChild(el('th', null, t));
+  const toutCocher = proto(el('th', 'col-selection'));
+  const caseTout = caseACocherTableau('Tout sélectionner', clients.length > 0 && clients.every((c) => selection.has(c.id)), (coche) => onSelection(clients.map((c) => c.id), coche, true));
+  toutCocher.appendChild(caseTout);
+  ligneTete.appendChild(toutCocher);
+  for (const colonne of COLONNES) {
+    if (colonne.finance && !avecFinance) continue;
+    ligneTete.appendChild(enteteColonne(colonne));
   }
   tete.appendChild(ligneTete);
   const corps = el('tbody');
-  for (const c of clients) corps.appendChild(ligneClient(c, avecFinance));
-  tableau.append(tete, corps);
+  const options = { selection, onSelection: (id, coche) => onSelection([id], coche, false) };
+  for (const c of clients) corps.appendChild(ligneClient(c, avecFinance, options));
+
+  // Ligne de totaux (nouvelle allure) : nombre de clients, demandes, tâches ouvertes, CA signé.
+  const pied = el('tfoot');
+  const totaux = el('tr');
+  const somme = (cle) => clients.reduce((total, c) => total + (Number(c[cle]) || 0), 0);
+  const cellules = [
+    proto(el('td')),
+    el('td', 'total-libelle', `${clients.length} client${clients.length > 1 ? 's' : ''}`),
+    ...Array.from({ length: 6 }, () => el('td')), // SIRET, statut, ville, contact, e-mail, téléphone
+    el('td', null, String(somme('nb_demandes'))),
+    el('td', null, String(somme('nb_taches_ouvertes'))),
+  ];
+  if (avecFinance) cellules.push(el('td', null, formaterMontant(somme('ca_signe'))));
+  cellules.push(el('td'));
+  totaux.append(...cellules);
+  pied.appendChild(totaux);
+
+  tableau.append(tete, corps, pied);
   const defilement = el('div', 'db-table-defilement');
   defilement.appendChild(tableau);
   return defilement;
@@ -160,7 +251,7 @@ export async function vueClients({ dormants = false } = {}) {
     return;
   }
 
-  const main = el('main', 'db');
+  const main = el('main', 'db page-liste');
 
   const entete = el('div', 'cl-entete');
   entete.appendChild(el('h1', null, 'Clients'));
@@ -195,7 +286,11 @@ export async function vueClients({ dormants = false } = {}) {
   densite.appendChild(icone('rows-3'));
   const libelleDensite = el('span');
   densite.appendChild(libelleDensite);
-  filtres.append(recherche, statut, seuil, densite);
+  // Barre de vue (nouvelle allure) : vue choisie et nombre à gauche, sélection et outils à droite.
+  const nombreVue = el('span', 'cl-vue-nombre texte-doux');
+  const infoSelection = el('span', 'cl-selection');
+  infoSelection.setAttribute('aria-live', 'polite');
+  filtres.append(statut, nombreVue, seuil, infoSelection, recherche, densite);
   main.appendChild(filtres);
 
   const carte = el('section', 'db-carte');
@@ -203,6 +298,21 @@ export async function vueClients({ dormants = false } = {}) {
   const resultat = el('div');
   carte.append(compteur, resultat);
   main.appendChild(carte);
+
+  // Sélection multiple (nouvelle allure) : cases à cocher, nombre affiché, export de la sélection.
+  const selection = new Set();
+  function majSelection() {
+    infoSelection.textContent = selection.size > 0 ? `${selection.size} sélectionné${selection.size > 1 ? 's' : ''}` : '';
+    exporter.lastChild.textContent = selection.size > 0 ? 'Exporter la sélection' : 'Exporter en CSV';
+  }
+  function surSelection(ids, coche, toutes) {
+    for (const id of ids) {
+      if (coche) selection.add(id);
+      else selection.delete(id);
+    }
+    majSelection();
+    if (toutes) rafraichir();
+  }
 
   function majDensite() {
     resultat.classList.toggle('tableau-confortable', densiteConfortable());
@@ -221,6 +331,7 @@ export async function vueClients({ dormants = false } = {}) {
     seuil.hidden = !modeDormants;
     if (modeDormants) {
       visibles = clientsDormants(filtrerClients(clients, { recherche: recherche.value, statut: 'client' }), { mois: Number(seuil.value) });
+      nombreVue.textContent = `· ${visibles.length}`;
       compteur.textContent = `${visibles.length} client${visibles.length > 1 ? 's' : ''} dormant${visibles.length > 1 ? 's' : ''} : déjà acheteurs, sans demande en cours et sans activité depuis ${seuil.value} mois ou plus`;
       resultat.innerHTML = '';
       if (visibles.length === 0) {
@@ -234,6 +345,7 @@ export async function vueClients({ dormants = false } = {}) {
     }
     visibles = filtrerClients(clients, { recherche: recherche.value, statut: statut.value });
     compteur.textContent = `${visibles.length} sur ${clients.length} ${clients.length > 1 ? 'clients' : 'client'}`;
+    nombreVue.textContent = `· ${visibles.length}`;
     resultat.innerHTML = '';
     if (visibles.length === 0) {
       resultat.appendChild(
@@ -256,18 +368,21 @@ export async function vueClients({ dormants = false } = {}) {
       if (window.lucide) window.lucide.createIcons();
       return;
     }
-    resultat.appendChild(construireTableau(visibles, estAdmin));
+    resultat.appendChild(construireTableau(visibles, estAdmin, selection, surSelection));
+    if (window.lucide) window.lucide.createIcons();
   }
   recherche.addEventListener('input', rafraichir);
   statut.addEventListener('change', rafraichir);
   seuil.addEventListener('change', rafraichir);
 
   exporter.addEventListener('click', () => {
-    if (visibles.length === 0) {
+    // La sélection (cases à cocher) prime sur la liste affichée.
+    const aExporter = selection.size > 0 ? visibles.filter((c) => selection.has(c.id)) : visibles;
+    if (aExporter.length === 0) {
       afficherToast('Aucun client à exporter.', { type: 'erreur' });
       return;
     }
-    telechargerCsv(`clients-${new Date().toISOString().slice(0, 10)}.csv`, genererCsv(visibles, estAdmin ? [...COLONNES_CSV, ...COLONNES_CSV_FINANCE] : COLONNES_CSV));
+    telechargerCsv(`clients-${new Date().toISOString().slice(0, 10)}.csv`, genererCsv(aExporter, estAdmin ? [...COLONNES_CSV, ...COLONNES_CSV_FINANCE] : COLONNES_CSV));
   });
 
   rafraichir();

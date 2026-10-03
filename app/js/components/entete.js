@@ -35,7 +35,7 @@ const LIENS_ADMIN = [
   { href: '#/admin/import-factures', icone: 'file-up', libelle: 'Import Shine' },
   { href: '#/admin/journal', icone: 'history', libelle: 'Journal d’audit' },
   { href: '#/admin/donnees-a-revoir', icone: 'shield-alert', libelle: 'Données à revoir' },
-];
+].map((l) => ({ ...l, admin: true }));
 
 const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Client' };
 
@@ -53,6 +53,12 @@ function initiales(profil) {
 function lienLateral(l) {
   const actif = estLienActif(l.href);
   return `<a href="${l.href}" class="menu-lateral__lien${actif ? ' menu-lateral__lien--actif' : ''}"${actif ? ' aria-current="page"' : ''}><i data-lucide="${l.icone}"></i><span>${l.libelle}</span></a>`;
+}
+
+// Les liens d'administration sont précédés d'un titre de section (visible avec la
+// nouvelle allure seulement).
+function liensAvecSections(liens) {
+  return liens.map((l, i) => (l.admin && !liens[i - 1]?.admin ? '<p class="menu-lateral__titre menu-lateral__titre--section">Administration</p>' : '') + lienLateral(l)).join('');
 }
 
 // Titre de la barre du haut, déduit de la route courante.
@@ -107,10 +113,11 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
       <a href="#/" class="menu-lateral__logo">
         <img src="assets/images/logo.svg" alt="" />
         <span>RD Recueil</span>
+        <i data-lucide="chevrons-up-down" class="menu-lateral__chevron"></i>
       </a>
       <nav class="menu-lateral__nav" aria-label="Navigation principale">
-        <p class="menu-lateral__titre">Navigation</p>
-        ${liens.map(lienLateral).join('')}
+        <p class="menu-lateral__titre"><span class="titre-actuel">Navigation</span><span class="titre-nouveau">Espace de travail</span></p>
+        ${liensAvecSections(liens)}
       </nav>
       ${blocApercu}
       <div class="menu-lateral__pied">
