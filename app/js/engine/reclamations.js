@@ -5,6 +5,7 @@
 
 import { normaliserTexte } from './texte.js';
 import { estVide } from './fiche-client.js';
+import { cleJour } from './jalons.js';
 
 export const GRAVITES = [
   { valeur: 'mineure', libelle: 'Mineure' },
@@ -131,8 +132,24 @@ export function libelleEtatClient(etat) {
   return ETATS_CLIENT[etat] ?? etat;
 }
 
-export function validerDepot(valeurs) {
+// Importance choisie par le client, dans ses mots : elle fixe la gravité de départ
+// (l'équipe peut la corriger).
+export const IMPORTANCES_CLIENT = [
+  { valeur: 'mineure', libelle: 'Peu important', aide: 'Cela ne vous empêche pas d’avancer.' },
+  { valeur: 'majeure', libelle: 'Important', aide: 'Cela perturbe votre projet ou votre organisation.' },
+  { valeur: 'critique', libelle: 'Urgent', aide: 'Cela vous bloque : nous devons agir vite.' },
+];
+
+export function libelleImportance(valeur) {
+  return IMPORTANCES_CLIENT.find((i) => i.valeur === valeur)?.libelle ?? valeur;
+}
+
+export function validerDepot(valeurs, { maintenant = new Date() } = {}) {
   const erreurs = {};
+  const date = propre(valeurs.date_reception);
+  if (!date || !FORMAT_DATE.test(date)) erreurs.date_reception = 'Indiquez la date du problème.';
+  else if (date > cleJour(maintenant)) erreurs.date_reception = 'La date du problème ne peut pas être dans le futur.';
+  if (!IMPORTANCES_CLIENT.some((i) => i.valeur === valeurs.gravite)) erreurs.gravite = 'Choisissez l’importance.';
   if (estVide(valeurs.demande_id)) erreurs.demande_id = 'Choisissez la demande concernée.';
   if (estVide(valeurs.objet)) erreurs.objet = 'Indiquez l’objet de votre réclamation.';
   else if (String(valeurs.objet).trim().length > LONGUEUR_MAX_OBJET) erreurs.objet = `L’objet ne doit pas dépasser ${LONGUEUR_MAX_OBJET} caractères.`;
@@ -141,5 +158,11 @@ export function validerDepot(valeurs) {
 }
 
 export function preparerDepot(valeurs) {
-  return { demande_id: String(valeurs.demande_id).trim(), objet: String(valeurs.objet).trim(), description: propre(valeurs.description) };
+  return {
+    demande_id: String(valeurs.demande_id).trim(),
+    objet: String(valeurs.objet).trim(),
+    description: propre(valeurs.description),
+    date_reception: propre(valeurs.date_reception),
+    gravite: valeurs.gravite,
+  };
 }

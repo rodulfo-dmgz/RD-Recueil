@@ -35,8 +35,14 @@ export async function enregistrerReclamation(clientId, id, ligne) {
 // Le client n'écrit pas dans la table : il dépose par une fonction qui vérifie son
 // accès à la demande, et lit un résumé sans la gravité ni le responsable.
 
-export async function deposerReclamation(demandeId, objet, description) {
-  const { data, error } = await supabase.rpc('rpc_deposer_reclamation', { p_demande_id: demandeId, p_objet: objet, p_description: description });
+export async function deposerReclamation(demandeId, objet, description, { dateReception, gravite } = {}) {
+  const { data, error } = await supabase.rpc('rpc_deposer_reclamation', {
+    p_demande_id: demandeId,
+    p_objet: objet,
+    p_description: description,
+    p_date_reception: dateReception,
+    p_gravite: gravite,
+  });
   if (error) throw error;
   return data;
 }

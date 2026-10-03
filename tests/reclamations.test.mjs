@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  IMPORTANCES_CLIENT,
   LONGUEUR_MAX_DESCRIPTION,
   LONGUEUR_MAX_OBJET,
   delaiTraitementJours,
@@ -10,6 +11,7 @@ import {
   kpisReclamations,
   libelleEtatClient,
   libelleGravite,
+  libelleImportance,
   libelleStatutReclamation,
   preparerDepot,
   preparerReclamation,
@@ -109,16 +111,44 @@ test('libelleEtatClient : états simples montrés au client', () => {
   assert.equal(libelleEtatClient('x'), 'x');
 });
 
-test('validerDepot : demande et objet obligatoires, longueurs bornées', () => {
-  assert.deepEqual(validerDepot({ demande_id: 'd1', objet: 'Support illisible', description: '' }), {});
-  assert.ok(validerDepot({ demande_id: '', objet: 'x' }).demande_id);
-  assert.ok(validerDepot({ demande_id: 'd1', objet: '   ' }).objet);
-  assert.ok(validerDepot({ demande_id: 'd1', objet: 'x'.repeat(LONGUEUR_MAX_OBJET + 1) }).objet);
-  assert.deepEqual(validerDepot({ demande_id: 'd1', objet: 'x'.repeat(LONGUEUR_MAX_OBJET) }), {});
-  assert.ok(validerDepot({ demande_id: 'd1', objet: 'x', description: 'y'.repeat(LONGUEUR_MAX_DESCRIPTION + 1) }).description);
+const AUJOURDHUI = new Date(2026, 9, 3, 12, 0); // 3 octobre 2026
+const depot = (extra = {}) => ({ demande_id: 'd1', objet: 'Support illisible', description: '', date_reception: '2026-10-03', gravite: 'mineure', ...extra });
+
+test('importances du client : mots simples, associées aux gravités', () => {
+  assert.deepEqual(IMPORTANCES_CLIENT.map((i) => [i.valeur, i.libelle]), [
+    ['mineure', 'Peu important'],
+    ['majeure', 'Important'],
+    ['critique', 'Urgent'],
+  ]);
+  assert.ok(IMPORTANCES_CLIENT.every((i) => i.aide && !/gêne/i.test(i.libelle + i.aide)));
+  assert.equal(libelleImportance('critique'), 'Urgent');
+  assert.equal(libelleImportance('x'), 'x');
 });
 
-test('preparerDepot : textes nettoyés, description vide en null', () => {
-  assert.deepEqual(preparerDepot({ demande_id: ' d1 ', objet: '  Retard  ', description: '  ' }), { demande_id: 'd1', objet: 'Retard', description: null });
-  assert.equal(preparerDepot({ demande_id: 'd1', objet: 'x', description: ' détail ' }).description, 'détail');
+test('validerDepot : demande, objet, date et importance ; longueurs bornées', () => {
+  const v = (extra) => validerDepot(depot(extra), { maintenant: AUJOURDHUI });
+  assert.deepEqual(v(), {});
+  assert.ok(v({ demande_id: '' }).demande_id);
+  assert.ok(v({ objet: '   ' }).objet);
+  assert.ok(v({ objet: 'x'.repeat(LONGUEUR_MAX_OBJET + 1) }).objet);
+  assert.deepEqual(v({ objet: 'x'.repeat(LONGUEUR_MAX_OBJET) }), {});
+  assert.ok(v({ description: 'y'.repeat(LONGUEUR_MAX_DESCRIPTION + 1) }).description);
+  assert.ok(v({ date_reception: '' }).date_reception);
+  assert.ok(v({ date_reception: '03/10/2026' }).date_reception);
+  assert.ok(v({ date_reception: '2026-10-04' }).date_reception); // demain
+  assert.deepEqual(v({ date_reception: '2026-09-01' }), {}); // dans le passé
+  assert.ok(v({ gravite: '' }).gravite);
+  assert.ok(v({ gravite: 'grave' }).gravite);
+  assert.deepEqual(v({ gravite: 'critique' }), {});
+});
+
+test('preparerDepot : textes nettoyés, description vide en null, date et importance reprises', () => {
+  assert.deepEqual(preparerDepot(depot({ demande_id: ' d1 ', objet: '  Retard  ', description: '  ', gravite: 'majeure' })), {
+    demande_id: 'd1',
+    objet: 'Retard',
+    description: null,
+    date_reception: '2026-10-03',
+    gravite: 'majeure',
+  });
+  assert.equal(preparerDepot(depot({ description: ' détail ' })).description, 'détail');
 });

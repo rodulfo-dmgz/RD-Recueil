@@ -9,7 +9,8 @@ import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { el, icone } from '../../components/dashboard-ui.js';
 import { champ, champSelect, zoneTexte } from '../../components/champs-crm.js';
-import { LONGUEUR_MAX_DESCRIPTION, LONGUEUR_MAX_OBJET, libelleEtatClient, preparerDepot, validerDepot } from '../../engine/reclamations.js';
+import { cleJour } from '../../engine/jalons.js';
+import { IMPORTANCES_CLIENT, LONGUEUR_MAX_DESCRIPTION, LONGUEUR_MAX_OBJET, libelleEtatClient, libelleImportance, preparerDepot, validerDepot } from '../../engine/reclamations.js';
 
 // État montré au client -> style du badge (mêmes couleurs que côté équipe).
 const STYLE_ETAT = { recue: 'ouverte', en_cours: 'en_cours', traitee: 'cloturee' };
@@ -28,6 +29,16 @@ function construireFormulaire({ demandes, reference, onEnvoye }) {
     demandes.find((d) => d.reference === reference)?.id ?? (demandes.length === 1 ? demandes[0].id : ''),
     'Choisir une demande…'
   );
+  const date = champ('Date du problème *', 'date_reception', cleJour(new Date()), 'date');
+  date.input.max = cleJour(new Date());
+  const importance = champSelect('gravite', 'Importance pour vous *', IMPORTANCES_CLIENT, 'mineure');
+  const aide = el('span', 'texte-doux', IMPORTANCES_CLIENT[0].aide);
+  importance.select.addEventListener('change', () => {
+    aide.textContent = IMPORTANCES_CLIENT.find((i) => i.valeur === importance.select.value)?.aide ?? '';
+  });
+  importance.wrapper.appendChild(aide);
+  const groupe = el('div', 'cl-form__groupe');
+  groupe.append(choix.wrapper, date.wrapper, importance.wrapper);
   const objet = champ('Objet *', 'objet', '');
   objet.input.maxLength = LONGUEUR_MAX_OBJET;
   const description = zoneTexte('Description', 'description', '', 5);
@@ -36,23 +47,27 @@ function construireFormulaire({ demandes, reference, onEnvoye }) {
   erreurGenerale.setAttribute('role', 'alert');
   const envoyer = el('button', 'db-btn db-btn--primaire', 'Envoyer ma réclamation');
   envoyer.type = 'submit';
-  form.append(choix.wrapper, objet.wrapper, description.wrapper, erreurGenerale, envoyer);
+  form.append(groupe, objet.wrapper, description.wrapper, erreurGenerale, envoyer);
 
   form.addEventListener('submit', async (evenement) => {
     evenement.preventDefault();
     erreurGenerale.textContent = '';
-    const saisie = { demande_id: choix.select.value, objet: objet.input.value, description: description.zone.value };
+    const saisie = { demande_id: choix.select.value, objet: objet.input.value, description: description.zone.value, date_reception: date.input.value, gravite: importance.select.value };
     const erreurs = validerDepot(saisie);
     choix.erreur.textContent = erreurs.demande_id ?? '';
+    date.erreur.textContent = erreurs.date_reception ?? '';
+    importance.erreur.textContent = erreurs.gravite ?? '';
     objet.erreur.textContent = erreurs.objet ?? '';
     erreurGenerale.textContent = erreurs.description ?? '';
     if (erreurs.demande_id) return choix.select.focus();
+    if (erreurs.date_reception) return date.input.focus();
+    if (erreurs.gravite) return importance.select.focus();
     if (erreurs.objet) return objet.input.focus();
     if (erreurs.description) return undefined;
     envoyer.disabled = true;
     try {
-      const { demande_id, objet: o, description: d } = preparerDepot(saisie);
-      await deposerReclamation(demande_id, o, d);
+      const { demande_id, objet: o, description: d, date_reception, gravite } = preparerDepot(saisie);
+      await deposerReclamation(demande_id, o, d, { dateReception: date_reception, gravite });
       afficherToast('Votre réclamation a été envoyée. Nous vous répondons rapidement.', { type: 'succes' });
       await onEnvoye();
     } catch (err) {
@@ -73,12 +88,17 @@ function construireSuivi(mesReclamations) {
   for (const r of mesReclamations) {
     const li = el('li', 'rc-ligne');
     const tete = el('div', 'rc-ligne__tete');
-    tete.append(el('span', `cl-badge rc-statut rc-statut--${STYLE_ETAT[r.etat] ?? 'ouverte'}`, libelleEtatClient(r.etat)), el('time', 'texte-doux', `Envoyée le ${formaterDate(r.date_reception)}`));
+    tete.append(
+      el('span', `cl-badge rc-statut rc-statut--${STYLE_ETAT[r.etat] ?? 'ouverte'}`, libelleEtatClient(r.etat)),
+      el('span', 'cl-badge', libelleImportance(r.gravite)),
+      el('time', 'texte-doux', `Problème du ${formaterDate(r.date_reception)}`)
+    );
     li.appendChild(tete);
     const intitule = el('p', 'rc-ligne__objet');
     intitule.append(el('strong', null, r.objet), el('span', 'texte-doux', ` · ${r.reference}`));
     li.appendChild(intitule);
     if (r.description) li.appendChild(el('p', 'rc-ligne__texte texte-doux', r.description));
+    if (r.interlocuteur) li.appendChild(el('p', 'texte-doux rc-ligne__suivi', `Votre interlocuteur : ${r.interlocuteur}`));
     if (r.etat === 'traitee') {
       li.appendChild(el('p', 'rc-ligne__texte', r.reponse ? `Réponse : ${r.reponse}` : 'Réclamation traitée.'));
       if (r.date_cloture) li.appendChild(el('p', 'texte-doux rc-ligne__suivi', `Traitée le ${formaterDate(r.date_cloture)}`));

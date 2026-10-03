@@ -883,6 +883,18 @@ Vérifié : `node --test tests/*.test.mjs` 223 réussis, `check-coherence` 0 err
 
 Limites : pas d'e-mail (notification dans l'application seulement) ; pas de pièce jointe ; le client ne peut ni modifier ni retirer sa réclamation après dépôt.
 
+### 2026-10-03 : lot F, ajout (date, importance et interlocuteur sur la réclamation du client, migration 0051)
+
+Origine : retour de l'utilisateur ("côté client on devrait avoir presque toutes les infos"). Décisions validées : le client précise la **date du problème** et l'**importance** ; il voit la gravité (sous le mot "importance"), son **interlocuteur** et la réponse. Libellés d'importance : « Peu important », « Important », « Urgent » avec une aide courte sous le champ ; le mot "gêne" est écarté (demande de l'utilisateur).
+
+Fait :
+- Migration `0051_reclamations_client_infos.sql` (appliquée) : `rpc_deposer_reclamation` reçoit la date du problème (devient la date de réception ; refusée si elle est future ou date de plus de douze mois) et la gravité de départ (`mineure`, `majeure`, `critique` ; le client choisit une importance, l'équipe peut la corriger) ; `rpc_mes_reclamations` ajoute la gravité et le nom de l'interlocuteur (le responsable de la réclamation, par son nom seulement).
+- `engine/reclamations.js` : `IMPORTANCES_CLIENT` (libellé et aide), `libelleImportance`, `validerDepot` (date obligatoire et pas dans le futur, importance obligatoire) et `preparerDepot` reprennent ces champs. `services/reclamations.js` : `deposerReclamation` les transmet.
+- `views/client/reclamation.js` : champs "Date du problème" (aujourd'hui par défaut, pas de date future) et "Importance pour vous" avec son aide ; la liste "Mes réclamations" montre l'importance, "Problème du ...", "Votre interlocuteur : ..." et la réponse.
+
+Vérifié en base (transactions annulées, un consultant et un client simulés) : date future, date de plus de douze mois et importance inconnue refusées ; la date et la gravité choisies sont enregistrées (visibles côté équipe, origine client) ; valeurs par défaut (aujourd'hui, mineure) quand elles ne sont pas fournies ; l'interlocuteur affiché est le nom du consultant. Base propre ensuite.
+Vérifié : `node --test tests/*.test.mjs` 224 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : champs, listes d'importance et aide qui change au choix, aucun mot "gêne", date par défaut et maximum, date future refusée sans appel, dépôt avec les bons champs, suivi avec importance, date du problème et interlocuteur. Non testé avec la vraie base et de vrais comptes, ni en thème sombre.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
