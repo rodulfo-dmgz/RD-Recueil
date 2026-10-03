@@ -93,6 +93,7 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 | `#/accueil` | Tableau de bord | Page d'arrivée du client : bandeau d'accueil avec l'action principale, indicateurs (demandes, en cours, actions à faire, documents), suivi par étapes de chaque demande en cours (réponses, entretien, note de cadrage, proposition, décision) avec la prochaine action attendue, calendrier « Mon planning » des dates importantes (création, réponses envoyées, entretien, signature, date limite), accès rapides, aide. Quand RD Formation a demandé un avis de satisfaction, une carte « Votre avis nous intéresse » (note de 1 à 5 et commentaire) s'affiche en tête. |
 | `#/rapport` | Mon rapport de projet | Pour chaque demande : étapes, durée écoulée, délai de réponse, prochain rendez-vous et chronologie des dates importantes avec le délai entre chaque étape ; imprimable. |
 | `#/documents` | Mes documents | Note de cadrage, proposition commerciale et pièces déposées, regroupées par demande (voir, imprimer, télécharger). |
+| `#/reclamation` (+ `/:ref`) | Signaler un problème | Le client dépose une réclamation sur l'une de ses demandes (objet, description) et suit ses réclamations : état simple (reçue, en cours, traitée) et, une fois traitée, la réponse apportée ; ni la gravité ni le responsable. Lien « Signaler un problème » sur la page de chaque demande et dans le menu. Le consultant de la demande et les admins sont prévenus dans l'application. |
 | `#/charte-rgpd` | Charte RGPD | Données collectées, finalités, destinataires, durée de conservation (section 8.3), droits et contact. |
 | `#/mes-demandes` | Mes demandes | Liste des demandes accessibles, statut, progression. |
 | `#/d/:ref` | Accueil de la demande | Présentation, barre de progression par section, bouton reprendre. |
@@ -585,7 +586,8 @@ create table reclamations (
   statut text not null default 'ouverte' check (statut in ('ouverte', 'en_cours', 'cloturee')),
   responsable_id uuid references auth.users on delete set null,
   action_corrective text,
-  date_cloture date            -- automatique à la clôture
+  date_cloture date,           -- automatique à la clôture
+  origine text not null default 'equipe' check (origine in ('equipe', 'client'))  -- 0050 : déposée par le client ou saisie par l'équipe
 );
 
 -- Avis de satisfaction (0049), Qualiopi indicateur 30 : un par demande et par moment.
@@ -731,6 +733,7 @@ create table notifications (
 | `rpc_valider_cadrage(note_id, signature_image)` | Client uniquement ; enregistre le tracé de signature et un code de vérification généré côté serveur (`signature_credential`), horodate, enregistre l'IP, passe la demande à `cadrage_valide`. |
 | `est_staff()`, `est_admin()`, `a_acces(demande_id)` | Fonctions utilitaires pour les politiques RLS. |
 | `peut_voir_demande(id)`, `peut_voir_client(id)`, `acces_demande(id)` `security definer` (0039, 0040) | Accès par consultant : l'admin voit tout ; un consultant voit ses demandes (`consultant_id`) et les clients dont il est responsable (`responsable_id`) ou qui ont l'une de ses demandes ; `acces_demande` ajoute le client invité sur la demande. |
+| `rpc_deposer_reclamation(demande, objet, description)` et `rpc_mes_reclamations()` `security definer` (0050) | Dépôt d'une réclamation par un compte invité sur la demande (refuse une demande hors de son accès, un objet vide ou trop long, et au-delà de cinq dépôts par jour ; attribue la réclamation au consultant de la demande ; prévient le consultant et les admins) ; lecture de ses réclamations avec un état simple, sans gravité ni responsable, et la réponse une fois traitée. Un client n'écrit ni ne lit jamais directement `reclamations`. |
 | `rpc_repondre_satisfaction(avis, note, commentaire)` `security definer` (0049) | Un compte invité sur la demande (ou le personnel) répond à un avis demandé : refuse un avis inconnu ou hors de sa demande, une seconde réponse, une note hors de 1 à 5 ; note la réponse (date du jour, origine client ou équipe) et prévient le consultant de la demande. Un client n'écrit jamais directement dans `satisfactions`. |
 | `fn_audit()` `security definer` (0046 à 0049) | Déclencheur du journal d'audit : note qui a changé quoi (colonnes avant et après, fiche client de contexte, nom du compte au moment du changement) ; sans effet pour une mise à jour qui ne change que la date de modification. |
 | `rpc_fusionner_clients(garder, absorber)` `security definer` (0045) | Admin uniquement : fusionne une fiche client dans une autre, en une transaction. Déplace demandes, échanges, tâches, réclamations et avis de satisfaction ; fusionne les contacts de même e-mail et déplace les autres (le contact principal de l'ancienne fiche perd ce statut si la fiche gardée a le sien) ; complète les champs vides de la fiche gardée sans rien écraser ; un prospect devient client si l'autre l'était ; concatène les notes ; reprend le responsable s'il manquait ; note la fusion dans l'historique ; supprime l'ancienne fiche en dernier (sa suppression entraînerait sinon celle de ses contacts, échanges et tâches). Les fichiers de Storage ne bougent pas : leur droit repose sur la référence de la demande. |
@@ -770,7 +773,7 @@ create table notifications (
 | `doublons_ignores` | Admin uniquement (0045) | Aucun accès |
 | `audit_log` | Lecture réservée à l'admin ; aucun droit d'écriture, de modification ni de suppression pour les rôles de l'application, y compris l'admin : seul le déclencheur écrit (0046) | Aucun accès |
 | `consentements` | Le personnel qui voit le client du contact (`peut_voir_client`) : lecture et écriture (0047) | Aucun accès |
-| `reclamations` | Le personnel qui voit le client (`peut_voir_client`) : lecture et écriture (0048) | Aucun accès |
+| `reclamations` | Le personnel qui voit le client (`peut_voir_client`) : lecture et écriture (0048) | Aucun accès direct : dépôt par `rpc_deposer_reclamation`, lecture par `rpc_mes_reclamations` (0050) |
 | `satisfactions` | Le personnel qui voit le client : lecture et écriture ; un client invité sur la demande : lecture de ses avis seulement, la réponse passe par `rpc_repondre_satisfaction` (0049) | Lecture de ses avis |
 | `factures` | Admin uniquement : un consultant ne les lit ni ne les écrit (0044) | Aucun accès |
 | `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, modification, suppression ; création pour lui seul et sur un client qu'il voit ; réassignation refusée). Une tâche confiée par l'admin reste visible même sur un client que le consultant ne voit pas (0034, 0039) | Aucun accès |

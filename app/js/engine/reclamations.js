@@ -116,4 +116,30 @@ export const COLONNES_CSV_RECLAMATIONS = [
   { libelle: 'Date de clôture', valeur: (r) => dateCsv(r.date_cloture) },
   { libelle: 'Délai de traitement (jours)', valeur: (r) => delaiTraitementJours(r) ?? '' },
   { libelle: 'Action corrective', valeur: (r) => r.action_corrective ?? '' },
+  { libelle: 'Déposée par', valeur: (r) => (r.origine === 'client' ? 'Le client' : 'L’équipe') },
 ];
+
+// ─── Côté client (dépôt d'une réclamation depuis son espace) ────────────────
+
+export const LONGUEUR_MAX_OBJET = 200;
+export const LONGUEUR_MAX_DESCRIPTION = 4000;
+
+// État simple montré au client : le statut interne n'est pas exposé.
+const ETATS_CLIENT = { recue: 'Reçue', en_cours: 'En cours de traitement', traitee: 'Traitée' };
+
+export function libelleEtatClient(etat) {
+  return ETATS_CLIENT[etat] ?? etat;
+}
+
+export function validerDepot(valeurs) {
+  const erreurs = {};
+  if (estVide(valeurs.demande_id)) erreurs.demande_id = 'Choisissez la demande concernée.';
+  if (estVide(valeurs.objet)) erreurs.objet = 'Indiquez l’objet de votre réclamation.';
+  else if (String(valeurs.objet).trim().length > LONGUEUR_MAX_OBJET) erreurs.objet = `L’objet ne doit pas dépasser ${LONGUEUR_MAX_OBJET} caractères.`;
+  if (String(valeurs.description ?? '').trim().length > LONGUEUR_MAX_DESCRIPTION) erreurs.description = `La description ne doit pas dépasser ${LONGUEUR_MAX_DESCRIPTION} caractères.`;
+  return erreurs;
+}
+
+export function preparerDepot(valeurs) {
+  return { demande_id: String(valeurs.demande_id).trim(), objet: String(valeurs.objet).trim(), description: propre(valeurs.description) };
+}

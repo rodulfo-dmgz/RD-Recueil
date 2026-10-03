@@ -2,13 +2,18 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  LONGUEUR_MAX_DESCRIPTION,
+  LONGUEUR_MAX_OBJET,
   delaiTraitementJours,
   estOuverte,
   filtrerReclamations,
   kpisReclamations,
+  libelleEtatClient,
   libelleGravite,
   libelleStatutReclamation,
+  preparerDepot,
   preparerReclamation,
+  validerDepot,
   validerReclamation,
 } from '../app/js/engine/reclamations.js';
 
@@ -87,12 +92,33 @@ test('export CSV des réclamations : valeurs lisibles et délai de traitement', 
   const csv = genererCsv(
     [
       { objet: 'Retard', description: null, gravite: 'majeure', statut: 'cloturee', date_reception: '2026-09-01', date_cloture: '2026-09-11', action_corrective: 'Process revu', clients: { raison_sociale: 'ABC' }, demandes: { reference: 'RDF-1' } },
-      { objet: 'Question', description: 'Détail', gravite: 'mineure', statut: 'ouverte', date_reception: '2026-10-01', date_cloture: null, action_corrective: null, clients: { raison_sociale: 'XYZ' }, demandes: null },
+      { objet: 'Question', description: 'Détail', gravite: 'mineure', statut: 'ouverte', date_reception: '2026-10-01', date_cloture: null, action_corrective: null, origine: 'client', clients: { raison_sociale: 'XYZ' }, demandes: null },
     ],
     COLONNES_CSV_RECLAMATIONS,
   );
   const lignes = csv.split('\r\n');
-  assert.equal(lignes[0], 'Client;Demande;Date de réception;Objet;Description;Gravité;Statut;Date de clôture;Délai de traitement (jours);Action corrective');
-  assert.equal(lignes[1], 'ABC;RDF-1;01/09/2026;Retard;;Majeure;Clôturée;11/09/2026;10;Process revu');
-  assert.equal(lignes[2], 'XYZ;;01/10/2026;Question;Détail;Mineure;Ouverte;;;');
+  assert.equal(lignes[0], 'Client;Demande;Date de réception;Objet;Description;Gravité;Statut;Date de clôture;Délai de traitement (jours);Action corrective;Déposée par');
+  assert.equal(lignes[1], 'ABC;RDF-1;01/09/2026;Retard;;Majeure;Clôturée;11/09/2026;10;Process revu;L’équipe');
+  assert.equal(lignes[2], 'XYZ;;01/10/2026;Question;Détail;Mineure;Ouverte;;;;Le client');
+});
+
+test('libelleEtatClient : états simples montrés au client', () => {
+  assert.equal(libelleEtatClient('recue'), 'Reçue');
+  assert.equal(libelleEtatClient('en_cours'), 'En cours de traitement');
+  assert.equal(libelleEtatClient('traitee'), 'Traitée');
+  assert.equal(libelleEtatClient('x'), 'x');
+});
+
+test('validerDepot : demande et objet obligatoires, longueurs bornées', () => {
+  assert.deepEqual(validerDepot({ demande_id: 'd1', objet: 'Support illisible', description: '' }), {});
+  assert.ok(validerDepot({ demande_id: '', objet: 'x' }).demande_id);
+  assert.ok(validerDepot({ demande_id: 'd1', objet: '   ' }).objet);
+  assert.ok(validerDepot({ demande_id: 'd1', objet: 'x'.repeat(LONGUEUR_MAX_OBJET + 1) }).objet);
+  assert.deepEqual(validerDepot({ demande_id: 'd1', objet: 'x'.repeat(LONGUEUR_MAX_OBJET) }), {});
+  assert.ok(validerDepot({ demande_id: 'd1', objet: 'x', description: 'y'.repeat(LONGUEUR_MAX_DESCRIPTION + 1) }).description);
+});
+
+test('preparerDepot : textes nettoyés, description vide en null', () => {
+  assert.deepEqual(preparerDepot({ demande_id: ' d1 ', objet: '  Retard  ', description: '  ' }), { demande_id: 'd1', objet: 'Retard', description: null });
+  assert.equal(preparerDepot({ demande_id: 'd1', objet: 'x', description: ' détail ' }).description, 'détail');
 });

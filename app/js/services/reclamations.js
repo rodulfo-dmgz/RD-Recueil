@@ -30,3 +30,19 @@ export async function enregistrerReclamation(clientId, id, ligne) {
   if (!data?.length) throw new Error('Enregistrement refusé : cette réclamation n’est pas accessible avec votre compte.');
   return data[0];
 }
+
+// ─── Côté client ────────────────────────────────────────────────────────────
+// Le client n'écrit pas dans la table : il dépose par une fonction qui vérifie son
+// accès à la demande, et lit un résumé sans la gravité ni le responsable.
+
+export async function deposerReclamation(demandeId, objet, description) {
+  const { data, error } = await supabase.rpc('rpc_deposer_reclamation', { p_demande_id: demandeId, p_objet: objet, p_description: description });
+  if (error) throw error;
+  return data;
+}
+
+export async function listerMesReclamations() {
+  const { data, error } = await supabase.rpc('rpc_mes_reclamations');
+  if (error) throw error;
+  return data;
+}

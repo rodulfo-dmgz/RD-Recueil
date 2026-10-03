@@ -868,6 +868,21 @@ Fichiers du lot F (commit) :
 
 Les migrations 0046 à 0049 sont appliquées sur la base de production.
 
+### 2026-10-03 : lot F, ajout (réclamation déposée par le client, migration 0050)
+
+Origine : l'utilisateur a constaté que le client n'avait aucun moyen de déposer une réclamation (limite du lot F, décision de l'étape 3). Décisions validées ("comme recommandé") : le client la dépose sur l'une de ses demandes (une demande est obligatoire) ; il voit son état et, une fois traitée, la réponse apportée (l'action corrective).
+
+Fait :
+- Migration `0050_reclamations_client.sql` (appliquée) : colonne `origine` (`equipe` par défaut, `client`) ; `fn_reclamation_maj` ne fait plus du créateur le responsable quand il n'est pas du personnel ; `rpc_deposer_reclamation(demande, objet, description)` (`security definer` : accès à la demande exigé, objet non vide de 200 caractères au plus, description de 4 000 au plus, au plus cinq dépôts par compte et par jour, réclamation ouverte de gravité mineure attribuée au consultant de la demande, notification "Nouvelle réclamation" au consultant et aux admins) ; `rpc_mes_reclamations()` (les réclamations d'origine client sur les demandes accessibles, avec un état `recue`, `en_cours` ou `traitee`, la date de clôture et la réponse seulement une fois traitée ; **ni gravité, ni responsable, ni les réclamations saisies par l'équipe**). Le client n'a toujours aucun accès direct à la table.
+- `engine/reclamations.js` : libellés d'état pour le client, `validerDepot`, `preparerDepot` ; export CSV : colonne "Déposée par" (le client ou l'équipe). `services/reclamations.js` : `deposerReclamation`, `listerMesReclamations`.
+- `views/client/reclamation.js` (nouveau), routes `#/reclamation` et `#/reclamation/:ref`, lien "Signaler un problème" dans le menu client et sur la page de chaque demande (demande présélectionnée) : formulaire (demande, objet, description) et liste "Mes réclamations" (état, date, réponse). En aperçu client de l'admin, la liste n'est pas affichée.
+- Côté équipe : badge "Déposée par le client" dans la liste des réclamations.
+
+Vérifié en base (transactions annulées, un consultant et deux comptes clients simulés) : le client ne lit rien dans la table et ne peut pas y écrire ; un objet vide ou trop long est refusé ; un autre client ne peut ni déposer sur cette demande ("Demande introuvable") ni voir la réclamation ; le client ne voit que la sienne, pas celle saisie par l'équipe ; la sixième réclamation du jour est refusée ; côté équipe, origine client, responsable = consultant de la demande, gravité mineure ; le client voit l'état suivre (reçue, en cours, traitée avec la réponse) ; le consultant et l'admin sont notifiés, pas le client. Base propre ensuite.
+Vérifié : `node --test tests/*.test.mjs` 223 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : demande présélectionnée depuis le lien, aucun mot "gravité" ni "responsable" à l'écran, validations sans appel, refus du serveur affiché avec bouton réactivé, dépôt avec les bons champs puis réclamation visible dans la liste, formulaire vidé. Non testé avec la vraie base et de vrais comptes, ni en thème sombre ; la page "Ma demande" complète n'a pas été chargée en entier (syntaxe vérifiée).
+
+Limites : pas d'e-mail (notification dans l'application seulement) ; pas de pièce jointe ; le client ne peut ni modifier ni retirer sa réclamation après dépôt.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

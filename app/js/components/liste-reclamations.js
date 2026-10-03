@@ -140,6 +140,7 @@ export function construireListeReclamations({ clientId = null, clients = [], res
     tete.append(
       el('span', `cl-badge rc-gravite rc-gravite--${r.gravite}`, libelleGravite(r.gravite)),
       el('span', `cl-badge rc-statut rc-statut--${r.statut}`, libelleStatutReclamation(r.statut)),
+      ...(r.origine === 'client' ? [el('span', 'cl-badge', 'Déposée par le client')] : []),
       el('time', 'texte-doux', `Reçue le ${formaterDate(r.date_reception)}`)
     );
     li.appendChild(tete);

@@ -258,5 +258,15 @@ function rendreLignesDocuments({ reference, demande, reponses, noteEnvoyee, prop
     );
   }
 
+  // Un client mécontent doit pouvoir le dire : réclamation rattachée à cette demande.
+  elements.push(
+    creerLigneNavigation({
+      href: `#/reclamation/${reference}`,
+      icone: 'message-square-warning',
+      titre: 'Signaler un problème',
+      sousTitre: 'Une réclamation ou un désaccord',
+    })
+  );
+
   return elements;
 }

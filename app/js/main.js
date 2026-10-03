@@ -15,6 +15,7 @@ import { vueClientsDoublons } from './views/consultant/clients-doublons.js';
 import { vueJournal } from './views/consultant/journal.js';
 import { vueDonneesARevoir } from './views/consultant/donnees-a-revoir.js';
 import { vueReclamations } from './views/consultant/reclamations.js';
+import { vueReclamationClient } from './views/client/reclamation.js';
 import { vueClients } from './views/consultant/clients.js';
 import { vueTaches } from './views/consultant/taches.js';
 import { vueClientFiche } from './views/consultant/client-fiche.js';
@@ -223,6 +224,16 @@ route('/clients/doublons', async () => {
     return;
   }
   vueClientsDoublons();
+});
+
+route('/reclamation', async () => {
+  if (!(await garantirProfilActif())) return;
+  vueReclamationClient();
+});
+
+route('/reclamation/:ref', async ({ ref }) => {
+  if (!(await garantirProfilActif())) return;
+  vueReclamationClient(ref);
 });
 
 route('/reclamations', async () => {

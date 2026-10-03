@@ -14,6 +14,7 @@ const LIENS_CLIENT = [
   { href: '#/documents', icone: 'folder-open', libelle: 'Mes documents' },
   { href: '#/rapport', icone: 'file-chart-column', libelle: 'Mon rapport' },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
+  { href: '#/reclamation', icone: 'message-square-warning', libelle: 'Signaler un problème' },
   { href: '#/charte-rgpd', icone: 'shield-check', libelle: 'Charte RGPD' },
 ];
 
@@ -65,6 +66,7 @@ const TITRES_PAGE = [
   ['#/charte-rgpd', 'Charte RGPD'],
   ['#/taches', 'Tâches'],
   ['#/reclamations', 'Réclamations'],
+  ['#/reclamation', 'Signaler un problème'],
   ['#/clients/nouveau', 'Nouveau client'],
   ['#/clients/doublons', 'Doublons de clients'],
   ['#/clients/dormants', 'Clients dormants'],
