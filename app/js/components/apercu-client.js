@@ -15,7 +15,7 @@ export function pastillePersonne(nom) {
   return chip;
 }
 
-function ligne(libelle, valeur) {
+export function ligne(libelle, valeur) {
   const bloc = el('div', 'tiroir-fiche__ligne');
   bloc.append(el('dt', null, libelle));
   const dd = el('dd');

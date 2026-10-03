@@ -26,6 +26,19 @@ export function caseACocher(libelle, coche, onChange) {
   return input;
 }
 
+// Petit bouton « aperçu » (tiroir latéral), visible au survol de la ligne ou au clavier (css/allure.css).
+export function boutonApercu(libelle, auClic) {
+  const bouton = el('button', 'cl-apercu');
+  bouton.type = 'button';
+  bouton.setAttribute('aria-label', libelle);
+  bouton.appendChild(icone('panel-right-open'));
+  bouton.addEventListener('click', (evenement) => {
+    evenement.stopPropagation();
+    auClic();
+  });
+  return bouton;
+}
+
 const marquer = (noeud, colonne) => {
   if (colonne.proto) noeud.classList.add('col-proto');
   if (colonne.figee) noeud.classList.add('col-nom');

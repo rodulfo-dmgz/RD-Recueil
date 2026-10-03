@@ -15,7 +15,7 @@ export async function obtenirDemandeParReference(reference) {
 export async function listerDemandes({ statut, type, consultantId, inclureArchivees = false } = {}) {
   let requete = supabase
     .from('demandes')
-    .select('id, reference, statut, date_limite, types, created_at, archivee, consultant_id, clients(raison_sociale), consultant:profils!consultant_id(nom, email)')
+    .select('id, reference, statut, date_limite, types, created_at, archivee, client_id, consultant_id, clients(raison_sociale), consultant:profils!consultant_id(nom, email)')
     .order('created_at', { ascending: false });
   if (statut) requete = requete.eq('statut', statut);
   if (type) requete = requete.contains('types', [type]);

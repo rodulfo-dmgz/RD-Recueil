@@ -223,7 +223,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 - [x] 2. Composant tableau (tri, colonnes, sélection) : clients, demandes et comptes migrés ; pagination non faite (volumes faibles)
 - [x] 3. Menu de commandes `Ctrl+K`
 - [x] 4. Fil d'Ariane et création rapide dans l'en-tête
-- [ ] 5. Panneau latéral (aperçu d'un client depuis la liste)
+- [x] 5. Panneau latéral (aperçu d'un client et d'une demande depuis la liste)
 - [ ] 6. Filtres avancés et vues enregistrées (nouvelle table par utilisateur, avec RLS)
 - [ ] 7. Kanban des demandes
 - [ ] 8. Responsive, accessibilité, performance, audit final
@@ -1003,6 +1003,15 @@ Fait : la barre du haut affiche un **fil d'Ariane** à la place du titre seul, d
 - `engine/fil-ariane.js` (pur, +4 tests), `entete.js` (rendu et `definirNomClientFil`), `client-fiche.js` (fournit le nom), styles dans `css/allure.css`.
 
 Vérifié : 238 tests, `check-coherence` 0 erreur, syntaxe. Non vérifié dans le navigateur : le rendu du fil dans la vraie barre du haut et la mise à jour du nom du client (le calcul des segments est testé, pas l'affichage). Une erreur de syntaxe dans une expression régulière a été trouvée et corrigée avant le commit.
+
+### 2026-10-03 : refonte, phase 5 (tiroir de détail)
+
+L'aperçu d'un client dans le tiroir existait depuis la phase 1 bis ; cette étape l'étend aux **demandes** et factorise le bouton d'aperçu.
+- **Demandes** : un clic sur une ligne (nouvelle allure) ou sur le petit bouton d'aperçu (visible au survol ou au clavier) ouvre un tiroir : statut, client, types, consultant (admin seulement, « Non attribuée » si vide), date limite, date de création, archivage ; accès « Ouvrir la demande », « Note de cadrage », « Fiche client ». Un clic sur la référence ouvre toujours la demande. Le client concerné (`client_id`) est maintenant chargé par `listerDemandes`.
+- `components/apercu-demande.js` (nouveau), `boutonApercu` ajouté à `tableau-liste.js` (utilisé par les clients et les demandes), `ligne` exportée de `apercu-client.js`.
+- Tâches, réclamations, journal d'audit : pas de tiroir pour l'instant (leurs détails se déplient déjà dans la page).
+
+Vérifié : 238 tests, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée) : ouverture par le bouton d'aperçu, contenu (consultant présent pour l'admin, « Non attribuée »), liens, fermeture par Échap, ouverture par un clic de ligne, aucune erreur console. Non vérifié : la requête réelle avec `client_id` (la colonne est utilisée à l'insertion des demandes), le rendu en capture d'écran.
 
 ## 5. Points ouverts
 

@@ -9,7 +9,7 @@ import { construireEtatVide } from '../../components/etat-vide.js';
 import { ouvrirApercuClient, pastillePersonne } from '../../components/apercu-client.js';
 import { basculerDensite, densiteConfortable } from '../../components/allure.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
-import { tableauListe } from '../../components/tableau-liste.js';
+import { boutonApercu, tableauListe } from '../../components/tableau-liste.js';
 import { genererCsv } from '../../engine/csv.js';
 import { getProfil } from '../../store.js';
 import { formaterMontant } from '../../engine/finance.js';
@@ -60,16 +60,8 @@ function celluleEntreprise(c, avecFinance) {
   const bloc = el('div');
   bloc.appendChild(lien);
   if (c.nom_commercial) bloc.appendChild(el('small', 'cl-sous-nom', c.nom_commercial));
-  const apercu = el('button', 'cl-apercu');
-  apercu.type = 'button';
-  apercu.setAttribute('aria-label', `Aperçu de ${c.raison_sociale}`);
-  apercu.appendChild(icone('panel-right-open'));
-  apercu.addEventListener('click', (evenement) => {
-    evenement.stopPropagation();
-    ouvrirApercuClient(c, { avecFinance });
-  });
   const ligne = el('div', 'cl-nom-ligne');
-  ligne.append(bloc, apercu);
+  ligne.append(bloc, boutonApercu(`Aperçu de ${c.raison_sociale}`, () => ouvrirApercuClient(c, { avecFinance })));
   return ligne;
 }
 

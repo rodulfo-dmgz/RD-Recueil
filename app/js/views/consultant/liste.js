@@ -10,7 +10,8 @@ import { LIBELLES_STATUT, LIBELLES_TYPE, categorieStatut } from '../../engine/st
 import { formaterDate } from '../../engine/dates.js';
 import { el, icone } from '../../components/dashboard-ui.js';
 import { construireEtatVide } from '../../components/etat-vide.js';
-import { tableauListe } from '../../components/tableau-liste.js';
+import { boutonApercu, tableauListe } from '../../components/tableau-liste.js';
+import { ouvrirApercuDemande } from '../../components/apercu-demande.js';
 
 const COLONNES_CSV = [
   { libelle: 'Référence', valeur: (d) => d.reference },
@@ -47,6 +48,10 @@ function pastilleStatutDemande(d) {
   return bloc;
 }
 
+function ouvrirApercu(demande, estAdmin) {
+  ouvrirApercuDemande(demande, estAdmin ? { consultant: nomConsultant(demande) } : {});
+}
+
 function colonnesDemandes(estAdmin) {
   const colonnes = [
     {
@@ -58,7 +63,11 @@ function colonnesDemandes(estAdmin) {
       rendu: (d) => {
         const lien = el('a', 'cl-nom', d.reference);
         lien.href = `#/demandes/${d.reference}`;
-        return lien;
+        const bloc = el('div', 'cl-nom-ligne');
+        const cible = el('div');
+        cible.appendChild(lien);
+        bloc.append(cible, boutonApercu(`Aperçu de ${d.reference}`, () => ouvrirApercu(d, estAdmin)));
+        return bloc;
       },
     },
     { titre: 'Client', icone: 'building-2', largeur: 240, tri: (d) => d.clients?.raison_sociale, rendu: (d) => d.clients?.raison_sociale ?? 'Sans nom' },
@@ -173,9 +182,7 @@ export function vueListeDemandes() {
           id: 'demandes',
           colonnes: colonnesDemandes(estAdmin),
           lignes: demandes,
-          onLigne: (d) => {
-            window.location.hash = `#/demandes/${d.reference}`;
-          },
+          onLigne: (d) => ouvrirApercu(d, estAdmin),
           libelleTotal: (lignes) => `${lignes.length} demande${lignes.length > 1 ? 's' : ''}`,
         })
       );
