@@ -11,6 +11,7 @@ import { vueCharteRgpd } from './views/client/charte-rgpd.js';
 import { vueRapport } from './views/client/rapport.js';
 import { vueIndicateurs } from './views/consultant/indicateurs.js';
 import { vueImportFactures } from './views/consultant/import-factures.js';
+import { vueClientsDoublons } from './views/consultant/clients-doublons.js';
 import { vueClients } from './views/consultant/clients.js';
 import { vueTaches } from './views/consultant/taches.js';
 import { vueClientFiche } from './views/consultant/client-fiche.js';
@@ -189,6 +190,21 @@ route('/clients', async () => {
 route('/clients/nouveau', async () => {
   if (!(await garantirStaff())) return;
   vueClientNouveau();
+});
+
+route('/clients/doublons', async () => {
+  const profil = await garantirStaff();
+  if (!profil) return;
+  if (profil.role !== 'admin') {
+    navigate('/clients');
+    return;
+  }
+  vueClientsDoublons();
+});
+
+route('/clients/dormants', async () => {
+  if (!(await garantirStaff())) return;
+  vueClients({ dormants: true });
 });
 
 route('/clients/:id', async ({ id }) => {

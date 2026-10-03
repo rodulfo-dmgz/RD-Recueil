@@ -6,6 +6,7 @@ import { navigate } from '../router.js';
 import { listerNotifications, compterNonLues, marquerLue, marquerToutesLues } from '../services/notifications.js';
 import { listerClientsApercu } from '../services/comptes.js';
 import { echapperHtml } from '../engine/formatage.js';
+import { monterRechercheGlobale } from './recherche-globale.js';
 
 const LIENS_CLIENT = [
   { href: '#/accueil', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
@@ -61,6 +62,8 @@ const TITRES_PAGE = [
   ['#/charte-rgpd', 'Charte RGPD'],
   ['#/taches', 'Tâches'],
   ['#/clients/nouveau', 'Nouveau client'],
+  ['#/clients/doublons', 'Doublons de clients'],
+  ['#/clients/dormants', 'Clients dormants'],
   ['#/clients/', 'Fiche client'],
   ['#/clients', 'Clients'],
   ['#/demandes/nouvelle', 'Nouvelle demande'],
@@ -81,7 +84,7 @@ function titrePage() {
 // notifications, thème), pour tous les rôles. Sur mobile le menu devient un
 // tiroir ouvert par le bouton de la barre. Les identifiants (déconnexion,
 // aperçu, notifications) sont ceux utilisés par les écouteurs de rendreEntete.
-function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteurClientApercu, estAdminReel, apercuActif }) {
+function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteurClientApercu, estAdminReel, apercuActif, avecRecherche }) {
   const blocApercu = estAdminReel
     ? `<div class="menu-lateral__apercu">
         <p class="menu-lateral__titre">Simuler une vue</p>
@@ -118,6 +121,7 @@ function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteur
         <i data-lucide="panel-left-open" class="barre-haut__ico-ouvrir"></i>
       </button>
       <span class="barre-haut__titre">${titrePage()}</span>
+      ${avecRecherche ? '<div id="recherche-globale"></div>' : ''}
       <div class="barre-haut__outils">
         <div class="entete__notifications">
           <button type="button" id="bouton-notifications" class="entete__theme" aria-label="Notifications" aria-expanded="false">
@@ -228,9 +232,12 @@ export function rendreEntete(profil) {
     selecteurClientApercu,
     estAdminReel,
     apercuActif: Boolean(roleApercu),
+    avecRecherche: roleEffectif !== 'client',
   });
 
   initialiserMenu();
+  const zoneRecherche = document.getElementById('recherche-globale');
+  if (zoneRecherche) monterRechercheGlobale(zoneRecherche, { admin: roleEffectif === 'admin' });
 
   document.getElementById('bouton-deconnexion').addEventListener('click', async () => {
     await deconnecter();

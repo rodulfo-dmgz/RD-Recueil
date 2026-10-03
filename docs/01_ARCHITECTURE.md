@@ -105,9 +105,12 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 
 | Route | Écran | Contenu |
 |---|---|---|
-| `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. Un bloc « Aujourd'hui » liste mes tâches en retard et du jour (Terminer, Reporter) à côté d'un calendrier de mes échéances. Pour l'admin, une ligne d'indicateurs financiers (pipeline, CA pondéré, CA signé de l'année, conversion en euros), le total en euros et le pondéré sous chaque colonne du pipeline, le montant de chaque demande et une alerte pour les demandes sans montant. |
+| (barre du haut, personnel) | Recherche globale | Champ de recherche sur toutes les pages : clients (nom, nom commercial, ville, SIRET, e-mail, téléphone), contacts, demandes (référence, client) et, pour l'admin, factures (numéro). Accents et casse ignorés, résultats groupés, clavier (flèches, Entrée, Échap, « / »). Les listes sont chargées dans le navigateur selon les droits de l'utilisateur. |
+| `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. Un bloc « Aujourd'hui » liste mes tâches en retard et du jour (Terminer, Reporter) à côté d'un calendrier de mes échéances. Pour l'admin, une ligne d'indicateurs financiers (pipeline, CA pondéré, CA signé de l'année, conversion en euros), le total en euros et le pondéré sous chaque colonne du pipeline, le montant de chaque demande et une alerte pour les demandes sans montant. Bloc « Clients dormants » (seuil de 12 mois) quand il y en a. |
 | `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. Pipeline par étape (demandes, montant, pondéré, sans montant) et CA signé des douze derniers mois, en HT. Facturation (admin) : facturé et encaissé de l'année, à encaisser, demandes gagnées à facturer, tableau des 12 derniers mois. |
-| `#/clients` | Clients | Liste des clients et prospects : recherche (nom, SIRET, ville, contact), filtre de statut (archivés masqués), contact principal, nombre de demandes, dernière activité, export CSV. |
+| `#/clients` | Clients | Liste des clients et prospects : recherche (nom, SIRET, ville, contact), filtre de statut (archivés masqués), contact principal, nombre de demandes, dernière activité, export CSV. Le filtre « Clients dormants » (choix du seuil : 6, 9, 12, 18 ou 24 mois sans activité) liste les clients déjà acheteurs, sans demande en cours et inactifs depuis ce délai, avec le bouton « Créer une tâche de relance » ; l'admin voit leur CA signé et dispose du bouton « Doublons ». |
+| `#/clients/dormants` | Clients dormants | La liste des clients avec le filtre des dormants déjà choisi. |
+| `#/clients/doublons` | Doublons (admin) | Couples de fiches possiblement en double (noms proches avec la même ville ou le même code postal, ou contact de même e-mail) ; Comparer (côte à côte), Fusionner (choix de la fiche à garder, résumé, confirmation, irréversible) et Ignorer (couple conservé en base, remis dans la liste sur demande). |
 | `#/clients/nouveau` | Nouveau client ou prospect | Fiche pré-remplie par la recherche SIRET (base SIRENE), statut `prospect` par défaut. |
 | `#/clients/:id` (+ `/activite`, `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Activité (tâches ouvertes, échanges notés, historique avec les étapes des demandes, ajout rapide d'un contact), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
 | `#/taches` | Tâches | Mes tâches par défaut (l'admin peut voir celles de l'équipe) ; filtres statut et client ; groupes En retard, Aujourd'hui, Cette semaine, Plus tard ; Terminer, Reporter, accès à la fiche. |
@@ -525,6 +528,17 @@ create table factures (
 );
 create unique index uq_factures_numero on factures (numero) where numero is not null;
 
+-- Doublons de clients (0045) : couples que l'admin a décidé de ne pas
+-- fusionner (ils ne sont plus proposés). Admin seulement.
+create table doublons_ignores (
+  client_a uuid not null references clients on delete cascade,
+  client_b uuid not null references clients on delete cascade,
+  created_at timestamptz not null default now(),
+  created_by uuid references auth.users on delete set null default auth.uid(),
+  primary key (client_a, client_b),
+  check (client_a < client_b)
+);
+
 create sequence demande_seq;
 
 create table demandes (
@@ -653,6 +667,7 @@ create table notifications (
 | `rpc_valider_cadrage(note_id, signature_image)` | Client uniquement ; enregistre le tracé de signature et un code de vérification généré côté serveur (`signature_credential`), horodate, enregistre l'IP, passe la demande à `cadrage_valide`. |
 | `est_staff()`, `est_admin()`, `a_acces(demande_id)` | Fonctions utilitaires pour les politiques RLS. |
 | `peut_voir_demande(id)`, `peut_voir_client(id)`, `acces_demande(id)` `security definer` (0039, 0040) | Accès par consultant : l'admin voit tout ; un consultant voit ses demandes (`consultant_id`) et les clients dont il est responsable (`responsable_id`) ou qui ont l'une de ses demandes ; `acces_demande` ajoute le client invité sur la demande. |
+| `rpc_fusionner_clients(garder, absorber)` `security definer` (0045) | Admin uniquement : fusionne une fiche client dans une autre, en une transaction. Déplace demandes, échanges et tâches ; fusionne les contacts de même e-mail et déplace les autres (le contact principal de l'ancienne fiche perd ce statut si la fiche gardée a le sien) ; complète les champs vides de la fiche gardée sans rien écraser ; un prospect devient client si l'autre l'était ; concatène les notes ; reprend le responsable s'il manquait ; note la fusion dans l'historique ; supprime l'ancienne fiche en dernier (sa suppression entraînerait sinon celle de ses contacts, échanges et tâches). Les fichiers de Storage ne bougent pas : leur droit repose sur la référence de la demande. |
 | `rpc_assigner_demande(demande_id, consultant_id)` `security definer` (0043) | Admin uniquement : attribue une demande à un membre du personnel, la journalise (événement `assignation`) et le notifie. |
 | Triggers d'attribution (0039) | Seul l'admin change `demandes.consultant_id` ou `clients.responsable_id` (sans effet pour le SQL direct et les Edge Functions) ; un consultant qui crée une demande ou un client en devient titulaire d'office. |
 
@@ -686,6 +701,7 @@ create table notifications (
 | `probabilites_statut` | Lecture ; modification réservée à l'admin (0038) | Aucun accès |
 | `demande_enjeux`, vue `v_demandes_montants` | Lecture et écriture (la vue : lecture) (0038) | Aucun accès |
 | `financements` | Admin : tout. Consultant : ceux de ses demandes (`peut_voir_demande`) en lecture et écriture (0044) | Aucun accès |
+| `doublons_ignores` | Admin uniquement (0045) | Aucun accès |
 | `factures` | Admin uniquement : un consultant ne les lit ni ne les écrit (0044) | Aucun accès |
 | `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, modification, suppression ; création pour lui seul et sur un client qu'il voit ; réassignation refusée). Une tâche confiée par l'admin reste visible même sur un client que le consultant ne voit pas (0034, 0039) | Aucun accès |
 | `profils` | Lecture seule (0033) : le personnel est lisible par tous, un profil client seulement s'il est invité sur une demande visible (0039) ; créations, changements de rôle et suppressions par les Edge Functions (`service_role`) | Lecture de son propre profil |
@@ -880,5 +896,5 @@ L'application évolue vers un CRM autour de la demande, qui reste l'objet centra
 | C | Montants (estimation, proposition), probabilités par statut, CA pondéré et signé, pipeline en euros, indicateurs financiers (admin) | réalisé (migration 0038) |
 | Accès | Cloisonnement par consultant : chacun ne voit que ses demandes, seul l'admin voit tout ; correctifs de sécurité (fonctions, e-mails, transitions client) | réalisé (migrations 0039 à 0043) |
 | D | Financements (plusieurs par demande, reste à charge), références de factures (admin), indicateurs de facturation, import de l'export bancaire Shine | réalisé (migration 0044) |
-| E | Recherche globale, fusion de doublons, clients dormants | à faire |
+| E | Recherche globale (barre du haut), fusion de doublons (admin), clients dormants avec relance en un clic | réalisé (migration 0045) |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |

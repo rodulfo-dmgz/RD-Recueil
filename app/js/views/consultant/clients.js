@@ -1,6 +1,7 @@
 // Liste des clients et prospects (CRM, lot A) : recherche, filtre de statut,
 // compteurs de demandes, export CSV. Réservé au staff. Section 4.2.
 import { listerClientsDetail } from '../../services/clients.js';
+import { creerTache } from '../../services/taches.js';
 import { afficherToast } from '../../components/toast.js';
 import { telechargerCsv } from '../../components/telechargement.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
@@ -8,6 +9,7 @@ import { genererCsv } from '../../engine/csv.js';
 import { getProfil } from '../../store.js';
 import { formaterMontant } from '../../engine/finance.js';
 import { STATUTS_CLIENT, filtrerClients, libelleStatutClient } from '../../engine/fiche-client.js';
+import { SEUILS_DORMANT, SEUIL_DORMANT_DEFAUT, clientsDormants, libelleInactivite, preparerRelanceDormant } from '../../engine/dormants.js';
 
 const COLONNES_CSV = [
   { libelle: 'Raison sociale', valeur: (c) => c.raison_sociale },
@@ -77,7 +79,51 @@ function construireTableau(clients, avecFinance) {
   return defilement;
 }
 
-export async function vueClients() {
+// Vue "Clients dormants" : même liste, avec le temps d'inactivité et la création
+// d'une tâche de relance en un clic.
+function construireTableauDormants(clients, avecFinance, profil) {
+  const tableau = el('table', 'db-table');
+  const tete = el('thead');
+  const ligneTete = el('tr');
+  for (const t of ['Entreprise', 'Contact principal', 'Dernière activité', 'Inactif depuis', ...(avecFinance ? ['CA signé'] : []), 'Relance']) ligneTete.appendChild(el('th', null, t));
+  tete.appendChild(ligneTete);
+  const corps = el('tbody');
+  for (const c of clients) {
+    const ligne = el('tr');
+    const nom = el('td');
+    const lien = el('a', 'cl-nom', c.raison_sociale);
+    lien.href = `#/clients/${c.id}`;
+    nom.appendChild(lien);
+    ligne.append(nom, el('td', null, c.contact_principal || '-'), el('td', null, formaterDate(c.derniere_activite)), el('td', null, libelleInactivite(c.moisInactifs)));
+    if (avecFinance) ligne.appendChild(el('td', null, c.ca_signe > 0 ? formaterMontant(c.ca_signe) : '-'));
+    const action = el('td');
+    if (c.nb_taches_ouvertes > 0) action.appendChild(el('small', 'texte-doux cl-relance-info', `${c.nb_taches_ouvertes} tâche(s) ouverte(s)`));
+    const relancer = el('button', 'db-btn db-btn--discret');
+    relancer.type = 'button';
+    relancer.append(icone('list-plus'), el('span', null, 'Créer une tâche de relance'));
+    relancer.addEventListener('click', async () => {
+      relancer.disabled = true;
+      try {
+        // Le responsable du client reçoit la relance ; à défaut, l'utilisateur connecté.
+        await creerTache(c.id, preparerRelanceDormant(c, { assigneeId: c.responsable_id || profil?.user_id }));
+        afficherToast(`Tâche de relance créée pour ${c.raison_sociale}.`, { type: 'succes' });
+        relancer.replaceWith(el('span', 'texte-doux', 'Relance créée'));
+      } catch (err) {
+        afficherToast(err.message, { type: 'erreur' });
+        relancer.disabled = false;
+      }
+    });
+    action.appendChild(relancer);
+    ligne.appendChild(action);
+    corps.appendChild(ligne);
+  }
+  tableau.append(tete, corps);
+  const defilement = el('div', 'db-table-defilement');
+  defilement.appendChild(tableau);
+  return defilement;
+}
+
+export async function vueClients({ dormants = false } = {}) {
   const estAdmin = getProfil()?.role === 'admin';
   const app = document.getElementById('app');
   app.innerHTML = '<main class="conteneur"><p>Chargement…</p></main>';
@@ -99,6 +145,7 @@ export async function vueClients() {
   const exporter = el('button', 'db-btn db-btn--discret');
   exporter.type = 'button';
   exporter.append(icone('download'), el('span', null, 'Exporter en CSV'));
+  if (estAdmin) actions.appendChild(lienBouton('#/clients/doublons', 'db-btn db-btn--discret', 'Doublons', 'copy'));
   actions.append(exporter, lienBouton('#/clients/nouveau', 'db-btn db-btn--primaire', 'Nouveau client ou prospect', 'plus'));
   entete.appendChild(actions);
   main.appendChild(entete);
@@ -110,8 +157,16 @@ export async function vueClients() {
   recherche.setAttribute('aria-label', 'Rechercher un client');
   const statut = el('select', 'champ-saisie cl-statut-filtre');
   statut.setAttribute('aria-label', 'Filtrer par statut');
-  statut.innerHTML = '<option value="">Clients et prospects</option>' + STATUTS_CLIENT.map((s) => `<option value="${s.valeur}">${s.libelle}</option>`).join('');
-  filtres.append(recherche, statut);
+  statut.innerHTML =
+    '<option value="">Clients et prospects</option>' +
+    STATUTS_CLIENT.map((s) => `<option value="${s.valeur}">${s.libelle}</option>`).join('') +
+    '<option value="dormants">Clients dormants</option>';
+  if (dormants) statut.value = 'dormants';
+  // Seuil d'inactivité, seulement pour la vue des dormants.
+  const seuil = el('select', 'champ-saisie cl-statut-filtre');
+  seuil.setAttribute('aria-label', 'Sans activité depuis');
+  seuil.innerHTML = SEUILS_DORMANT.map((m) => `<option value="${m}"${m === SEUIL_DORMANT_DEFAUT ? ' selected' : ''}>Sans activité depuis ${m} mois</option>`).join('');
+  filtres.append(recherche, statut, seuil);
   main.appendChild(filtres);
 
   const carte = el('section', 'db-carte');
@@ -122,6 +177,17 @@ export async function vueClients() {
 
   let visibles = [];
   function rafraichir() {
+    const modeDormants = statut.value === 'dormants';
+    seuil.hidden = !modeDormants;
+    if (modeDormants) {
+      visibles = clientsDormants(filtrerClients(clients, { recherche: recherche.value, statut: 'client' }), { mois: Number(seuil.value) });
+      compteur.textContent = `${visibles.length} client${visibles.length > 1 ? 's' : ''} dormant${visibles.length > 1 ? 's' : ''} : déjà acheteurs, sans demande en cours et sans activité depuis ${seuil.value} mois ou plus`;
+      resultat.innerHTML = '';
+      if (visibles.length === 0) resultat.appendChild(el('p', 'db-vide texte-doux', 'Aucun client dormant avec ce seuil.'));
+      else resultat.appendChild(construireTableauDormants(visibles, estAdmin, getProfil()));
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
     visibles = filtrerClients(clients, { recherche: recherche.value, statut: statut.value });
     compteur.textContent = `${visibles.length} sur ${clients.length} ${clients.length > 1 ? 'clients' : 'client'}`;
     resultat.innerHTML = '';
@@ -133,6 +199,7 @@ export async function vueClients() {
   }
   recherche.addEventListener('input', rafraichir);
   statut.addEventListener('change', rafraichir);
+  seuil.addEventListener('change', rafraichir);
 
   exporter.addEventListener('click', () => {
     if (visibles.length === 0) {

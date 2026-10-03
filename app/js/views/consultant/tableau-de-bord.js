@@ -15,6 +15,8 @@ import { construireCalendrier } from '../../components/calendrier.js';
 import { construireLigneTache, echeanceApresReport } from '../../components/ligne-tache.js';
 import { classerTaches, tachesVersJalons } from '../../engine/taches.js';
 import { listerMontants } from '../../services/montants.js';
+import { listerClientsDetail } from '../../services/clients.js';
+import { construireCarteDormants } from '../../components/carte-dormants.js';
 import { listerToutesFactures } from '../../services/factures.js';
 import { kpisFacturation, resteAFacturerGagnees } from '../../engine/facturation.js';
 import { agregerPipeline, demandesSansMontant, formaterMontant, kpisFinance } from '../../engine/finance.js';
@@ -172,6 +174,13 @@ export async function vueTableauDeBord() {
       // factures indisponibles : le reste du tableau de bord s'affiche.
     }
   }
+  // Clients dormants : pour le personnel, selon ses clients (la base filtre).
+  let carteDormants = null;
+  try {
+    carteDormants = construireCarteDormants(await listerClientsDetail(), { avecFinance: profil?.role === 'admin' });
+  } catch {
+    // clients indisponibles : le reste du tableau de bord s'affiche.
+  }
   const kpisFin = montants ? kpisFinance(montants) : null;
   const kpisFact = factures ? kpisFacturation(factures) : null;
   const resteFact = factures ? resteAFacturerGagnees(montants, factures) : null;
@@ -270,6 +279,7 @@ export async function vueTableauDeBord() {
       principale.appendChild(carteAlerte('euro', `${sansMontant.length} demande(s) sans montant`, sansMontant, () => 'ajouter une estimation'));
     }
   }
+  if (carteDormants) principale.appendChild(carteDormants);
   if (inactives.length > 0) {
     principale.appendChild(
       carteAlerte('hourglass', `${inactives.length} demande(s) sans réponse depuis plus de 7 jours`, inactives)

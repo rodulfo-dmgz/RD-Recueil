@@ -669,3 +669,38 @@ button.cal__case:hover { background: var(--fond); }
 }
 
 .db-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Recherche globale (CRM, lot E), dans la barre du haut. */
+.recherche-globale { position: relative; flex: 0 1 360px; min-width: 0; }
+.recherche-globale__loupe { position: absolute; left: 12px; top: 50%; width: 18px; height: 18px; margin-top: -9px; color: var(--texte-doux); pointer-events: none; }
+.recherche-globale__champ { width: 100%; min-height: 44px; padding: 0 12px 0 38px; border: 1px solid var(--bordure); border-radius: var(--rayon); background: var(--fond); color: var(--texte); font: inherit; }
+.recherche-globale__champ:focus-visible { outline: 2px solid var(--rd-turquoise); outline-offset: 1px; background: var(--surface); }
+.recherche-globale__resultats { position: absolute; top: calc(100% + 8px); left: 0; right: 0; min-width: min(420px, 90vw); max-height: min(70vh, 520px); overflow-y: auto; border: 1px solid var(--bordure); border-radius: var(--rayon); background: var(--surface); box-shadow: var(--ombre); padding: 6px; }
+.recherche-globale__message { margin: 0; padding: 12px; font-size: 14px; }
+.recherche-globale__titre { margin: 8px 8px 4px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--texte-doux); }
+.recherche-globale__item { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; border-left: 3px solid transparent; border-radius: 6px; color: var(--texte); text-decoration: none; overflow-wrap: anywhere; }
+.recherche-globale__item span { font-size: 13px; }
+.recherche-globale__item--actif { background: var(--fond); border-left-color: var(--rd-turquoise); }
+@media (max-width: 640px) {
+  .barre-haut__titre { display: none; }
+  .recherche-globale { flex: 1 1 auto; }
+  .recherche-globale__resultats { position: fixed; top: calc(var(--barre-hauteur) + 4px); left: 8px; right: 8px; min-width: 0; }
+}
+
+/* Doublons de clients (CRM, lot E) */
+.modale-formulaire--large { max-width: 760px; width: 94vw; }
+.dbl-couple { display: flex; flex-direction: column; gap: 12px; }
+.dbl-fiches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.dbl-fiche { padding: 12px 14px; border-radius: var(--rayon); background: var(--fond); min-width: 0; }
+.dbl-fiche p { margin: 2px 0 0; font-size: 13px; overflow-wrap: anywhere; }
+.dbl-fiche__nom { font-weight: 700; color: var(--bleu-texte); overflow-wrap: anywhere; }
+.dbl-raisons { margin: 0; padding-left: 20px; font-size: 14px; }
+.dbl-resume { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; overflow-wrap: anywhere; }
+.dbl-compare th, .dbl-compare td { white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+.dbl-diff th, .dbl-diff td { background: var(--fond); font-weight: 600; }
+.dbl-ignores summary { cursor: pointer; font-weight: 600; }
+.dbl-ignores__liste { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.dbl-ignores__liste li { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 640px) { .dbl-fiches { grid-template-columns: minmax(0, 1fr); } }
+
+.cl-relance-info { display: block; margin-bottom: 4px; }

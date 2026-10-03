@@ -24,7 +24,7 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 | C | Montants, CA pondéré, pipeline en euros, KPI financiers | terminé et commité ; reste un essai avec un vrai compte |
 | Accès | Cloisonnement par consultant (avant le lot D, voir 3d) | terminé et commité ; reste un essai avec un vrai compte |
 | D | Financements, références de factures (Shine) | terminé et commité (voir 3e) |
-| E | Recherche globale, fusion de doublons, clients dormants | à faire |
+| E | Recherche globale, fusion de doublons, clients dormants | terminé, commité et poussé (voir 3f) |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |
 
 ## 3. Lot A : fiche client et contacts
@@ -172,6 +172,22 @@ Origine : en répondant au plan du lot D, l'utilisateur a rappelé que "chaque c
 - [x] D5. Indicateurs de facturation (admin) sur le tableau de bord
 - [x] D6. Import CSV Shine, en deux temps : D6a lecteur de l'export et plan d'import ; D6b écran d'import (aperçu, choix de la demande, application)
 - [x] D7. Documentation, tests, audit de sécurité, commit
+
+## 3f. Lot E : recherche globale, fusion de doublons, clients dormants
+
+### Décisions validées (les quatre points)
+- **Dormant** : client (statut `client`) avec au moins une demande gagnée et aucune activité depuis 12 mois par défaut ; seuil choisi à l'écran (6, 9, 12, 18 ou 24 mois), sans réglage enregistré. Les prospects ne sont pas concernés. L'activité est celle de `v_clients.derniere_activite` (fiche, demandes, échanges ; les tâches n'y comptent pas). CA historique visible de l'admin seulement. Bouton "Créer une tâche de relance" (type `relance`).
+- **Fusion (irréversible, admin seulement)** : l'admin choisit la fiche à garder ; demandes, contacts, échanges et tâches passent sur la fiche gardée ; les champs vides de la fiche gardée sont complétés par ceux de l'autre sans rien écraser ; notes concaténées avec un en-tête ; un prospect devient client si l'autre l'était ; résumé avant confirmation ; fusion inscrite dans l'historique de la fiche gardée.
+- **Doublons détectés** : noms proches (accents, casse, formes juridiques ignorés) avec la même ville ou le même code postal ; deux clients ayant un contact de même e-mail. Le SIRET identique est déjà impossible (index unique). "Ignorer" est conservé en base.
+- **Recherche** : clients (nom, SIRET, ville), contacts (nom, e-mail, téléphone), demandes (référence, client), factures par numéro pour l'admin. Pas d'e-mails, d'opportunités ni de propositions (ils n'existent pas comme objets séparés). Selon les droits de l'utilisateur (un consultant ne cherche que dans ses données).
+
+### Étapes
+- [x] E1. Base : `rpc_fusionner_clients`, table des couples ignorés, tests en base (migration 0045)
+- [x] E2. Calculs purs et tests (doublons, dormants, recherche)
+- [x] E3. Recherche globale (barre dans l'en-tête)
+- [x] E4. Écran des doublons (admin) : comparer, fusionner, ignorer
+- [x] E5. Clients dormants (filtre, bloc du tableau de bord, relance)
+- [x] E6. Documentation, tests, audit de sécurité, commit
 
 ## 4. Journal des étapes
 
@@ -670,14 +686,87 @@ Fait :
 
 Vérifié : `node --test tests/*.test.mjs` 165 réussis, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée ensuite) : Annuler vide l'aperçu et le champ fichier, le même fichier se recharge, le bouton Appliquer est grisé et désactivé quand aucune demande n'est choisie.
 
+### 2026-10-03 : lot E, étape E1 (fusion de clients, migration 0045)
+
+Fait :
+- Migration `0045_fusion_clients.sql` (appliquée) :
+  - Table `doublons_ignores` (couple de clients, ordre canonique, supprimée en cascade avec l'un des clients) : admin seulement.
+  - `rpc_fusionner_clients(p_garder, p_absorber)`, `security definer`, admin seulement, en une seule transaction (les deux fiches sont verrouillées dans un ordre fixe). Elle déplace demandes, échanges et tâches ; fusionne les contacts de même e-mail (casse ignorée : échanges et tâches rattachés au contact gardé, ses champs vides complétés) et déplace les autres, le contact principal de l'ancienne fiche perdant ce statut si la fiche gardée en a déjà un ; supprime l'ancienne fiche **avant** de compléter la fiche gardée (le SIRET, unique, redevient libre) ; complète les champs vides sans rien écraser ; un prospect devient client si l'autre l'était ; concatène les notes ; reprend le responsable s'il manquait ; écrit une note dans l'historique ("Fusion avec ...", ancien SIRET et identifiant, nombres déplacés). Elle renvoie ces nombres.
+- Pourquoi dans une fonction : à la suppression d'un client, ses contacts, échanges et tâches partent avec (cascade) et ses demandes bloquent la suppression ; il faut donc tout déplacer avant.
+- Les fichiers de Storage ne bougent pas : leur droit d'accès repose sur la référence de la demande (2e segment du chemin), pas sur le client.
+
+Vérifié en base (transactions annulées, un consultant simulé à partir d'un compte client) : le consultant est refusé ("Réservé à l'administrateur") ; fusionner un client avec lui-même et un client inconnu sont refusés ; la fusion déplace 1 demande, 1 échange, 1 tâche, déplace 1 contact et en fusionne 1 (même e-mail en casse différente) ; un seul contact principal reste ; l'échange et la tâche pointent le contact gardé, dont le téléphone et la fonction sont complétés ; la fiche gardée reprend SIRET, ville, OPCO et responsable de l'autre, devient client, ses notes sont concaténées avec l'en-tête ; l'historique contient la ligne de fusion ; le couple ignoré est supprimé avec la fiche absorbée. Second essai : quand les deux fiches ont des valeurs, celles de la fiche gardée sont conservées (SIRET, ville, statut client) et les notes manquantes sont reprises. Après les tests : aucun client de test, rôle et demande d'origine intacts.
+
+### 2026-10-03 : lot E, étape E2 (calculs)
+
+Fait (fonctions pures, sans écran ni base) :
+- `engine/texte.js` (nouveau) : `normaliserTexte` (accents et casse), `normaliserMots` (sans ponctuation), `chiffres`. `fiche-client.js` s'en sert à la place de sa copie locale.
+- `engine/doublons.js` (nouveau) : `jetonsNom` (mots du nom sans formes juridiques ni mots de liaison), `nomsProches` (mêmes mots, ou tous ceux du plus court dans l'autre, au moins 4 lettres), `cleCouple`, `detecterDoublons` (noms proches ET même ville ou même code postal, nom commercial compris ; même e-mail de contact chez deux clients ; archivés et couples ignorés écartés ; les couples aux raisons cumulées d'abord), `planifierFusion` (résumé avant confirmation : champs complétés, contacts fusionnés ou déplacés, perte du contact principal, passage en client, notes, responsable repris, nombres de demandes, échanges et tâches).
+- `engine/dormants.js` (nouveau) : `clientsDormants` (statut client, au moins une demande gagnée, **aucune demande en cours**, dernière activité plus ancienne que le seuil ; les plus anciens d'abord), `moisEcoules`, `libelleInactivite`, `SEUILS_DORMANT` (6, 9, 12, 18, 24), `preparerRelanceDormant` (tâche "Relancer <client>" du jour, type `relance`).
+- `engine/recherche.js` (nouveau) : `rechercher` sur des listes déjà chargées (clients : nom, nom commercial, ville, SIRET, e-mail, téléphone ; contacts : nom, e-mail, téléphone ; demandes : référence, client ; factures : numéro, si l'admin les fournit), accents et casse ignorés, tous les mots requis, SIRET et téléphones comparés sans espaces dès 3 chiffres, meilleure correspondance d'abord (identique, commence par, un mot commence par, contient), 5 résultats par groupe avec le total, liens vers les fiches. Terme de moins de 2 caractères utiles : aucun résultat.
+
+Choix à relire :
+- Un client avec une demande en cours n'est jamais dormant, même si sa dernière activité est ancienne : c'est une précision par rapport à la décision validée ("aucune activité depuis N mois"), pour ne pas relancer un client qui a un dossier ouvert.
+- La recherche se fait sur des listes chargées dans le navigateur (accents ignorés, droits respectés puisque la base ne renvoie que les données visibles). Elle sera adaptée à l'étape E3 pour charger par pages au-delà de 1 000 lignes.
+- Les contacts sont rapprochés par e-mail en ignorant casse et accents côté écran ; la fusion en base ignore la casse seulement. Écart sans conséquence pour des adresses e-mail réelles.
+
+Vérifié : `node --test tests/*.test.mjs` 191 réussis (26 nouveaux : `tests/doublons.test.mjs`, `dormants.test.mjs`, `recherche.test.mjs`), `check-coherence` 0 erreur.
+
+### 2026-10-03 : lot E, étape E3 (recherche globale)
+
+Fait :
+- `services/recherche.js` (nouveau) : chargement des clients (`v_clients`), contacts, demandes et, pour l'admin, factures, **par pages de 1 000 lignes** jusqu'à la dernière (la base plafonne chaque requête) ; résultat gardé 60 secondes en mémoire ; un échec n'est pas gardé ; `invaliderRecherche()` pour vider la mémoire (à appeler après une fusion). Les droits sont ceux de la base : un consultant ne reçoit que ses clients, contacts et demandes.
+- `components/recherche-globale.js` (nouveau) : champ de la barre du haut (personnel seulement, pas pour un client ni en aperçu client), chargement à la prise de focus, résultats groupés sous le champ (Clients, Contacts, Demandes, Factures pour l'admin) avec le détail (ville et SIRET, client et e-mail...), "Clients (5 sur 8)" quand il y en a plus que montrés. Clavier : flèches haut et bas (boucle), Entrée ouvre le résultat choisi, Échap ferme et vide, "/" place le curseur dans le champ depuis n'importe où hors saisie. Messages : "Tapez au moins 2 caractères", "Chargement…", "Aucun résultat pour « ... »", "Recherche indisponible : ..." (nouvel essai au retour dans le champ). Accessibilité : rôle `combobox` et `listbox`, `aria-activedescendant`, groupes nommés.
+- `components/entete.js` : montage de la barre entre le titre et les outils ; `css/dashboard.css` : style de la barre et de la liste (clair et sombre par les variables) ; sur téléphone le titre de page disparaît pour laisser la place au champ et la liste s'ouvre sur toute la largeur.
+
+Vérifié : `node --test tests/*.test.mjs` 191 réussis, `check-coherence` 0 erreur. Page de test avec une barre du haut reconstituée et un service simulé (supprimée ensuite) : "/" donne le focus ; 1 caractère = message d'aide ; résultats groupés corrects (accents ignorés : "societe gener" trouve "Société Générale du Sud") ; facture trouvée par son numéro pour l'admin et demandée seulement pour lui (`avecFactures` vrai pour l'admin, faux sinon) ; aucun résultat et panne signalés ; flèches (parcours en boucle), `aria-activedescendant` mis à jour ; Entrée ouvre `#/clients/<id>/contacts`, ferme la liste et vide le champ ; Échap ferme et vide ; affichage lisible à 375 px sans défilement horizontal. Non testé avec la vraie base, ni dans la vraie barre du haut (l'en-tête complet dépend de la connexion), ni en thème sombre.
+
+À savoir : les listes sont chargées entièrement dans le navigateur à la première utilisation de la session (puis toutes les minutes au plus). C'est adapté à quelques milliers de lignes ; au-delà il faudra une recherche côté base.
+
+### 2026-10-03 : lot E, étape E4 (écran des doublons)
+
+Fait :
+- `services/doublons.js` (nouveau) : contacts pour la détection, couples ignorés (lecture, `ignorerCouple`, `retablirCouple`, enregistrés dans l'ordre exigé par la table), `compterRattaches` (demandes, échanges, tâches d'un client), `fusionnerClients` (appel de `rpc_fusionner_clients`).
+- `views/consultant/clients-doublons.js` (nouveau), route `#/clients/doublons` **réservée à l'admin** (un consultant est renvoyé vers la liste des clients), bouton "Doublons" dans la liste des clients (admin seulement) : une carte par couple (les deux fiches avec ville, SIRET, statut, nombre de demandes, liens vers les fiches ; les raisons du rapprochement) avec trois actions :
+  - **Comparer** : tableau côte à côte en lecture seule, les lignes qui diffèrent sont surlignées.
+  - **Fusionner** : choix de la fiche à garder (par défaut celle qui porte le plus de demandes), résumé qui se met à jour selon le choix (ce qui passe sur la fiche gardée, contacts déplacés ou fusionnés, perte du contact principal, champs complétés, passage en client, notes, responsable, suppression de l'ancienne fiche), case "Je comprends que cette fusion est définitive" ; le bouton "Fusionner définitivement" reste désactivé tant qu'elle n'est pas cochée ; après la fusion, message, mémoire de la recherche vidée et liste rechargée.
+  - **Ignorer** : le couple n'est plus proposé ; section dépliable "Couples ignorés (n)" avec "Remettre dans la liste".
+- `components/modale-crm.js` : fenêtre en lecture seule possible (sans `libelleEnvoi` : un bouton "Fermer"), option `large`, retour de `{ envoyer, fermer }` pour désactiver le bouton d'envoi. Les usages existants (financements, factures) sont inchangés.
+- `components/entete.js` (titre de page), `main.js` (route placée avant `#/clients/:id`), `css/dashboard.css` (styles `dbl-*`, fenêtre large).
+
+Vérifié : `node --test tests/*.test.mjs` 191 réussis, `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : 2 couples détectés (dont un par e-mail seulement) et le couple déjà ignoré absent ; comparaison avec les 8 lignes qui diffèrent surlignées et un seul bouton "Fermer" ; fusion : fiche à garder présélectionnée correctement, résumé exact dans les deux sens (ex. garder la fiche sans SIRET : SIRET, OPCO, téléphone et source complétés, passage en client, responsable repris, contact principal perdu), bouton désactivé tant que la case n'est pas cochée, soumission sans case sans appel, échec affiché dans la fenêtre restée ouverte, puis succès avec l'appel `fusion(a2, a1)`, message, recherche invalidée et liste rechargée ; ignorer et remettre dans la liste (appels exacts, section mise à jour) ; affichage correct à 375 px sans défilement horizontal. La fonction de fusion elle-même a été vérifiée en base à l'étape E1. Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-03 : lot E, étape E5 (clients dormants)
+
+Fait :
+- `views/consultant/clients.js` : nouveau choix "Clients dormants" dans le filtre de statut de la liste des clients, accessible aussi par la route `#/clients/dormants` (personnel). Un second choix apparaît alors : "Sans activité depuis 6, 9, 12 (par défaut), 18 ou 24 mois". Le tableau montre l'entreprise, le contact principal, la dernière activité, "Inactif depuis N mois", le CA signé (admin seulement) et un bouton "Créer une tâche de relance" (avec le nombre de tâches déjà ouvertes). La recherche de la liste s'applique aussi. Le bouton crée la tâche "Relancer <client>" du jour, type `relance`, description "Client dormant : dernière activité il y a N mois", confiée au **responsable du client** ou, à défaut, à l'utilisateur connecté (un consultant la crée toujours pour lui : la base l'impose) ; le bouton devient "Relance créée" ; un échec réactive le bouton et affiche le message.
+- `components/carte-dormants.js` (nouveau) et `views/consultant/tableau-de-bord.js` : bloc "N clients dormants" (seuil de 12 mois, 5 lignes avec le temps d'inactivité, CA signé pour l'admin seulement) avec le lien "Voir les N clients dormants" ; le bloc n'apparaît pas quand il n'y en a aucun. Le tableau de bord charge pour cela la liste des clients de l'utilisateur (le consultant ne voit que ses clients).
+- `main.js` (route `#/clients/dormants` avant `#/clients/:id`), `components/entete.js` (titre de page), `css/dashboard.css`.
+
+Vérifié : `node --test tests/*.test.mjs` 191 réussis, `check-coherence` 0 erreur. Pages de test avec services simulés (supprimées ensuite) : liste préfiltrée par la route, compteur et colonnes exacts ; les deux dormants à 12 mois sont triés du plus ancien au plus récent, un client à 11 mois n'apparaît qu'avec le seuil de 9 mois ; ni prospect, ni client actif, ni client avec une demande en cours ; recherche dans la vue ; création de relance avec les bonnes valeurs (responsable du client, sinon utilisateur connecté), bouton remplacé, échec géré ; retour à la vue normale (colonnes d'origine, 6 lignes) ; vue consultant sans colonne CA ni bouton "Doublons" ; bloc du tableau de bord avec CA pour l'admin et sans CA sinon, absent s'il n'y a aucun dormant ; lisibilité correcte. Le tableau de bord complet n'a pas été chargé en entier avec la page de test (seul le bloc l'a été, la syntaxe de la vue est vérifiée). Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-03 : lot E, étape E6 (clôture)
+
+Fait :
+- `docs/01_ARCHITECTURE.md` : routes (`#/clients/dormants`, `#/clients/doublons`, filtre des dormants, recherche globale de la barre du haut, bloc du tableau de bord), table `doublons_ignores` (section 7), fonction `rpc_fusionner_clients` avec ses règles (section 7), droits (section 8.2), ligne du lot E (section 17).
+- Contrôle d'ensemble : 191 tests réussis, `check-coherence` 0 erreur, aucun tiret cadratin dans les lignes ajoutées.
+- Audit de sécurité Supabase relancé après la migration 0045 : aucune alerte nouvelle sauf la présence de `rpc_fusionner_clients` dans les fonctions `security definer` appelables par un compte connecté (20 au lieu de 19), ce qui est voulu : elle vérifie elle-même que l'appelant est admin (testé à l'étape E1). Pas d'alerte "RLS désactivée" sur `doublons_ignores`. Restent les alertes d'avant le lot (`get_my_role` et `update_updated_at_column` sans `search_path` fixe, quatre fonctions appelables sans connexion, protection contre les mots de passe compromis désactivée).
+
+Fichiers du lot E (commit) :
+- Nouveaux : `supabase/migrations/0045_fusion_clients.sql`, `app/js/engine/texte.js`, `doublons.js`, `dormants.js`, `recherche.js`, `app/js/services/recherche.js`, `doublons.js`, `app/js/components/recherche-globale.js`, `carte-dormants.js`, `app/js/views/consultant/clients-doublons.js`, `tests/doublons.test.mjs`, `dormants.test.mjs`, `recherche.test.mjs`.
+- Modifiés : `app/js/engine/fiche-client.js` (utilise `texte.js`), `app/js/components/modale-crm.js` (lecture seule, option large, retour du bouton d'envoi), `entete.js` (barre de recherche, titres), `app/js/views/consultant/clients.js`, `tableau-de-bord.js`, `app/js/main.js`, `app/css/dashboard.css`, `docs/01_ARCHITECTURE.md`, `docs/changes.md`.
+- Non inclus (travaux sans rapport avec ce lot) : `app/assets/images/logo.svg`, `supabase/functions/creer-compte/mail.ts`, `supabase/functions/envoyer-notification-email/index.ts`, `app/crm_app.md`, `app/new_design.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.html`, `.claude/skills/`, `docs/05_SKELETONS.md`.
+
+La migration 0045 est appliquée sur la base de production.
+
 ## 5. Points ouverts
 
 - **Tables d'autres applications ouvertes à tout compte connecté** (voir le constat de l'étape S1) : à décider avec l'utilisateur.
 - **Alertes de sécurité Supabase déjà présentes avant le CRM (non traitées)** : `rpc_valider_cadrage(uuid, text)` est exécutable par le rôle `anon` (le `revoke` de 0005 portait sur l'ancienne signature) ; `est_staff`, `get_my_role`, `handle_new_user`, `rls_auto_enable`, `fn_historiser_reponse`, `fn_notifier_evenement` sont exécutables par `anon` ; `get_my_role` et `update_updated_at_column` n'ont pas de `search_path` fixe ; la protection contre les mots de passe compromis est désactivée côté Auth. S'ajoute le trou déjà signalé : `rpc_valider_cadrage` et `rpc_accepter_proposition` ne vérifient pas que l'appelant a accès à la demande. À traiter dans une migration dédiée, avec accord.
 - **Fichiers d'essais d'e-mails dans `app/`** : `app/mail.html` n'est pas de moi, sans doute un essai d'e-mail (`app/mail.ts` et `app/preview.ts` n'existent plus). `app/` est publié sur GitHub Pages : à ne pas commiter tels quels, un gabarit d'e-mail n'a pas de raison d'y être. Le fichier `app/assets/images/logo.svg` est aussi modifié sans être commité : à relire avant de le commiter.
 
-- **Essai réel des lots A, B, C, D et Accès** (pour le lot D : saisir un financement et des factures sur une demande, importer un export Shine avec un vrai compte admin, vérifier qu'un consultant ne voit ni la carte Facturation ni les factures ; pour le lot Accès : créer un compte consultant, lui attribuer une demande, vérifier qu'il ne voit ni les autres demandes ni leurs clients, fichiers ou notifications, et qu'un client peut accepter ou refuser une proposition et réserver un rendez-vous) : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
+- **Essai réel des lots A, B, C, D, E et Accès** (pour le lot E : tester la recherche et le raccourci "/" dans la vraie barre du haut avec un compte admin puis consultant ; créer deux fiches proches et les fusionner (contacts, demandes, historique), ignorer puis remettre un couple ; vérifier la liste des dormants et la création d'une relance ; pour le lot D : saisir un financement et des factures sur une demande, importer un export Shine avec un vrai compte admin, vérifier qu'un consultant ne voit ni la carte Facturation ni les factures ; pour le lot Accès : créer un compte consultant, lui attribuer une demande, vérifier qu'il ne voit ni les autres demandes ni leurs clients, fichiers ou notifications, et qu'un client peut accepter ou refuser une proposition et réserver un rendez-vous) : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
 
 - `app/crm_app.md` est dans `app/` (dossier publié sur GitHub Pages) et n'est pas versionné : le déplacer dans `docs/` avant tout `git add app`.
-- Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub  et le lot C (`a780eb1`) aussi. Le lot Accès (`ca97dc2`) est poussé lui aussi. Le lot D (`fea958e`) est poussé lui aussi. Toutes les migrations (0030 à 0044) sont appliquées sur la base de production et le code des lots A à D est publié sur GitHub Pages ; l'essai réel avec un compte consultant et un compte client reste à faire.
+- Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub  et le lot C (`a780eb1`) aussi. Le lot Accès (`ca97dc2`) est poussé lui aussi. Le lot D (`fea958e`) est poussé lui aussi, ainsi que le lot E. Toutes les migrations (0030 à 0045) sont appliquées sur la base de production et le code des lots A à E est publié sur GitHub Pages ; l'essai réel avec un compte consultant et un compte client reste à faire.
 - Hors CRM, toujours en attente : modèles d'e-mails refondus (`creer-compte/mail.ts`, `envoyer-notification-email/index.ts`) à ne pas déployer sans accord ; `docs/05_SKELETONS.md` non commité ; fichiers locaux non versionnés (`.claude/skills/`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`) ; trou de droits sur `rpc_valider_cadrage` et `rpc_accepter_proposition` (accès à vérifier par demande), proposé et non traité.

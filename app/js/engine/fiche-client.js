@@ -3,6 +3,8 @@
 // demande vers la fiche et les contacts. Fonctions pures : l'import ne remplit
 // que ce qui est vide et ne touche jamais à une saisie manuelle.
 
+import { normaliserTexte } from './texte.js';
+
 export const STATUTS_CLIENT = [
   { valeur: 'prospect', libelle: 'Prospect' },
   { valeur: 'client', libelle: 'Client' },
@@ -185,14 +187,6 @@ export function planImportContacts(existants, extraits) {
     }
   }
   return { aCreer, aEnrichir, dejaIdentiques };
-}
-
-function normaliserTexte(v) {
-  return String(v ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
 }
 
 // Liste des clients : recherche insensible à la casse et aux accents (nom,
