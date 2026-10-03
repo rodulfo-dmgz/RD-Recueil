@@ -221,7 +221,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 - [x] 1. Socle commun, sans changement visuel
 - [x] 1 bis. Prototype d'allure sur la liste des clients (tableau compact, pastilles, menu clair, tiroir) : fait, **à valider par l'utilisateur** avant de généraliser
 - [x] 2. Composant tableau (tri, colonnes, sélection) : clients, demandes et comptes migrés ; pagination non faite (volumes faibles)
-- [ ] 3. Menu de commandes `Ctrl+K`
+- [x] 3. Menu de commandes `Ctrl+K`
 - [ ] 4. Fil d'Ariane et création rapide dans l'en-tête
 - [ ] 5. Panneau latéral (aperçu d'un client depuis la liste)
 - [ ] 6. Filtres avancés et vues enregistrées (nouvelle table par utilisateur, avec RLS)
@@ -989,6 +989,13 @@ Fait : **tri par clic sur les en-têtes** (clic : croissant, deuxième clic : d�
 Choix : les **tâches** (cartes regroupées par échéance avec actions sur chaque ligne), les **réclamations** et le **journal d'audit** (listes à détail dépliable, déjà réutilisées dans la fiche client) gardent leur présentation : un tableau y ferait perdre de l'information. À reprendre au besoin pendant la phase 5 (tiroir de détail).
 
 Vérifié : 231 tests, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée) : tri croissant, décroissant, retour à l'ordre d'origine, valeurs absentes en dernier, `aria-sort`, tri par date ; liste des comptes (colonnes, boutons, total) ; aucune erreur console. Non vérifié : la liste des clients après ajout du tri (même composant, syntaxe seulement), la suppression d'un compte de bout en bout.
+
+### 2026-10-03 : refonte, phase 3 (menu de commandes Ctrl+K)
+
+Fait : **Ctrl+K** (ou Cmd+K) ouvre une fenêtre de commandes pour le personnel (admin et consultant ; pas pour le client). On y tape pour : aller à une page du menu (selon le rôle), lancer une action (nouveau client ou prospect, doublons pour l'admin, changer de thème, changer d'allure, se déconnecter), ou retrouver un client, un contact, une demande (mêmes données et même cache que la recherche de la barre du haut ; les factures pour l'admin). Mots sans accent ni casse, synonymes (« sombre », « creer »…), les débuts de mot passent avant le reste. Flèches, Entrée, Échap, clic sur le fond ; Ctrl+K rouvert la ferme ; le focus revient à l'endroit d'origine. Accessible : rôle dialogue, liste d'options reliée au champ (`aria-activedescendant`), Tab garde le focus dans le champ, animation coupée si l'utilisateur la refuse.
+- `engine/commandes.js` (filtrage pur, +3 tests), `components/palette-commandes.js`, branché dans `entete.js` ; le champ de recherche du haut annonce le raccourci. Le menu est le même avec les deux allures.
+
+Vérifié : 234 tests, `check-coherence` 0 erreur ; page de test avec données simulées (supprimée) : ouverture au clavier, liste complète, filtres « creer » et « acc », chargement puis résultats, flèches, Entrée (navigation, fermeture, retour du focus), action de thème, Échap, bascule par Ctrl+K, message sans résultat, aucune erreur console ; dimensions du panneau (640 px centré, lignes de 40 px). Non vérifié : le rendu en capture d'écran (elle a expiré), les vraies données et le vrai en-tête.
 
 ## 5. Points ouverts
 

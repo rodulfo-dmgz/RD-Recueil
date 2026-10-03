@@ -8,6 +8,7 @@ import { listerClientsApercu } from '../services/comptes.js';
 import { echapperHtml } from '../engine/formatage.js';
 import { monterRechercheGlobale } from './recherche-globale.js';
 import { initialiserBoutonAllure } from './allure.js';
+import { configurerPalette } from './palette-commandes.js';
 
 const LIENS_CLIENT = [
   { href: '#/accueil', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
@@ -334,6 +335,23 @@ export function rendreEntete(profil) {
   initialiserNotifications(profil);
   initialiserBoutonAllure(document.getElementById('bouton-allure'));
   initialiserMenuProfil(profil);
+  // Menu de commandes (Ctrl+K) : réservé au personnel, comme la recherche de la barre du haut.
+  const cliquer = (selecteur) => () => document.querySelector(selecteur)?.click();
+  configurerPalette(
+    roleEffectif === 'client'
+      ? null
+      : {
+          liens,
+          admin: roleEffectif === 'admin',
+          actions: [
+            { id: 'action:nouveau-client', libelle: 'Nouveau client ou prospect', icone: 'plus', mots: 'creer ajouter', href: '#/clients/nouveau' },
+            ...(roleEffectif === 'admin' ? [{ id: 'action:doublons', libelle: 'Doublons de clients', icone: 'copy', mots: 'fusionner', href: '#/clients/doublons' }] : []),
+            { id: 'action:theme', libelle: 'Changer de thème (clair ou sombre)', icone: 'moon', mots: 'sombre clair dark nuit', executer: cliquer('[data-theme-toggle]') },
+            { id: 'action:allure', libelle: 'Changer d’allure (actuelle ou nouvelle)', icone: 'sparkles', mots: 'design look apparence', executer: cliquer('#bouton-allure') },
+            { id: 'action:deconnexion', libelle: 'Se déconnecter', icone: 'log-out', mots: 'deconnexion quitter', executer: cliquer('#bouton-deconnexion') },
+          ],
+        }
+  );
 
   if (window.lucide) window.lucide.createIcons();
   if (window.gestionnaireTheme) window.gestionnaireTheme.mettreAJourBoutons();

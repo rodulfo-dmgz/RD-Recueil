@@ -33,7 +33,7 @@ export function monterRechercheGlobale(conteneur, { admin = false } = {}) {
 
   const champ = el('input', 'recherche-globale__champ');
   champ.type = 'search';
-  champ.placeholder = 'Rechercher…  ( / )';
+  champ.placeholder = 'Rechercher…  ( / )  Ctrl+K : commandes';
   champ.autocomplete = 'off';
   champ.setAttribute('role', 'combobox');
   champ.setAttribute('aria-label', 'Recherche globale : clients, contacts, demandes');
