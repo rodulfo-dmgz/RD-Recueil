@@ -56,6 +56,13 @@ export function membresDeTache(tache) {
   return membres;
 }
 
+// "2028-01-05" -> "05 janvier 2028" (date locale, sans décalage de fuseau).
+export function libelleDateLongue(cle) {
+  if (!estCleValide(cle)) return '';
+  const [a, m, j] = cle.split('-').map(Number);
+  return new Date(a, m - 1, j).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
 // Nom de fichier sûr pour le stockage : sans accents, espaces ni caractères spéciaux.
 export function nomFichierSur(nom) {
   const brut = String(nom ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '');

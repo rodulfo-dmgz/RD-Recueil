@@ -10,8 +10,9 @@ import { bouton } from './champs-crm.js';
 
 let compteur = 0;
 
-export function ouvrirModaleCrm({ titre, noeuds, libelleEnvoi, onEnvoi, onFermee = () => {}, large = false }) {
-  const dialog = el('dialog', `modale-formulaire${large ? ' modale-formulaire--large' : ''}`);
+// classe : classe CSS supplémentaire ; piedGauche : élément placé à gauche des boutons du bas.
+export function ouvrirModaleCrm({ titre, noeuds, libelleEnvoi, onEnvoi, onFermee = () => {}, large = false, classe = '', piedGauche = null }) {
+  const dialog = el('dialog', `modale-formulaire${large ? ' modale-formulaire--large' : ''}${classe ? ` ${classe}` : ''}`);
   const idTitre = `modale-crm-titre-${++compteur}`;
   dialog.setAttribute('aria-labelledby', idTitre);
   // Fermeture unique : bouton, fond, Échap (événement close) ou après l'envoi.
@@ -32,6 +33,7 @@ export function ouvrirModaleCrm({ titre, noeuds, libelleEnvoi, onEnvoi, onFermee
   erreurGenerale.setAttribute('role', 'alert');
   const actions = el('div', 'modale-formulaire__actions');
   let envoyer = null;
+  if (piedGauche) actions.appendChild(piedGauche);
   if (libelleEnvoi) {
     envoyer = el('button', 'db-btn db-btn--primaire', libelleEnvoi);
     envoyer.type = 'submit';

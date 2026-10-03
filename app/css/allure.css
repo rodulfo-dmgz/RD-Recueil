@@ -284,74 +284,140 @@ body.look-nouveau .cl-filtres .outils-vue__bouton:hover, body.look-nouveau .cl-f
 .menu-lateral__sous { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 4px 16px; }
 
 /* Pages des tâches : liste par statut et Kanban (views/consultant/taches.js) */
-.taches-page--kanban { max-width: none; }
-.taches-barre { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 16px; }
-.taches-onglets { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 4px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--fond); }
-.taches-onglet { min-height: 36px; padding: 0 12px; border: none; border-radius: 8px; background: transparent; color: var(--texte-doux); font: inherit; font-weight: 500; cursor: pointer; }
+.taches-page { max-width: none; }
+.taches-page h1 { margin: 0; font-size: 28px; }
+.taches-barre { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; }
+.taches-onglets { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 4px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--fond); }
+.taches-onglet { min-height: 36px; padding: 0 14px; border: none; border-radius: 8px; background: transparent; color: var(--texte-doux); font: inherit; font-weight: 500; cursor: pointer; }
 .taches-onglet:hover { color: var(--texte); }
 .taches-onglet[aria-pressed="true"] { background: var(--surface); color: var(--texte); box-shadow: 0 0 0 1px var(--bordure); }
-.taches-liste { display: flex; flex-direction: column; gap: 16px; }
-.taches-groupe__tete { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0; border: none; background: transparent; color: var(--texte); font: inherit; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; }
-.taches-groupe__tete svg { width: 16px; height: 16px; transition: transform .1s ease; }
-.taches-groupe__tete[aria-expanded="false"] svg { transform: rotate(-90deg); }
+.taches-outils { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.taches-outil { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); color: var(--texte); cursor: pointer; }
+.taches-outil:hover, .taches-outil:focus-visible, .taches-outil[aria-expanded="true"] { background: var(--fond); }
+.taches-outil svg { width: 18px; height: 18px; }
+.taches-recherche { width: 220px; min-height: 40px; border-radius: 10px; }
+.taches-filtre { margin: 0; }
+.taches-filtre .cl-champ__libelle { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.taches-filtre .cl-champ__erreur { display: none; }
+.taches-filtre select { width: auto; min-width: 150px; min-height: 40px; border-radius: 10px; }
+.taches-separateur { width: 1px; height: 28px; margin: 0 4px; background: var(--bordure); }
 .taches-point { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--texte-doux); }
 .taches-point--info { background: var(--rd-bleu); }
 .taches-point--attention { background: var(--rd-orange); }
 .taches-point--succes { background: var(--rd-turquoise); }
 .taches-compte { padding: 0 8px; border-radius: 999px; background: var(--fond); color: var(--texte-doux); font-size: 12px; font-weight: 600; line-height: 20px; }
-.cl-tache__statut { width: auto; min-width: 120px; }
+.taches-statut { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Liste : un grand bloc par statut, une carte par tâche */
+.taches-liste { display: flex; flex-direction: column; gap: 20px; }
+.tl-groupe { padding: 16px 20px 20px; border: 1px solid var(--bordure); border-radius: 16px; background: var(--surface); }
+.tl-groupe__tete { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 0; border: none; background: transparent; color: var(--texte); font: inherit; font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; }
+.tl-groupe__tete svg { width: 16px; height: 16px; transition: transform .1s ease; }
+.tl-groupe__tete[aria-expanded="false"] svg { transform: rotate(-90deg); }
+.tl-groupe__corps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.tl-lignes { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.tl-ligne { display: grid; grid-template-columns: 32px minmax(0, 1fr) 170px 76px 110px 44px 36px; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--surface); transition: border-color .1s ease; }
+.tl-ligne:hover { border-color: color-mix(in srgb, var(--rd-bleu) 35%, var(--bordure)); }
+.tl-fait { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; padding: 0; border: 2px solid var(--bordure); border-radius: 50%; background: transparent; color: var(--texte-doux); cursor: pointer; }
+button.tl-fait:hover, button.tl-fait:focus-visible { border-color: var(--rd-turquoise); color: var(--rd-turquoise); }
+.tl-fait svg { width: 14px; height: 14px; stroke-width: 2.4; }
+span.tl-fait { cursor: default; }
+.tl-fait--fini { border-color: var(--rd-turquoise); background: var(--rd-turquoise); color: #fff; }
+.tl-fait--annule { color: var(--texte-doux); }
+.tl-titre { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tl-titre__bouton, .kanban__titre--bouton { display: inline; padding: 0; border: none; background: transparent; color: inherit; font: inherit; font-weight: 500; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.tl-titre__bouton:hover, .kanban__titre--bouton:hover { text-decoration: underline; }
+.tl-titre__client { color: var(--bleu-texte); font-size: 13px; text-decoration: none; }
+.tl-titre__client:hover { text-decoration: underline; }
+.tl-date, .kanban__echeance { display: inline-flex; align-items: center; gap: 8px; color: var(--texte-doux); font-size: 14px; white-space: nowrap; }
+.tl-date svg, .kanban__echeance svg { width: 16px; height: 16px; }
+.tl-ligne--retard .tl-date, .kanban__carte--retard .kanban__echeance { color: var(--erreur); }
+.tl-avatars { display: inline-flex; }
+.tl-avatar { display: grid; place-items: center; width: 28px; height: 28px; margin-left: -8px; border: 2px solid var(--surface); border-radius: 50%; background: var(--rd-turquoise); color: #fff; font-size: 10px; font-weight: 700; }
+.tl-avatar:first-child { margin-left: 0; }
+.tl-avatar--plus { background: color-mix(in srgb, var(--rd-bleu) 15%, var(--surface)); color: var(--bleu-texte); }
+.tl-pj { display: inline-flex; align-items: center; gap: 4px; color: var(--texte-doux); font-size: 14px; }
+.tl-pj svg { width: 15px; height: 15px; }
+.tl-menu { position: relative; }
+.tl-menu__bouton { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--bordure); border-radius: 8px; color: var(--texte-doux); cursor: pointer; list-style: none; }
+.tl-menu__bouton::-webkit-details-marker { display: none; }
+.tl-menu__bouton:hover, .tl-menu[open] .tl-menu__bouton { background: var(--fond); color: var(--texte); }
+.tl-menu__bouton svg { width: 16px; height: 16px; }
+.tl-menu__panneau { position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; display: flex; flex-direction: column; min-width: 190px; padding: 6px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); box-shadow: 0 8px 24px rgba(15, 23, 42, .16); }
+.tl-menu__titre { margin: 6px 8px 2px; color: var(--texte-doux); font-size: 12px; }
+.tl-menu__item { min-height: 34px; padding: 0 8px; border: none; border-radius: 6px; background: transparent; color: var(--texte); font: inherit; text-align: left; cursor: pointer; }
+.tl-menu__item:hover:not(:disabled), .tl-menu__item:focus-visible { background: var(--fond); }
+.tl-menu__item:disabled { color: var(--texte-doux); font-weight: 600; cursor: default; }
+.tl-ajout { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px dashed var(--bordure); border-radius: 12px; background: transparent; color: var(--texte-doux); font: inherit; font-weight: 500; cursor: pointer; }
+.tl-ajout:hover, .tl-ajout:focus-visible { background: var(--fond); color: var(--texte); }
+.tl-ajout svg { width: 16px; height: 16px; }
+@media (max-width: 900px) {
+  .tl-ligne { grid-template-columns: 32px minmax(0, 1fr) 36px; row-gap: 8px; }
+  .tl-date, .tl-avatars, .tl-pj, .tl-ligne .tache-urgence { grid-column: 2; justify-self: start; }
+}
+
+/* Kanban : une colonne par statut, glisser-déposer entre colonnes */
 .kanban { overflow-x: auto; padding-bottom: 8px; }
-.kanban__plateau { display: grid; grid-template-columns: repeat(4, minmax(270px, 1fr)); align-items: start; gap: 16px; }
-.kanban__colonne { display: flex; flex-direction: column; gap: 12px; min-height: 260px; padding: 12px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--fond); transition: background .1s ease, box-shadow .1s ease; }
+.kanban__plateau { display: grid; grid-template-columns: repeat(var(--colonnes, 4), minmax(280px, 1fr)); align-items: start; gap: 20px; }
+.kanban__colonne { display: flex; flex-direction: column; gap: 14px; min-height: 260px; padding: 14px; border: 1px solid var(--bordure); border-radius: 16px; background: var(--fond); transition: background .1s ease, box-shadow .1s ease; }
 .kanban__colonne--survol { background: color-mix(in srgb, var(--rd-bleu) 6%, var(--fond)); box-shadow: inset 0 0 0 2px var(--rd-bleu); }
-.kanban__tete { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-weight: 600; }
+.kanban__tete { display: flex; align-items: center; gap: 8px; padding: 0 2px; font-weight: 600; }
+.kanban__ajout { width: 28px; height: 28px; margin-left: auto; border: none; background: transparent; }
+.kanban__ajout svg { width: 16px; height: 16px; }
 .kanban__cartes { display: flex; flex: 1; flex-direction: column; gap: 12px; }
-.kanban__carte { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); cursor: grab; }
+.kanban__carte { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--surface); cursor: grab; }
 .kanban__carte:active { cursor: grabbing; }
 .kanban__carte--deplacee { opacity: .45; }
-.kanban__carte--retard .kanban__echeance { color: var(--erreur); }
 .kanban__titre { font-weight: 500; overflow-wrap: anywhere; }
-.kanban__infos { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--texte-doux); font-size: 13px; }
-.kanban__echeance { display: inline-flex; align-items: center; gap: 6px; }
-.kanban__echeance svg { width: 14px; height: 14px; }
-.kanban__type { padding: 0 8px; border-radius: 4px; background: color-mix(in srgb, var(--rd-bleu) 12%, transparent); color: var(--bleu-texte); font-size: 12px; font-weight: 600; line-height: 20px; }
-.kanban__pied { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid var(--bordure); }
-.kanban__statut { width: auto; min-height: 32px; margin-left: auto; font-size: 13px; }
+.kanban__infos { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.kanban__pied { display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid var(--bordure); }
+.kanban__pied .tl-pj { margin-left: auto; }
+.kanban__statut { width: auto; min-height: 30px; font-size: 13px; }
 .kanban__vide { margin: 0; padding: 16px 8px; border: 1px dashed var(--bordure); border-radius: 10px; font-size: 14px; text-align: center; }
 
-/* Création et détail d'une tâche : urgence, membres, pièces jointes */
-.taches-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-.taches-entete h1 { margin: 0; }
-.tache-urgence { display: inline-block; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 600; line-height: 20px; }
+/* Urgence */
+.tache-urgence { display: inline-block; justify-self: start; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 600; line-height: 20px; }
 .tache-urgence--succes { background: color-mix(in srgb, var(--succes) 14%, transparent); color: var(--succes); }
 .tache-urgence--attention { background: color-mix(in srgb, var(--rd-orange) 16%, transparent); color: var(--alerte); }
 .tache-urgence--erreur { background: color-mix(in srgb, var(--erreur) 14%, transparent); color: var(--erreur); }
-.cl-tache__titre-bouton, .kanban__titre--bouton { display: inline; padding: 0; border: none; background: transparent; color: inherit; font: inherit; font-weight: 600; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
-.kanban__titre--bouton { font-weight: 500; }
-.cl-tache__titre-bouton:hover, .kanban__titre--bouton:hover { text-decoration: underline; }
-.cl-tache__corps .tache-urgence { margin-left: 8px; vertical-align: middle; }
-.kanban__carte { cursor: pointer; }
-.kanban__membres { display: inline-flex; }
-.kanban__avatar { display: grid; place-items: center; width: 26px; height: 26px; margin-left: -6px; border: 2px solid var(--surface); border-radius: 50%; background: var(--rd-turquoise); color: #fff; font-size: 10px; font-weight: 700; }
-.kanban__avatar:first-child { margin-left: 0; }
-.kanban__avatar--plus { background: color-mix(in srgb, var(--rd-bleu) 15%, var(--surface)); color: var(--bleu-texte); }
-.kanban__pj { display: inline-flex; align-items: center; gap: 4px; color: var(--texte-doux); font-size: 13px; }
-.kanban__pj svg { width: 14px; height: 14px; }
-.modale-tache__grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-.modale-tache__pieces { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.modale-tache__aide { font-size: 13px; }
-.modale-tache__fichiers { flex-basis: 100%; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
-.modale-tache__fichier { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--bordure); border-radius: 8px; font-size: 14px; }
-.modale-tache__fichier svg { width: 14px; height: 14px; flex-shrink: 0; }
-.modale-tache__fichier span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Fenêtre « Créer une nouvelle tâche » */
+.modale-tache { width: min(760px, 94vw); max-width: none; padding: 26px 28px 20px; overflow: visible; border-radius: 16px; }
+.modale-tache h2 { margin: 0 0 6px; padding-right: 40px; font-size: 22px; }
+.modale-tache .cl-form { gap: 14px; }
+.modale-tache .champ-saisie { border-radius: 10px; }
+.modale-tache__fermer { position: absolute; top: 20px; right: 20px; display: grid; place-items: center; width: 32px; height: 32px; border: none; border-radius: 8px; background: transparent; color: var(--texte-doux); cursor: pointer; }
+.modale-tache__fermer:hover, .modale-tache__fermer:focus-visible { background: var(--fond); color: var(--texte); }
+.modale-tache__pastilles { display: flex; flex-wrap: wrap; gap: 8px; }
+.pastille-champ { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 10px; font-size: 14px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); color: var(--texte); cursor: pointer; }
+.pastille-champ > svg { flex-shrink: 0; width: 16px; height: 16px; stroke: var(--texte-doux); }
+.pastille-champ:focus-within { box-shadow: 0 0 0 2px color-mix(in srgb, var(--rd-bleu) 35%, transparent); }
+.pastille-champ__champ { min-width: 0; padding: 0; border: none; border-radius: 0; background: transparent; color: inherit; font: inherit; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; }
+.pastille-champ__point { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--texte-doux); }
+.pastille-champ[data-couleur="info"] .pastille-champ__point { background: var(--rd-bleu); }
+.pastille-champ[data-couleur="attention"] .pastille-champ__point { background: var(--rd-orange); }
+.pastille-champ[data-couleur="succes"] .pastille-champ__point { background: var(--rd-turquoise); }
 .membres-tache { position: relative; }
-.membres-tache__resume { display: flex; align-items: center; min-height: 44px; cursor: pointer; list-style: none; }
+.membres-tache__resume { list-style: none; }
 .membres-tache__resume::-webkit-details-marker { display: none; }
-.membres-tache__liste { display: flex; flex-direction: column; gap: 2px; max-height: 200px; margin-top: 4px; padding: 6px; overflow-y: auto; border: 1px solid var(--bordure); border-radius: 8px; background: var(--surface); }
+.membres-tache__texte { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.membres-tache__liste { position: absolute; top: calc(100% + 6px); left: 0; z-index: 10; display: flex; flex-direction: column; gap: 2px; width: 260px; max-height: 220px; padding: 6px; overflow-y: auto; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); box-shadow: 0 8px 24px rgba(15, 23, 42, .16); }
 .membres-tache__ligne { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px; border-radius: 6px; cursor: pointer; }
 .membres-tache__ligne:hover { background: var(--fond); }
 .membres-tache__ligne input { width: 18px; height: 18px; accent-color: var(--rd-bleu); }
-.taches-statut { display: inline-flex; align-items: center; gap: 8px; }
+.modale-tache__aide { margin: 0; font-size: 13px; }
+.modale-tache__fichiers { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.modale-tache__fichier { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--bordure); border-radius: 8px; font-size: 14px; }
+.modale-tache__fichier svg { flex-shrink: 0; width: 14px; height: 14px; }
+.modale-tache__fichier span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modale-tache .modale-formulaire__actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--bordure); }
+.modale-tache__joindre { display: grid; place-items: center; order: 0; width: 40px; height: 40px; margin-right: auto; border: none; border-radius: 10px; background: transparent; color: var(--texte); cursor: pointer; }
+.modale-tache__joindre:hover, .modale-tache__joindre:focus-visible { background: var(--fond); }
+.modale-tache__joindre svg { width: 20px; height: 20px; }
+.modale-tache .modale-formulaire__actions .db-btn--discret { order: 1; border: 1px solid var(--bordure); }
+.modale-tache .modale-formulaire__actions .db-btn--primaire { order: 2; }
+
+/* Détail d'une tâche (tiroir) */
 .tiroir-equipe { display: flex; flex-wrap: wrap; gap: 6px; }
 .tiroir-message { white-space: pre-wrap; }
 .tiroir-pieces { margin-top: 20px; }
@@ -359,5 +425,5 @@ body.look-nouveau .cl-filtres .outils-vue__bouton:hover, body.look-nouveau .cl-f
 .tiroir-pieces__liste { margin: 0 0 8px; padding: 0; list-style: none; }
 .tiroir-pieces__nom { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 8px; border: none; border-radius: 8px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .tiroir-pieces__nom:hover, .tiroir-pieces__nom:focus-visible { background: var(--fond); }
-.tiroir-pieces__nom svg { width: 14px; height: 14px; flex-shrink: 0; }
+.tiroir-pieces__nom svg { flex-shrink: 0; width: 14px; height: 14px; }
 .tiroir-pieces__nom span { flex: 1; min-width: 0; overflow-wrap: anywhere; }

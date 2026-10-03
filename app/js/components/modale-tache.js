@@ -1,10 +1,11 @@
 // Fenêtre « Créer une nouvelle tâche » (pages Liste et Kanban des tâches) : nom,
-// client, message, statut, membres de l'équipe, date, urgence, type et pièces
-// jointes. Un consultant est toujours membre et responsable de ses tâches (la base
-// l'impose) ; l'admin choisit librement, le premier membre coché devient responsable.
+// client, message, puis une rangée de pastilles (statut, membres, date, urgence,
+// type) et le trombone des pièces jointes en bas à gauche. Un consultant est
+// toujours membre et responsable de ses tâches (la base l'impose) ; l'admin choisit
+// librement, le premier membre coché devient responsable.
 import { ouvrirModaleCrm } from './modale-crm.js';
 import { el, icone } from './dashboard-ui.js';
-import { champ, champSelect } from './champs-crm.js';
+import { champ } from './champs-crm.js';
 import { afficherToast } from './toast.js';
 import { STATUTS_TACHE, TYPES_TACHE, URGENCES, preparerTache, validerNouvelleTache } from '../engine/taches.js';
 import { EXTENSIONS_FICHIER_AUTORISEES, validerFichierDepot } from '../engine/validation.js';
@@ -15,21 +16,42 @@ const MAX_FICHIERS = 10;
 
 const nomMembre = (m) => m.nom || m.email || 'Membre';
 
-// Sélecteur de membres : bloc repliable avec une case par membre de l'équipe.
+// Pastille de formulaire : icône (ou point de couleur) à gauche, champ natif, chevron pour les listes.
+function pastille({ nomIcone, libelle, champ: noeud, point = false, liste = true }) {
+  const boite = el('label', 'pastille-champ');
+  boite.appendChild(point ? el('span', 'pastille-champ__point') : icone(nomIcone));
+  noeud.setAttribute('aria-label', libelle);
+  noeud.classList.add('pastille-champ__champ');
+  boite.appendChild(noeud);
+  if (liste) boite.appendChild(icone('chevron-down'));
+  return boite;
+}
+
+function liste(options, valeur, libelle) {
+  const select = el('select');
+  for (const o of options) select.appendChild(Object.assign(document.createElement('option'), { value: o.valeur, textContent: o.libelle }));
+  select.value = valeur;
+  select.name = libelle;
+  return select;
+}
+
+// Sélecteur de membres : pastille qui déplie une liste à cases (une par membre de l'équipe).
 // fixe : identifiant qui reste coché (un consultant ne peut pas se retirer).
 function selecteurMembres(equipe, coches, fixe) {
   const bloc = el('details', 'membres-tache');
-  const resume = el('summary', 'champ-saisie membres-tache__resume');
+  const resume = el('summary', 'pastille-champ membres-tache__resume');
+  const texte = el('span', 'membres-tache__texte');
+  resume.append(icone('users'), texte, icone('chevron-down'));
   bloc.appendChild(resume);
-  const liste = el('div', 'membres-tache__liste');
-  liste.setAttribute('role', 'group');
-  liste.setAttribute('aria-label', 'Membres de la tâche');
+  const panneau = el('div', 'membres-tache__liste');
+  panneau.setAttribute('role', 'group');
+  panneau.setAttribute('aria-label', 'Membres de la tâche');
   const majResume = () => {
     const noms = equipe.filter((m) => coches.has(m.user_id)).map(nomMembre);
-    resume.textContent = noms.length === 0 ? 'Aucun membre' : noms.length <= 2 ? noms.join(', ') : `${noms[0]}, ${noms[1]} +${noms.length - 2}`;
+    texte.textContent = noms.length === 0 ? 'Aucun membre' : noms.length === 1 ? noms[0] : `${noms[0]} +${noms.length - 1}`;
   };
   for (const membre of equipe) {
-    const label = el('label', 'membres-tache__ligne');
+    const ligne = el('label', 'membres-tache__ligne');
     const case_ = el('input');
     case_.type = 'checkbox';
     case_.checked = coches.has(membre.user_id);
@@ -39,21 +61,37 @@ function selecteurMembres(equipe, coches, fixe) {
       else coches.delete(membre.user_id);
       majResume();
     });
-    label.append(case_, el('span', null, nomMembre(membre)));
-    liste.appendChild(label);
+    ligne.append(case_, el('span', null, nomMembre(membre)));
+    panneau.appendChild(ligne);
   }
-  bloc.appendChild(liste);
+  bloc.appendChild(panneau);
   majResume();
   return bloc;
 }
 
 // options : { clients, equipe, profil, estAdmin, clientId, statut, onCree(tache) }
 export function ouvrirModaleTache({ clients, equipe, profil, estAdmin, clientId = '', statut = 'a_faire', onCree = () => {} }) {
+  let modale = null;
+  const fermer = el('button', 'modale-tache__fermer');
+  fermer.type = 'button';
+  fermer.setAttribute('aria-label', 'Fermer');
+  fermer.appendChild(icone('x'));
+  fermer.addEventListener('click', () => modale?.fermer());
+
   const titre = champ('Nom de la tâche', 'titre', '');
   titre.input.placeholder = 'Entrez le nom de la tâche';
   titre.input.required = true;
 
-  const client = champSelect('client_id', 'Client', clients.map((c) => ({ valeur: c.id, libelle: c.raison_sociale })), clientId, 'Choisir un client');
+  const clientWrapper = el('label', 'cl-champ');
+  clientWrapper.appendChild(el('span', 'cl-champ__libelle', 'Client'));
+  const client = el('select', 'champ-saisie');
+  client.name = 'client_id';
+  client.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: 'Choisir un client' }));
+  for (const c of clients) client.appendChild(Object.assign(document.createElement('option'), { value: c.id, textContent: c.raison_sociale }));
+  client.value = clientId;
+  const erreurClient = el('span', 'cl-champ__erreur');
+  erreurClient.setAttribute('role', 'alert');
+  clientWrapper.append(client, erreurClient);
 
   const messageWrapper = el('label', 'cl-champ');
   messageWrapper.appendChild(el('span', 'cl-champ__libelle', 'Message'));
@@ -62,20 +100,30 @@ export function ouvrirModaleTache({ clients, equipe, profil, estAdmin, clientId 
   message.placeholder = 'Entrez votre message ici…';
   messageWrapper.appendChild(message);
 
-  const choixStatut = champSelect('statut', 'Statut', STATUTS_TACHE.map((s) => ({ valeur: s.valeur, libelle: s.libelle })), statut);
-  const choixUrgence = champSelect('urgence', 'Urgence', URGENCES.map((u) => ({ valeur: u.valeur, libelle: u.libelle })), 'moyenne');
-  const echeance = champ('Date', 'echeance', cleJour(new Date()), 'date');
-  const choixType = champSelect('type', 'Type', TYPES_TACHE, 'autre');
+  // Rangée de pastilles : statut, membres, date, urgence, type.
+  const choixStatut = liste(STATUTS_TACHE, statut, 'statut');
+  const pastilleStatut = pastille({ libelle: 'Statut', champ: choixStatut, point: true });
+  const majPoint = () => {
+    const couleur = STATUTS_TACHE.find((s) => s.valeur === choixStatut.value)?.couleur ?? 'neutre';
+    pastilleStatut.dataset.couleur = couleur;
+  };
+  choixStatut.addEventListener('change', majPoint);
+  majPoint();
 
   const coches = new Set(profil?.user_id ? [profil.user_id] : []);
-  const membresWrapper = el('div', 'cl-champ');
-  membresWrapper.appendChild(el('span', 'cl-champ__libelle', 'Membres de l’équipe'));
-  const erreurMembres = el('span', 'cl-champ__erreur');
-  erreurMembres.setAttribute('role', 'alert');
-  membresWrapper.append(selecteurMembres(equipe, coches, estAdmin ? null : profil?.user_id), erreurMembres);
+  const membres = selecteurMembres(equipe, coches, estAdmin ? null : profil?.user_id);
 
-  const grille = el('div', 'modale-tache__grille');
-  grille.append(choixStatut.wrapper, membresWrapper, echeance.wrapper, choixUrgence.wrapper, choixType.wrapper);
+  const echeance = el('input');
+  echeance.type = 'date';
+  echeance.name = 'echeance';
+  echeance.value = cleJour(new Date());
+  const choixUrgence = liste(URGENCES, 'moyenne', 'urgence');
+  const choixType = liste(TYPES_TACHE, 'autre', 'type');
+
+  const rangee = el('div', 'modale-tache__pastilles');
+  rangee.append(pastilleStatut, membres, pastille({ nomIcone: 'calendar', libelle: 'Date', champ: echeance, liste: false }), pastille({ nomIcone: 'flag', libelle: 'Urgence', champ: choixUrgence }), pastille({ nomIcone: 'tag', libelle: 'Type', champ: choixType }));
+  const erreurs = el('span', 'cl-champ__erreur');
+  erreurs.setAttribute('role', 'alert');
 
   // Pièces jointes : choisies ici, envoyées après la création de la tâche.
   const fichiers = [];
@@ -84,12 +132,12 @@ export function ouvrirModaleTache({ clients, equipe, profil, estAdmin, clientId 
   entree.multiple = true;
   entree.hidden = true;
   entree.accept = EXTENSIONS_FICHIER_AUTORISEES.map((e) => `.${e}`).join(',');
-  const liste = el('ul', 'modale-tache__fichiers');
-  const aide = el('span', 'texte-doux modale-tache__aide', `PDF, Word, Excel, PowerPoint ou image, 20 Mo maximum par fichier (${MAX_FICHIERS} fichiers au plus).`);
+  const listeFichiers = el('ul', 'modale-tache__fichiers');
+  const aide = el('p', 'texte-doux modale-tache__aide', `Pièces jointes : PDF, Word, Excel, PowerPoint ou image, 20 Mo maximum par fichier (${MAX_FICHIERS} au plus).`);
   const erreurFichiers = el('span', 'cl-champ__erreur');
   erreurFichiers.setAttribute('role', 'alert');
   function rendreFichiers() {
-    liste.replaceChildren();
+    listeFichiers.replaceChildren();
     fichiers.forEach((fichier, index) => {
       const li = el('li', 'modale-tache__fichier');
       const retirer = el('button', 'outils-filtre__retirer');
@@ -101,7 +149,7 @@ export function ouvrirModaleTache({ clients, equipe, profil, estAdmin, clientId 
         rendreFichiers();
       });
       li.append(icone('paperclip'), el('span', null, fichier.name), retirer);
-      liste.appendChild(li);
+      listeFichiers.appendChild(li);
     });
     if (window.lucide) window.lucide.createIcons();
   }
@@ -117,34 +165,36 @@ export function ouvrirModaleTache({ clients, equipe, profil, estAdmin, clientId 
     erreurFichiers.textContent = refus.join(' ');
     rendreFichiers();
   });
-  const joindre = el('button', 'db-btn db-btn--discret');
+  const joindre = el('button', 'modale-tache__joindre');
   joindre.type = 'button';
-  joindre.append(icone('paperclip'), el('span', null, 'Joindre des fichiers'));
-  joindre.addEventListener('click', () => entree.click());
-  const piecesJointes = el('div', 'modale-tache__pieces');
-  piecesJointes.append(joindre, entree, aide, erreurFichiers, liste);
+  joindre.setAttribute('aria-label', 'Joindre des fichiers');
+  joindre.title = 'Joindre des fichiers';
+  joindre.append(icone('paperclip'), entree);
+  joindre.addEventListener('click', (evenement) => {
+    if (evenement.target !== entree) entree.click();
+  });
 
-  ouvrirModaleCrm({
+  modale = ouvrirModaleCrm({
     titre: 'Créer une nouvelle tâche',
-    large: true,
+    classe: 'modale-tache',
     libelleEnvoi: 'Créer une tâche',
-    noeuds: [titre.wrapper, client.wrapper, messageWrapper, grille, piecesJointes],
+    piedGauche: joindre,
+    noeuds: [fermer, titre.wrapper, clientWrapper, messageWrapper, rangee, erreurs, aide, erreurFichiers, listeFichiers],
     onEnvoi: async () => {
       const valeurs = {
         titre: titre.input.value,
-        client_id: client.select.value,
-        echeance: echeance.input.value,
-        type: choixType.select.value,
-        urgence: choixUrgence.select.value,
-        statut: choixStatut.select.value,
+        client_id: client.value,
+        echeance: echeance.value,
+        type: choixType.value,
+        urgence: choixUrgence.value,
+        statut: choixStatut.value,
       };
-      const erreurs = validerNouvelleTache(valeurs);
-      titre.erreur.textContent = erreurs.titre ?? '';
-      client.erreur.textContent = erreurs.client_id ?? '';
-      echeance.erreur.textContent = erreurs.echeance ?? '';
+      const invalides = validerNouvelleTache(valeurs);
+      titre.erreur.textContent = invalides.titre ?? '';
+      erreurClient.textContent = invalides.client_id ?? '';
       const responsable = estAdmin ? equipe.find((m) => coches.has(m.user_id))?.user_id : profil.user_id;
-      erreurMembres.textContent = responsable ? '' : 'Choisissez au moins un membre.';
-      if (Object.keys(erreurs).length > 0 || !responsable) return false;
+      erreurs.textContent = invalides.echeance ?? (responsable ? '' : 'Choisissez au moins un membre.');
+      if (Object.keys(invalides).length > 0 || !responsable) return false;
 
       const champs = { ...preparerTache({ titre: valeurs.titre, description: message.value, type: valeurs.type, echeance: valeurs.echeance }), statut: valeurs.statut, urgence: valeurs.urgence, assignee_id: responsable };
       const { tache, echecs } = await creerTacheComplete({ clientId: valeurs.client_id, champs, membres: [...coches], fichiers });

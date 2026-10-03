@@ -1067,6 +1067,18 @@ Non vérifié : le vrai envoi des fichiers vers le stockage et leur télécharge
 
 À noter : pas de notification quand on est ajouté à une tâche ; pas de retrait d'un membre ni de modification du message depuis le tiroir ; l'ordre des cartes dans une colonne reste celui de l'échéance.
 
+### 2026-10-03 : tâches, refonte de la mise en page d'après le modèle (retour de l'utilisateur)
+
+Retour : la mise en place des éléments (liste, Kanban) et la fenêtre de création ne ressemblaient pas au modèle fourni. Reprise complète de l'apparence, sans changer les données ni la base.
+- **Barre d'outils** : onglets à gauche ; à droite, recherche (icône qui déplie un champ), filtres responsable et client en pastilles sans étiquette visible, séparateur et bouton « Ajouter une tâche » (le titre garde sa ligne). Les onglets servent aussi au Kanban (ils n'affichent alors que la colonne choisie).
+- **Liste** : un grand bloc arrondi par statut (flèche, point de couleur, nombre) ; **une carte par tâche** : rond pour terminer, titre et client, date en toutes lettres (« 05 janvier 2028 », rouge si en retard), urgence, avatars des membres, nombre de pièces jointes et menu « ... » (passer en un autre statut, reporter, annuler) ; ligne pointillée « + Ajouter une tâche » en bas de chaque bloc (ouvre le formulaire avec ce statut).
+- **Kanban** : colonnes arrondies avec « + » pour ajouter dans cette colonne ; cartes (titre, client, date, urgence ou coche verte dans « Complet », puis avatars et pièces jointes).
+- **Fenêtre « Créer une nouvelle tâche »** : titre avec croix de fermeture, champs nom, client et message, puis **une seule rangée de pastilles** à icône (statut avec point de couleur, membres, date, urgence, type), et en bas **trombone à gauche, Annuler puis Créer une tâche à droite** sous un filet. Largeur 760 px.
+- `ouvrirModaleCrm` accepte une classe CSS et un élément « pied gauche » ; `ligne-tache.js` revient à son état d'origine (la liste utilise ses propres cartes) en gardant l'équipe dans le texte ; `libelleDateLongue` (+1 test).
+
+Vérifié : 256 tests, `check-coherence` 0 erreur ; mesures des positions dans le navigateur avec des données simulées (supprimées) : barre d'outils sur une ligne à droite des onglets quand la place le permet (retour à la ligne à droite sinon), cartes de liste à 7 colonnes sans débordement, colonnes du Kanban, fenêtre à 760 px avec les cinq pastilles sur une seule ligne, pied de fenêtre dans le bon ordre, liste des membres contenue dans la fenêtre.
+Non vérifié : **aucune capture d'écran n'a pu être prise** (elles expirent dans mon outil) : l'apparence réelle (couleurs, ombres, espacement) est à juger par l'utilisateur ; l'écran étroit et le thème sombre.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

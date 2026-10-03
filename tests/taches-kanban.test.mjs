@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { STATUTS_TACHE, URGENCES, classerTaches, colonnesKanban, deplacerTache, estOuverte, libelleStatutTache, libelleUrgence, membresDeTache, nomFichierSur, tachesVersJalons, validerNouvelleTache } from '../app/js/engine/taches.js';
+import { STATUTS_TACHE, URGENCES, classerTaches, colonnesKanban, deplacerTache, estOuverte, libelleDateLongue, libelleStatutTache, libelleUrgence, membresDeTache, nomFichierSur, tachesVersJalons, validerNouvelleTache } from '../app/js/engine/taches.js';
 
 const maintenant = new Date('2026-10-10T10:00:00Z');
 const tache = (id, statut, echeance, extra = {}) => ({ id, titre: `T${id}`, statut, echeance, created_at: `2026-10-0${id}T08:00:00Z`, client_id: 'c', ...extra });
@@ -90,4 +90,11 @@ test('validerNouvelleTache : titre, client, date, urgence et statut', () => {
   assert.equal(libelleUrgence('haute'), 'Haute');
   assert.equal(libelleUrgence(undefined), 'Moyenne');
   assert.deepEqual(URGENCES.map((u) => u.valeur), ['faible', 'moyenne', 'haute']);
+});
+
+test('libelleDateLongue : jour sur deux chiffres, mois en toutes lettres', () => {
+  assert.equal(libelleDateLongue('2028-01-05'), '05 janvier 2028');
+  assert.equal(libelleDateLongue('2026-10-31'), '31 octobre 2026');
+  assert.equal(libelleDateLongue('2026-02-31'), '');
+  assert.equal(libelleDateLongue(null), '');
 });
