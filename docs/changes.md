@@ -958,6 +958,14 @@ Fait (nouvelle allure uniquement, l'allure actuelle reste masquée par défaut) 
 
 Vérifié : tests 227 réussis, `check-coherence` 0 erreur, syntaxe des fichiers modifiés. **Non vérifié dans le navigateur** (économie de jetons demandée) : le rendu visuel est à juger par l'utilisateur avec le bouton d'allure ; les règles CSS n'ont pas été testées en thème sombre ni à 375 px dans cette itération.
 
+### 2026-10-03 : phase 1 bis, itération 3 et copie de sécurité
+
+**Retour en arrière** : l'état d'avant la refonte est conservé de deux façons. Le tag git `appv1` (commit `a1e56b0`, dernier état poussé avant la refonte) permet de tout restaurer (`git checkout appv1 -- app`). Une copie de l'application est aussi dans le dossier `appv1/` (ignoré par git, pour consultation locale). Dans l'application actuelle, le bouton « étincelles » rend aussi l'ancienne allure d'un clic.
+
+Fait (nouvelle allure) : lignes de 33 px en compact ; **défilement horizontal** (largeurs de colonnes fixes, case et colonne Entreprise figées à gauche, texte coupé par « … ») ; **une seule ligne** pour la barre de vue et les actions (Doublons, Exporter, Nouveau) ; cellules vides au lieu des tirets ; bloc « Simuler une vue » repliable (replié sauf si une simulation est active, aussi avec l'allure actuelle).
+
+Vérifié : 227 tests, `check-coherence` 0 erreur, syntaxe. Non vérifié dans le navigateur (économie de jetons) : défilement et colonnes figées, ligne unique à largeur réduite.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

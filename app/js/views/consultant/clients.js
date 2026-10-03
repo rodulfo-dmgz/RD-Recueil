@@ -53,8 +53,18 @@ function caseACocherTableau(libelle, coche, onChange) {
   return input;
 }
 
+// Valeur absente : tiret visible avec l'allure actuelle, cellule vide avec la nouvelle (css/allure.css).
+const vide = () => el('span', 'vide', '-');
+
+function cellule(valeur, classe) {
+  const td = el('td', classe);
+  if (valeur) td.textContent = valeur;
+  else td.appendChild(vide());
+  return td;
+}
+
 function pastilleContact(valeur, href) {
-  if (!valeur) return document.createTextNode('-');
+  if (!valeur) return vide();
   const pastille = el('a', 'pastille-contact', valeur);
   pastille.href = href;
   return pastille;
@@ -72,7 +82,7 @@ function ligneClient(c, avecFinance, { selection, onSelection }) {
     })
   );
 
-  const nom = el('td');
+  const nom = el('td', 'col-nom');
   const lien = el('a', 'cl-nom');
   const avatar = el('span', 'chip__avatar chip__avatar--carre', initiales(c.raison_sociale));
   avatar.setAttribute('aria-hidden', 'true');
@@ -106,48 +116,49 @@ function ligneClient(c, avecFinance, { selection, onSelection }) {
 
   const contact = el('td');
   if (c.contact_principal) contact.appendChild(pastillePersonne(c.contact_principal));
-  else contact.textContent = '-';
+  else contact.appendChild(vide());
 
   const email = proto(el('td'));
   email.appendChild(pastilleContact(c.email_general, `mailto:${c.email_general}`));
   const telephone = proto(el('td'));
   telephone.appendChild(pastilleContact(c.telephone, `tel:${String(c.telephone ?? '').replace(/\s/g, '')}`));
 
-  const demandes = c.nb_demandes === 0 ? '-' : `${c.nb_demandes}${c.nb_actives > 0 ? ` (${c.nb_actives} en cours)` : ''}`;
+  const demandes = c.nb_demandes === 0 ? '' : `${c.nb_demandes}${c.nb_actives > 0 ? ` (${c.nb_actives} en cours)` : ''}`;
   ligne.append(
     cocher,
     nom,
-    el('td', null, c.siret || '-'),
+    cellule(c.siret),
     statut,
-    el('td', null, c.ville || '-'),
+    cellule(c.ville),
     contact,
     email,
     telephone,
-    el('td', null, demandes),
-    el('td', null, c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : '-'),
+    cellule(demandes),
+    cellule(c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : ''),
     el('td', null, formaterDate(c.derniere_activite))
   );
-  if (avecFinance) ligne.insertBefore(el('td', null, c.ca_signe > 0 ? formaterMontant(c.ca_signe) : '-'), ligne.lastChild);
+  if (avecFinance) ligne.insertBefore(cellule(c.ca_signe > 0 ? formaterMontant(c.ca_signe) : ''), ligne.lastChild);
   return ligne;
 }
 
 // En-têtes : icône (masquée avec l'allure actuelle) et titre.
 const COLONNES = [
-  { titre: 'Entreprise', icone: 'building-2' },
-  { titre: 'SIRET', icone: 'hash' },
-  { titre: 'Statut', icone: 'circle-dot' },
-  { titre: 'Ville', icone: 'map-pin' },
-  { titre: 'Contact principal', icone: 'user-round' },
-  { titre: 'E-mail', icone: 'mail', proto: true },
-  { titre: 'Téléphone', icone: 'phone', proto: true },
-  { titre: 'Demandes', icone: 'layout-list' },
-  { titre: 'Tâches', icone: 'list-checks' },
-  { titre: 'CA signé', icone: 'euro', finance: true },
-  { titre: 'Dernière activité', icone: 'clock' },
+  { titre: 'Entreprise', icone: 'building-2', largeur: 260, classe: 'col-nom' },
+  { titre: 'SIRET', icone: 'hash', largeur: 150 },
+  { titre: 'Statut', icone: 'circle-dot', largeur: 120 },
+  { titre: 'Ville', icone: 'map-pin', largeur: 150 },
+  { titre: 'Contact principal', icone: 'user-round', largeur: 210 },
+  { titre: 'E-mail', icone: 'mail', proto: true, largeur: 230 },
+  { titre: 'Téléphone', icone: 'phone', proto: true, largeur: 150 },
+  { titre: 'Demandes', icone: 'layout-list', largeur: 150 },
+  { titre: 'Tâches', icone: 'list-checks', largeur: 100 },
+  { titre: 'CA signé', icone: 'euro', finance: true, largeur: 120 },
+  { titre: 'Dernière activité', icone: 'clock', largeur: 160 },
 ];
 
-function enteteColonne({ titre, icone: nomIcone, proto: estProto }) {
-  const th = el('th');
+function enteteColonne({ titre, icone: nomIcone, proto: estProto, largeur, classe }) {
+  const th = el('th', classe);
+  th.style.setProperty('--w', `${largeur}px`);
   const pastille = el('span', 'th-icone');
   pastille.appendChild(icone(nomIcone));
   th.append(pastille, document.createTextNode(titre));
@@ -159,6 +170,7 @@ function construireTableau(clients, avecFinance, selection, onSelection) {
   const tete = el('thead');
   const ligneTete = el('tr');
   const toutCocher = proto(el('th', 'col-selection'));
+  toutCocher.style.setProperty('--w', '32px');
   const caseTout = caseACocherTableau('Tout sélectionner', clients.length > 0 && clients.every((c) => selection.has(c.id)), (coche) => onSelection(clients.map((c) => c.id), coche, true));
   toutCocher.appendChild(caseTout);
   ligneTete.appendChild(toutCocher);

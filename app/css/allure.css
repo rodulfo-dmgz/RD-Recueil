@@ -58,13 +58,16 @@ body.look-nouveau .menu-lateral__retour:hover,
 body.look-nouveau .menu-lateral__deconnexion:hover { background: var(--bordure); }
 
 /* ─── Page de liste plein cadre : en-tête fin, barre de vue, tableau ────── */
-body.look-nouveau .db.page-liste { max-width: none; padding: 0; gap: 0; }
-body.look-nouveau .page-liste .cl-entete { min-height: 48px; padding: 8px 16px; border-bottom: 1px solid var(--bordure); background: var(--surface); }
+/* Une seule ligne : barre de vue à gauche, actions à droite (l'en-tête « disparaît », ses actions rejoignent la barre de vue). */
+body.look-nouveau .db.page-liste { display: flex; flex-flow: row wrap; align-items: stretch; max-width: none; padding: 0; gap: 0; }
+body.look-nouveau .page-liste .cl-entete { display: contents; }
 body.look-nouveau .page-liste .cl-entete h1 { display: none; }
-body.look-nouveau .page-liste .cl-entete__actions { margin-left: auto; display: flex; gap: 8px; }
+body.look-nouveau .page-liste .cl-entete__actions { order: 2; flex: 0 0 auto; align-items: center; gap: 8px; padding: 6px 16px 6px 0; border-bottom: 1px solid var(--bordure); background: var(--surface); }
 body.look-nouveau .page-liste .cl-entete .db-btn--discret { border-color: transparent; background: transparent; }
 body.look-nouveau .page-liste .cl-entete .db-btn--discret:hover { background: var(--fond); }
-body.look-nouveau .page-liste .cl-filtres { align-items: center; gap: 8px; padding: 6px 16px; border-bottom: 1px solid var(--bordure); background: var(--surface); }
+body.look-nouveau .page-liste .cl-filtres { order: 1; flex: 1 1 0; min-width: 0; flex-wrap: nowrap; align-items: center; gap: 8px; padding: 6px 16px; border-bottom: 1px solid var(--bordure); background: var(--surface); }
+body.look-nouveau .page-liste .db-carte { order: 3; flex: 1 0 100%; min-width: 0; }
+@media (max-width: 900px) { body.look-nouveau .page-liste .cl-filtres { flex-basis: 100%; flex-wrap: wrap; } body.look-nouveau .page-liste .cl-entete__actions { padding-left: 16px; } }
 body.look-nouveau .cl-vue-icone { display: inline-flex; color: var(--texte-doux); }
 body.look-nouveau .cl-vue-icone svg { width: 16px; height: 16px; stroke-width: 1.6; }
 body.look-nouveau .page-liste .cl-statut-filtre { flex: 0 0 auto; width: auto; min-height: 32px; border-color: transparent; background: transparent; font-weight: 600; margin-left: -4px; }
@@ -79,16 +82,30 @@ body.look-nouveau .page-liste .db-carte { padding: 0; border: none; border-radiu
 body.look-nouveau .page-liste .cl-compteur { display: none; }
 
 /* Tableau : quadrillage fin, en-têtes avec icône, cases, totaux */
-body.look-nouveau .db-table--dense { font-size: 14px; }
+/* Largeurs fixes (variable --w posée par le tableau) : le tableau défile à l'horizontale, case et entreprise restent figées à gauche. */
+body.look-nouveau .db-table--dense { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+body.look-nouveau .db-table--dense th { width: var(--w, auto); }
 body.look-nouveau .db-table--dense th,
-body.look-nouveau .db-table--dense td { padding: 3px 8px; line-height: 24px; border-right: 1px solid var(--bordure); border-bottom: 1px solid var(--bordure); }
+body.look-nouveau .db-table--dense td { padding: 4px 8px; line-height: 24px; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--bordure); border-bottom: 1px solid var(--bordure); }
+body.look-nouveau .vide { visibility: hidden; }
+body.look-nouveau .db-table--dense .col-selection,
+body.look-nouveau .db-table--dense .col-nom { position: sticky; z-index: 2; background: var(--surface); }
+body.look-nouveau .db-table--dense .col-selection { left: 0; }
+body.look-nouveau .db-table--dense .col-nom { left: 32px; box-shadow: 1px 0 0 var(--bordure); }
+body.look-nouveau .db-table--dense tbody tr:hover .col-selection,
+body.look-nouveau .db-table--dense tbody tr:hover .col-nom { background: var(--fond); }
+body.look-nouveau .db-table--dense tbody tr.ligne-selectionnee .col-selection,
+body.look-nouveau .db-table--dense tbody tr.ligne-selectionnee .col-nom { background: color-mix(in srgb, var(--rd-bleu) 7%, var(--surface)); }
+body.look-nouveau .db-table--dense tfoot td:first-child,
+body.look-nouveau .db-table--dense tfoot .total-libelle { position: sticky; left: 0; z-index: 2; }
+body.look-nouveau .db-table--dense tfoot .total-libelle { left: 32px; }
 body.look-nouveau .db-table--dense th:last-child,
 body.look-nouveau .db-table--dense td:last-child { border-right: none; }
 body.look-nouveau .db-table--dense th { position: sticky; top: 0; background: var(--surface); font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--texte-doux); }
 body.look-nouveau .th-icone { display: inline-flex; margin-right: 6px; vertical-align: middle; }
 body.look-nouveau .th-icone svg { width: 14px; height: 14px; stroke-width: 1.6; }
 body.look-nouveau .col-proto { display: table-cell; }
-body.look-nouveau .col-selection { width: 32px; padding: 0; text-align: center; }
+body.look-nouveau .col-selection { padding: 0; text-align: center; }
 body.look-nouveau .db-table--dense tbody tr { cursor: pointer; transition: background .1s ease; }
 body.look-nouveau .db-table--dense tbody tr:hover { background: var(--fond); }
 body.look-nouveau .db-table--dense tbody tr.ligne-selectionnee { background: color-mix(in srgb, var(--rd-bleu) 7%, transparent); }
@@ -147,3 +164,9 @@ body.look-nouveau .db-table--dense .pastille-contact { vertical-align: middle; }
 .tiroir-fiche dt { color: var(--texte-doux); }
 .tiroir-fiche dd { margin: 0; overflow-wrap: anywhere; }
 @media (max-width: 640px) { .tiroir { width: 100vw; border-left: none; } .tiroir-fiche__ligne { grid-template-columns: 110px minmax(0, 1fr); } }
+
+/* Bloc « Simuler une vue » repliable (menu latéral, admin) */
+.menu-lateral__details > summary { display: flex; align-items: center; justify-content: space-between; min-height: 32px; cursor: pointer; list-style: none; }
+.menu-lateral__details > summary::-webkit-details-marker { display: none; }
+.menu-lateral__details > summary::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .1s ease; }
+.menu-lateral__details[open] > summary::after { transform: rotate(45deg); }

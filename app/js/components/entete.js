@@ -102,10 +102,12 @@ function titrePage() {
 function gabaritLateral({ liens, profil, roleLibelle, selecteurApercu, selecteurClientApercu, estAdminReel, apercuActif, avecRecherche }) {
   const blocApercu = estAdminReel
     ? `<div class="menu-lateral__apercu">
-        <p class="menu-lateral__titre">Simuler une vue</p>
-        ${selecteurApercu}
-        ${selecteurClientApercu}
-        ${apercuActif ? '<button type="button" id="bouton-fin-apercu" class="menu-lateral__retour">Revenir à Admin</button>' : ''}
+        <details class="menu-lateral__details"${apercuActif ? ' open' : ''}>
+          <summary class="menu-lateral__titre">Simuler une vue</summary>
+          ${selecteurApercu}
+          ${selecteurClientApercu}
+          ${apercuActif ? '<button type="button" id="bouton-fin-apercu" class="menu-lateral__retour">Revenir à Admin</button>' : ''}
+        </details>
       </div>`
     : '';
   return `
