@@ -90,7 +90,7 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 |---|---|---|
 | `#/connexion` | Connexion | E-mail + mot de passe. |
 | `#/changer-mot-de-passe` | Changement de mot de passe | Imposé à la première connexion si `doit_changer_mot_de_passe`. |
-| `#/accueil` | Tableau de bord | Page d'arrivée du client : bandeau d'accueil avec l'action principale, indicateurs (demandes, en cours, actions à faire, documents), suivi par étapes de chaque demande en cours (réponses, entretien, note de cadrage, proposition, décision) avec la prochaine action attendue, calendrier « Mon planning » des dates importantes (création, réponses envoyées, entretien, signature, date limite), accès rapides, aide. |
+| `#/accueil` | Tableau de bord | Page d'arrivée du client : bandeau d'accueil avec l'action principale, indicateurs (demandes, en cours, actions à faire, documents), suivi par étapes de chaque demande en cours (réponses, entretien, note de cadrage, proposition, décision) avec la prochaine action attendue, calendrier « Mon planning » des dates importantes (création, réponses envoyées, entretien, signature, date limite), accès rapides, aide. Quand RD Formation a demandé un avis de satisfaction, une carte « Votre avis nous intéresse » (note de 1 à 5 et commentaire) s'affiche en tête. |
 | `#/rapport` | Mon rapport de projet | Pour chaque demande : étapes, durée écoulée, délai de réponse, prochain rendez-vous et chronologie des dates importantes avec le délai entre chaque étape ; imprimable. |
 | `#/documents` | Mes documents | Note de cadrage, proposition commerciale et pièces déposées, regroupées par demande (voir, imprimer, télécharger). |
 | `#/charte-rgpd` | Charte RGPD | Données collectées, finalités, destinataires, durée de conservation (section 8.3), droits et contact. |
@@ -107,21 +107,24 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 |---|---|---|
 | (barre du haut, personnel) | Recherche globale | Champ de recherche sur toutes les pages : clients (nom, nom commercial, ville, SIRET, e-mail, téléphone), contacts, demandes (référence, client) et, pour l'admin, factures (numéro). Accents et casse ignorés, résultats groupés, clavier (flèches, Entrée, Échap, « / »). Les listes sont chargées dans le navigateur selon les droits de l'utilisateur. |
 | `#/tableau-de-bord` | Tableau de bord | Même présentation que celui du client : bandeau d'accueil, indicateurs (demandes actives, à traiter, échéances proches, sans réponse depuis 7 jours), liste « À traiter » avec l'action à mener, et avancement des demandes selon les cinq étapes que voit le client. La vue 360 reprend ces étapes et propose « Voir comme le client » à l'admin. Un bloc « Aujourd'hui » liste mes tâches en retard et du jour (Terminer, Reporter) à côté d'un calendrier de mes échéances. Pour l'admin, une ligne d'indicateurs financiers (pipeline, CA pondéré, CA signé de l'année, conversion en euros), le total en euros et le pondéré sous chaque colonne du pipeline, le montant de chaque demande et une alerte pour les demandes sans montant. Bloc « Clients dormants » (seuil de 12 mois) quand il y en a. |
-| `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. Pipeline par étape (demandes, montant, pondéré, sans montant) et CA signé des douze derniers mois, en HT. Facturation (admin) : facturé et encaissé de l'année, à encaisser, demandes gagnées à facturer, tableau des 12 derniers mois. |
+| `#/indicateurs` | Indicateurs (admin) | Taux de conversion, délais moyens par étape (réponse du client, prise de rendez-vous, rédaction et signature de la note, décision sur la proposition, durée totale) et détail par demande. Un résumé figure sur le tableau de bord admin. Pipeline par étape (demandes, montant, pondéré, sans montant) et CA signé des douze derniers mois, en HT. Facturation (admin) : facturé et encaissé de l'année, à encaisser, demandes gagnées à facturer, tableau des 12 derniers mois. Qualité : satisfaction moyenne, taux de réponse aux avis, réclamations ouvertes, délai moyen de traitement, exports CSV des avis et des réclamations (Qualiopi 30 et 31). |
 | `#/clients` | Clients | Liste des clients et prospects : recherche (nom, SIRET, ville, contact), filtre de statut (archivés masqués), contact principal, nombre de demandes, dernière activité, export CSV. Le filtre « Clients dormants » (choix du seuil : 6, 9, 12, 18 ou 24 mois sans activité) liste les clients déjà acheteurs, sans demande en cours et inactifs depuis ce délai, avec le bouton « Créer une tâche de relance » ; l'admin voit leur CA signé et dispose du bouton « Doublons ». |
 | `#/clients/dormants` | Clients dormants | La liste des clients avec le filtre des dormants déjà choisi. |
 | `#/clients/doublons` | Doublons (admin) | Couples de fiches possiblement en double (noms proches avec la même ville ou le même code postal, ou contact de même e-mail) ; Comparer (côte à côte), Fusionner (choix de la fiche à garder, résumé, confirmation, irréversible) et Ignorer (couple conservé en base, remis dans la liste sur demande). |
 | `#/clients/nouveau` | Nouveau client ou prospect | Fiche pré-remplie par la recherche SIRET (base SIRENE), statut `prospect` par défaut. |
-| `#/clients/:id` (+ `/activite`, `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Activité (tâches ouvertes, échanges notés, historique avec les étapes des demandes, ajout rapide d'un contact), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
+| `#/clients/:id` (+ `/activite`, `/contacts`, `/demandes`, `/documents`, `/reclamations`, `/modifications`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Activité (tâches ouvertes, échanges notés, historique avec les étapes des demandes, ajout rapide d'un contact), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. Onglet Contacts : consentements de chaque contact (e-mail commercial, téléphone, lettre d'information) avec repère « Sans consentement e-mail ». Onglet Réclamations : celles du client. Onglet Modifications (admin) : journal d'audit de la fiche. |
+| `#/reclamations` | Réclamations | Réclamations des clients visibles (l'admin voit tout, un consultant celles de ses clients) : indicateurs (ouvertes, total, délai moyen de traitement), filtres (statut, gravité, recherche), création et modification dans une fenêtre ; une réclamation ne se clôture qu'avec son action corrective. |
 | `#/taches` | Tâches | Mes tâches par défaut (l'admin peut voir celles de l'équipe) ; filtres statut et client ; groupes En retard, Aujourd'hui, Cette semaine, Plus tard ; Terminer, Reporter, accès à la fiche. |
 | `#/demandes` | Liste | Filtres : statut, type de prestation et, pour l'admin, consultant (ou « non attribuées »). Un consultant ne reçoit que ses demandes. |
 | `#/demandes/nouvelle` (+ `/:clientId`) | Création | Client existant (liste déroulante, présélectionné depuis sa fiche) ou nouveau (raison sociale, SIRET ; un SIRET déjà connu sélectionne le client existant), types pressentis (pré-coche TC-0.01), date limite. |
-| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». Carte « Enjeu commercial » (montant retenu et sa source, probabilité, pondéré ; estimation et probabilité modifiables). Pour l'admin, carte « Consultant responsable » (attribution de la demande). Cartes « Financements » (admin et consultant de la demande : OPCO, région..., reste à charge) et « Facturation » (admin seulement : références de factures, facturé, encaissé, reste à facturer). |
+| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». Carte « Enjeu commercial » (montant retenu et sa source, probabilité, pondéré ; estimation et probabilité modifiables). Pour l'admin, carte « Consultant responsable » (attribution de la demande). Cartes « Financements » (admin et consultant de la demande : OPCO, région..., reste à charge) et « Facturation » (admin seulement : références de factures, facturé, encaissé, reste à facturer). Carte « Satisfaction » : demander l'avis à chaud ou à froid, saisir une réponse reçue autrement, marquer sans réponse. |
 | `#/demandes/:ref/entretien` | Mode entretien | Voir 4.3. |
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
 | `#/admin/questionnaire` | Versions | Import des `.md`, prévisualisation, publication. |
 | `#/admin/glossaire` | Glossaire | Consultation de la version publiée. |
 | `#/admin/import-factures` | Import Shine (admin) | Lecture de l'export bancaire Shine (CSV) : aperçu des factures payées, choix de la demande pour chaque facture nouvelle, création des références ou ajout de la date de paiement. Rien n'est supprimé ni écrasé ; le même fichier peut être importé plusieurs fois. |
+| `#/admin/journal` | Journal d'audit (admin) | Créations, modifications et suppressions des tables du CRM avec le compte à l'origine et les valeurs avant et après ; filtres (élément, compte, période, texte). Ajout seul, ni consultations ni adresse IP. |
+| `#/admin/donnees-a-revoir` | Données à revoir (admin) | Fiches sans activité depuis 36 mois ou plus (toutes catégories) et consentements expirés ; rien n'est supprimé automatiquement. |
 | `#/admin/utilisateurs` | Comptes | Consultants et clients invités ; suppression définitive d'un compte (admin uniquement, voir section 8.1). |
 
 ### 4.3 Mode entretien
@@ -539,6 +542,67 @@ create table doublons_ignores (
   check (client_a < client_b)
 );
 
+-- Journal d'audit (0046), ajout seul : lecture admin, aucune écriture depuis
+-- l'application (déclencheur fn_audit en security definer sur clients, contacts,
+-- demandes, taches, activites, financements, factures, demande_enjeux,
+-- consentements, reclamations, satisfactions). `changes` = { colonne: [avant, après] }.
+create table audit_log (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  user_id uuid,                -- nul : SQL ou fonction de service
+  auteur text not null,        -- nom ou e-mail au moment du changement
+  action text not null check (action in ('insert', 'update', 'delete')),
+  table_name text not null,
+  record_id uuid,
+  client_id uuid,              -- contexte, sans clé étrangère (survit à une fusion)
+  demande_id uuid,
+  libelle text,
+  changes jsonb not null
+);
+
+-- Consentements des contacts (0047) : un par contact et par type.
+create table consentements (
+  id uuid primary key default gen_random_uuid(),
+  contact_id uuid not null references contacts on delete cascade,
+  type text not null check (type in ('email_commercial', 'telephone', 'lettre_information')),
+  statut text not null check (statut in ('accorde', 'refuse', 'retire')),
+  date_consentement date not null default current_date,
+  source text, preuve text,
+  date_expiration date,        -- jamais avant date_consentement
+  date_retrait date,           -- automatique au retrait
+  unique (contact_id, type)
+);
+
+-- Réclamations (0048), Qualiopi indicateur 31. Clôture seulement avec une action
+-- corrective ; une fiche client qui en porte ne peut pas être supprimée.
+create table reclamations (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references clients on delete restrict,
+  demande_id uuid references demandes on delete set null,  -- doit appartenir au client
+  date_reception date not null default current_date,
+  objet text not null, description text,
+  gravite text not null default 'mineure' check (gravite in ('mineure', 'majeure', 'critique')),
+  statut text not null default 'ouverte' check (statut in ('ouverte', 'en_cours', 'cloturee')),
+  responsable_id uuid references auth.users on delete set null,
+  action_corrective text,
+  date_cloture date            -- automatique à la clôture
+);
+
+-- Avis de satisfaction (0049), Qualiopi indicateur 30 : un par demande et par moment.
+create table satisfactions (
+  id uuid primary key default gen_random_uuid(),
+  demande_id uuid not null references demandes on delete restrict,
+  client_id uuid not null references clients on delete restrict,  -- déduit de la demande
+  moment text not null check (moment in ('chaud', 'froid')),
+  statut text not null default 'demandee' check (statut in ('demandee', 'recue', 'sans_reponse')),
+  note smallint check (note between 1 and 5),
+  commentaire text,
+  date_envoi date not null default current_date,
+  date_reponse date,
+  origine text check (origine in ('client', 'staff')),
+  unique (demande_id, moment)
+);
+
 create sequence demande_seq;
 
 create table demandes (
@@ -667,7 +731,9 @@ create table notifications (
 | `rpc_valider_cadrage(note_id, signature_image)` | Client uniquement ; enregistre le tracé de signature et un code de vérification généré côté serveur (`signature_credential`), horodate, enregistre l'IP, passe la demande à `cadrage_valide`. |
 | `est_staff()`, `est_admin()`, `a_acces(demande_id)` | Fonctions utilitaires pour les politiques RLS. |
 | `peut_voir_demande(id)`, `peut_voir_client(id)`, `acces_demande(id)` `security definer` (0039, 0040) | Accès par consultant : l'admin voit tout ; un consultant voit ses demandes (`consultant_id`) et les clients dont il est responsable (`responsable_id`) ou qui ont l'une de ses demandes ; `acces_demande` ajoute le client invité sur la demande. |
-| `rpc_fusionner_clients(garder, absorber)` `security definer` (0045) | Admin uniquement : fusionne une fiche client dans une autre, en une transaction. Déplace demandes, échanges et tâches ; fusionne les contacts de même e-mail et déplace les autres (le contact principal de l'ancienne fiche perd ce statut si la fiche gardée a le sien) ; complète les champs vides de la fiche gardée sans rien écraser ; un prospect devient client si l'autre l'était ; concatène les notes ; reprend le responsable s'il manquait ; note la fusion dans l'historique ; supprime l'ancienne fiche en dernier (sa suppression entraînerait sinon celle de ses contacts, échanges et tâches). Les fichiers de Storage ne bougent pas : leur droit repose sur la référence de la demande. |
+| `rpc_repondre_satisfaction(avis, note, commentaire)` `security definer` (0049) | Un compte invité sur la demande (ou le personnel) répond à un avis demandé : refuse un avis inconnu ou hors de sa demande, une seconde réponse, une note hors de 1 à 5 ; note la réponse (date du jour, origine client ou équipe) et prévient le consultant de la demande. Un client n'écrit jamais directement dans `satisfactions`. |
+| `fn_audit()` `security definer` (0046 à 0049) | Déclencheur du journal d'audit : note qui a changé quoi (colonnes avant et après, fiche client de contexte, nom du compte au moment du changement) ; sans effet pour une mise à jour qui ne change que la date de modification. |
+| `rpc_fusionner_clients(garder, absorber)` `security definer` (0045) | Admin uniquement : fusionne une fiche client dans une autre, en une transaction. Déplace demandes, échanges, tâches, réclamations et avis de satisfaction ; fusionne les contacts de même e-mail et déplace les autres (le contact principal de l'ancienne fiche perd ce statut si la fiche gardée a le sien) ; complète les champs vides de la fiche gardée sans rien écraser ; un prospect devient client si l'autre l'était ; concatène les notes ; reprend le responsable s'il manquait ; note la fusion dans l'historique ; supprime l'ancienne fiche en dernier (sa suppression entraînerait sinon celle de ses contacts, échanges et tâches). Les fichiers de Storage ne bougent pas : leur droit repose sur la référence de la demande. |
 | `rpc_assigner_demande(demande_id, consultant_id)` `security definer` (0043) | Admin uniquement : attribue une demande à un membre du personnel, la journalise (événement `assignation`) et le notifie. |
 | Triggers d'attribution (0039) | Seul l'admin change `demandes.consultant_id` ou `clients.responsable_id` (sans effet pour le SQL direct et les Edge Functions) ; un consultant qui crée une demande ou un client en devient titulaire d'office. |
 
@@ -702,6 +768,10 @@ create table notifications (
 | `demande_enjeux`, vue `v_demandes_montants` | Lecture et écriture (la vue : lecture) (0038) | Aucun accès |
 | `financements` | Admin : tout. Consultant : ceux de ses demandes (`peut_voir_demande`) en lecture et écriture (0044) | Aucun accès |
 | `doublons_ignores` | Admin uniquement (0045) | Aucun accès |
+| `audit_log` | Lecture réservée à l'admin ; aucun droit d'écriture, de modification ni de suppression pour les rôles de l'application, y compris l'admin : seul le déclencheur écrit (0046) | Aucun accès |
+| `consentements` | Le personnel qui voit le client du contact (`peut_voir_client`) : lecture et écriture (0047) | Aucun accès |
+| `reclamations` | Le personnel qui voit le client (`peut_voir_client`) : lecture et écriture (0048) | Aucun accès |
+| `satisfactions` | Le personnel qui voit le client : lecture et écriture ; un client invité sur la demande : lecture de ses avis seulement, la réponse passe par `rpc_repondre_satisfaction` (0049) | Lecture de ses avis |
 | `factures` | Admin uniquement : un consultant ne les lit ni ne les écrit (0044) | Aucun accès |
 | `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, modification, suppression ; création pour lui seul et sur un client qu'il voit ; réassignation refusée). Une tâche confiée par l'admin reste visible même sur un client que le consultant ne voit pas (0034, 0039) | Aucun accès |
 | `profils` | Lecture seule (0033) : le personnel est lisible par tous, un profil client seulement s'il est invité sur une demande visible (0039) ; créations, changements de rôle et suppressions par les Edge Functions (`service_role`) | Lecture de son propre profil |
@@ -879,6 +949,8 @@ Export « Dossier de preuves » (V2) : un PDF par demande regroupant réponses, 
 
 **Tâches** - quand une tâche est confiée à quelqu'un d'autre (création ou changement de responsable), le trigger `fn_notifier_tache` crée une notification pour le nouveau responsable (`type` = `tache`, `reference` = nom du client, `lien` = `/clients/<id>/activite`) ; aucun e-mail. Le panneau suit `lien` quand il est renseigné et échappe tous les textes affichés.
 
+**Satisfaction** - une demande d'avis crée, par le trigger `fn_notifier_satisfaction`, une notification « Votre avis nous intéresse » (`type` = `satisfaction`, lien vers l'accueil) pour chaque compte client invité sur la demande ; la réponse du client notifie le consultant de la demande (« Avis de satisfaction reçu »). Aucun e-mail pour ces notifications.
+
 **E-mail** - envoyé à part par le client juste après l'action réussie (`app/js/services/notifications.js`, fonction `envoyerEmailEtape`), via l'Edge Function `envoyer-notification-email` (Resend, domaine `mail.rd-formation.com` vérifié, secret `RESEND_API_KEY` côté serveur uniquement, jamais dans la base - CLAUDE.md). Volontairement non bloquant : un échec d'envoi n'annule jamais l'action ni ne remonte d'erreur à l'utilisateur, la fiabilité des e-mails transactionnels ayant déjà été un point de friction sur ce projet (section 8.1). Secret `APP_URL` optionnel pour le lien inclus dans l'e-mail (URL GitHub Pages par défaut si absent). Gabarit HTML sobre (logo repris du site public `rd-formation.com`, un seul bouton d'action, coordonnées en pied de page) en tableaux et styles en ligne pour rester lisible dans Outlook.
 
 ---
@@ -897,4 +969,4 @@ L'application évolue vers un CRM autour de la demande, qui reste l'objet centra
 | Accès | Cloisonnement par consultant : chacun ne voit que ses demandes, seul l'admin voit tout ; correctifs de sécurité (fonctions, e-mails, transitions client) | réalisé (migrations 0039 à 0043) |
 | D | Financements (plusieurs par demande, reste à charge), références de factures (admin), indicateurs de facturation, import de l'export bancaire Shine | réalisé (migration 0044) |
 | E | Recherche globale (barre du haut), fusion de doublons (admin), clients dormants avec relance en un clic | réalisé (migration 0045) |
-| F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |
+| F | Journal d'audit (admin), consentements des contacts et écran « Données à revoir », réclamations, avis de satisfaction et indicateurs qualité avec exports CSV | réalisé (migrations 0046 à 0049) |

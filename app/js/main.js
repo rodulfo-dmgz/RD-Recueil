@@ -12,6 +12,9 @@ import { vueRapport } from './views/client/rapport.js';
 import { vueIndicateurs } from './views/consultant/indicateurs.js';
 import { vueImportFactures } from './views/consultant/import-factures.js';
 import { vueClientsDoublons } from './views/consultant/clients-doublons.js';
+import { vueJournal } from './views/consultant/journal.js';
+import { vueDonneesARevoir } from './views/consultant/donnees-a-revoir.js';
+import { vueReclamations } from './views/consultant/reclamations.js';
 import { vueClients } from './views/consultant/clients.js';
 import { vueTaches } from './views/consultant/taches.js';
 import { vueClientFiche } from './views/consultant/client-fiche.js';
@@ -127,6 +130,26 @@ route('/admin/import-factures', async () => {
   vueImportFactures();
 });
 
+route('/admin/journal', async () => {
+  const profil = await garantirStaff();
+  if (!profil) return;
+  if (profil.role !== 'admin') {
+    navigate('/tableau-de-bord');
+    return;
+  }
+  vueJournal();
+});
+
+route('/admin/donnees-a-revoir', async () => {
+  const profil = await garantirStaff();
+  if (!profil) return;
+  if (profil.role !== 'admin') {
+    navigate('/tableau-de-bord');
+    return;
+  }
+  vueDonneesARevoir();
+});
+
 route('/charte-rgpd', async () => {
   if (!(await garantirProfilActif())) return;
   vueCharteRgpd();
@@ -200,6 +223,11 @@ route('/clients/doublons', async () => {
     return;
   }
   vueClientsDoublons();
+});
+
+route('/reclamations', async () => {
+  if (!(await garantirStaff())) return;
+  vueReclamations();
 });
 
 route('/clients/dormants', async () => {

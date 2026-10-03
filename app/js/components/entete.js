@@ -21,6 +21,7 @@ const LIENS_STAFF = [
   { href: '#/tableau-de-bord', icone: 'layout-dashboard', libelle: 'Tableau de bord' },
   { href: '#/clients', icone: 'building-2', libelle: 'Clients' },
   { href: '#/taches', icone: 'list-checks', libelle: 'Tâches' },
+  { href: '#/reclamations', icone: 'message-square-warning', libelle: 'Réclamations' },
   { href: '#/demandes', icone: 'list', libelle: 'Demandes' },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
 ];
@@ -30,6 +31,8 @@ const LIENS_ADMIN = [
   { href: '#/admin/utilisateurs', icone: 'users', libelle: 'Comptes' },
   { href: '#/indicateurs', icone: 'chart-column', libelle: 'Indicateurs' },
   { href: '#/admin/import-factures', icone: 'file-up', libelle: 'Import Shine' },
+  { href: '#/admin/journal', icone: 'history', libelle: 'Journal d’audit' },
+  { href: '#/admin/donnees-a-revoir', icone: 'shield-alert', libelle: 'Données à revoir' },
 ];
 
 const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Client' };
@@ -61,6 +64,7 @@ const TITRES_PAGE = [
   ['#/glossaire', 'Glossaire'],
   ['#/charte-rgpd', 'Charte RGPD'],
   ['#/taches', 'Tâches'],
+  ['#/reclamations', 'Réclamations'],
   ['#/clients/nouveau', 'Nouveau client'],
   ['#/clients/doublons', 'Doublons de clients'],
   ['#/clients/dormants', 'Clients dormants'],
@@ -72,6 +76,8 @@ const TITRES_PAGE = [
   ['#/comptes/nouveau', 'Créer un compte'],
   ['#/admin/utilisateurs', 'Comptes'],
   ['#/admin/import-factures', 'Import Shine'],
+  ['#/admin/journal', 'Journal d’audit'],
+  ['#/admin/donnees-a-revoir', 'Données à revoir'],
   ['#/d/', 'Ma demande'],
 ];
 

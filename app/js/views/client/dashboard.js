@@ -6,6 +6,8 @@ import { calculerPourcentage } from './mes-demandes.js';
 import { getProfil, getClientApercuId } from '../../store.js';
 import { obtenirProfilClient } from '../../services/comptes.js';
 import { listerJalons } from '../../services/jalons.js';
+import { listerAvisAttendus } from '../../services/satisfactions.js';
+import { construireCarteAvisClient } from '../../components/carte-avis-client.js';
 import { construireCalendrier } from '../../components/calendrier.js';
 import { afficherToast } from '../../components/toast.js';
 import { prochaineAction } from '../../engine/suivi.js';
@@ -134,11 +136,14 @@ export async function vueDashboardClient() {
   let documents;
   let pourcentages;
   let jalons = [];
+  let avisAttendus = [];
   try {
     const clientApercu = getClientApercuId();
     demandes = await listerMesDemandes({ userId: clientApercu });
     if (clientApercu) profilAffiche = (await obtenirProfilClient(clientApercu)) ?? profilAffiche;
     documents = await listerDocumentsClient(demandes.map((d) => d.id));
+    // Avis demandés au client : pas en aperçu (un admin les verrait tous).
+    if (!clientApercu) avisAttendus = await listerAvisAttendus().catch(() => []);
     try {
       const ids = new Set(demandes.map((d) => d.id));
       jalons = (await listerJalons()).filter((j) => ids.has(j.demande_id));
@@ -172,6 +177,9 @@ export async function vueDashboardClient() {
 
   const grille = el('div', 'db-grille');
   const principale = el('div', 'db-principale');
+
+  const carteAvis = construireCarteAvisClient(avisAttendus, { onEnvoye: () => vueDashboardClient() });
+  if (carteAvis) principale.appendChild(carteAvis);
 
   const titreSuivi = el('h2', 'db-titre');
   titreSuivi.append(icone('route'), el('span', null, 'Suivi de mes demandes'));

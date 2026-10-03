@@ -25,6 +25,7 @@ import { construireEtapes } from '../../components/dashboard-ui.js';
 import { construireCarteEnjeu } from '../../components/carte-enjeu.js';
 import { construireCarteAttribution } from '../../components/carte-attribution.js';
 import { construireCarteFinancements } from '../../components/carte-financements.js';
+import { construireCarteSatisfaction } from '../../components/carte-satisfaction.js';
 import { construireCarteFacturation } from '../../components/carte-facturation.js';
 import { getProfil, setApercuRole, setClientApercuId } from '../../store.js';
 import { navigate } from '../../router.js';
@@ -134,6 +135,7 @@ function rendre({
   main.appendChild(suivi);
   main.appendChild(construireCarteEnjeu({ demande }));
   main.appendChild(construireCarteFinancements({ demande }));
+  main.appendChild(construireCarteSatisfaction({ demande }));
   if (getProfil()?.role === 'admin') {
     main.appendChild(construireCarteFacturation({ demande }));
     main.appendChild(construireCarteAttribution({ demande, onAttribue: () => vueVue360(demande.reference) }));

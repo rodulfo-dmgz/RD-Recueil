@@ -8,6 +8,9 @@ import {
   importerContacts,
   emailsAvecCompte,
 } from '../../services/clients.js';
+import { listerConsentements } from '../../services/consentements.js';
+import { construireBlocConsentements } from '../../components/consentements-contact.js';
+import { sansConsentementEmail } from '../../engine/consentements.js';
 import { afficherToast } from '../../components/toast.js';
 import { el, icone } from '../../components/dashboard-ui.js';
 import { bouton, champ, caseACocher } from '../../components/champs-crm.js';
@@ -94,7 +97,7 @@ function construireFormulaire(contact, { onEnregistrer, onAnnuler }) {
   return formulaire;
 }
 
-function construireCarte(contact, { avecCompte, onModifier, onPrincipal, onSupprimer }) {
+function construireCarte(contact, { avecCompte, consentements, onConsentement, onModifier, onPrincipal, onSupprimer }) {
   const carte = el('article', `db-carte cl-contact${contact.actif ? '' : ' cl-contact--inactif'}`);
 
   const tete = el('div', 'cl-contact__tete');
@@ -103,6 +106,7 @@ function construireCarte(contact, { avecCompte, onModifier, onPrincipal, onSuppr
   if (contact.principal) badges.appendChild(el('span', 'cl-badge cl-badge--principal', 'Principal'));
   if (avecCompte) badges.appendChild(el('span', 'cl-badge cl-badge--compte', 'Compte actif'));
   if (!contact.actif) badges.appendChild(el('span', 'cl-badge', 'Inactif'));
+  if (sansConsentementEmail(contact, consentements)) badges.appendChild(el('span', 'cl-badge cs-alerte', 'Sans consentement e-mail'));
   tete.appendChild(badges);
   carte.appendChild(tete);
 
@@ -127,6 +131,7 @@ function construireCarte(contact, { avecCompte, onModifier, onPrincipal, onSuppr
     carte.appendChild(roles);
   }
   if (contact.notes) carte.appendChild(el('p', 'cl-notes-lecture texte-doux', contact.notes));
+  carte.appendChild(construireBlocConsentements({ contact, consentements, onChange: onConsentement }));
 
   const actions = el('div', 'cl-contact__actions');
   actions.appendChild(bouton('db-btn db-btn--discret', 'Modifier', 'pencil', onModifier));
@@ -168,11 +173,13 @@ export function construireOngletContacts({ client, importation }) {
   const conteneur = el('div', 'cl-contacts');
   let contacts = [];
   let avecCompte = new Set();
+  let consentements = [];
   let formulaire = null; // null, 'nouveau' ou l'identifiant du contact en modification
 
   async function recharger() {
     contacts = await listerContacts(client.id);
     avecCompte = await emailsAvecCompte(contacts.map((c) => c.email)).catch(() => new Set());
+    consentements = await listerConsentements(contacts.map((c) => c.id)).catch(() => []);
     rendre();
   }
 
@@ -232,6 +239,8 @@ export function construireOngletContacts({ client, importation }) {
       grille.appendChild(
         construireCarte(contact, {
           avecCompte: contact.email && avecCompte.has(contact.email.toLowerCase()),
+          consentements: consentements.filter((c) => c.contact_id === contact.id),
+          onConsentement: () => recharger().catch(signaler),
           onModifier: () => {
             formulaire = contact.id;
             rendre();

@@ -17,6 +17,8 @@ import { classerTaches, tachesVersJalons } from '../../engine/taches.js';
 import { listerMontants } from '../../services/montants.js';
 import { listerClientsDetail } from '../../services/clients.js';
 import { construireCarteDormants } from '../../components/carte-dormants.js';
+import { construireCarteDonneesARevoir } from '../../components/carte-donnees-a-revoir.js';
+import { listerConsentementsExpires } from '../../services/consentements.js';
 import { listerToutesFactures } from '../../services/factures.js';
 import { kpisFacturation, resteAFacturerGagnees } from '../../engine/facturation.js';
 import { agregerPipeline, demandesSansMontant, formaterMontant, kpisFinance } from '../../engine/finance.js';
@@ -176,8 +178,12 @@ export async function vueTableauDeBord() {
   }
   // Clients dormants : pour le personnel, selon ses clients (la base filtre).
   let carteDormants = null;
+  let carteRevue = null;
   try {
-    carteDormants = construireCarteDormants(await listerClientsDetail(), { avecFinance: profil?.role === 'admin' });
+    const clientsListe = await listerClientsDetail();
+    carteDormants = construireCarteDormants(clientsListe, { avecFinance: profil?.role === 'admin' });
+    // Données à revoir (conservation, consentements expirés) : admin seulement.
+    if (profil?.role === 'admin') carteRevue = construireCarteDonneesARevoir(clientsListe, await listerConsentementsExpires().catch(() => []));
   } catch {
     // clients indisponibles : le reste du tableau de bord s'affiche.
   }
@@ -279,6 +285,7 @@ export async function vueTableauDeBord() {
       principale.appendChild(carteAlerte('euro', `${sansMontant.length} demande(s) sans montant`, sansMontant, () => 'ajouter une estimation'));
     }
   }
+  if (carteRevue) principale.appendChild(carteRevue);
   if (carteDormants) principale.appendChild(carteDormants);
   if (inactives.length > 0) {
     principale.appendChild(

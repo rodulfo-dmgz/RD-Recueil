@@ -25,7 +25,7 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 | Accès | Cloisonnement par consultant (avant le lot D, voir 3d) | terminé et commité ; reste un essai avec un vrai compte |
 | D | Financements, références de factures (Shine) | terminé et commité (voir 3e) |
 | E | Recherche globale, fusion de doublons, clients dormants | terminé, commité et poussé (voir 3f) |
-| F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |
+| F | Satisfaction, réclamations, consentement des contacts, journal d'audit | terminé et commité (voir 3g) |
 
 ## 3. Lot A : fiche client et contacts
 
@@ -188,6 +188,22 @@ Origine : en répondant au plan du lot D, l'utilisateur a rappelé que "chaque c
 - [x] E4. Écran des doublons (admin) : comparer, fusionner, ignorer
 - [x] E5. Clients dormants (filtre, bloc du tableau de bord, relance)
 - [x] E6. Documentation, tests, audit de sécurité, commit
+
+## 3g. Lot F : satisfaction, réclamations, consentements, journal d'audit
+
+### Décisions validées (les quatre points)
+- **Journal d'audit** : modifications seulement (créations, changements, suppressions) des tables du CRM, avec les colonnes changées (avant et après) et le compte à l'origine ; lecture réservée à l'admin ; ajout seul (ni modification ni effacement depuis l'application). Pas d'adresse IP ni de navigateur (un déclencheur de base ne les voit pas), pas de consultations. Il garde d'anciennes valeurs, coordonnées comprises : une demande d'effacement devra aussi le purger (point ouvert, rien d'automatique).
+- **Consentements** : trois types (e-mail commercial, téléphone, lettre d'information) ; statut accordé, refusé ou retiré ; date, source, preuve en texte libre, expiration, date de retrait. Conservation : pas de table de règles ni de suppression automatique ; un écran admin "Données à revoir" liste les fiches sans activité depuis 3 ans (durée de la section 8.3 de l'architecture) et l'admin décide.
+- **Réclamations** : saisies par le personnel sur une fiche client ou une demande ; gravité (mineure, majeure, critique), statut (ouverte, en cours, clôturée), responsable, action corrective obligatoire pour clôturer. Un consultant ne voit que celles de ses clients, l'admin voit tout. Le client n'en dépose pas lui-même.
+- **Satisfaction** : deux moments ("à chaud", "à froid"), note de 1 à 5 et commentaire ; le consultant demande l'avis sur une demande terminée, le client répond depuis son espace ; notification dans l'application seulement (pas d'e-mail, la fonction d'e-mails et son gabarit étant en attente) ; saisie manuelle possible ; pas de relance automatique.
+
+### Étapes
+- [x] F1. Journal d'audit : table, déclencheurs, écran admin et onglet "Modifications" des fiches (migration 0046)
+- [x] F2. Consentements des contacts et écran "Données à revoir" (migration 0047)
+- [x] F3. Réclamations (migration 0048)
+- [x] F4. Satisfaction (migration 0049)
+- [x] F5. Indicateurs qualité et export CSV
+- [x] F6. Documentation, tests, audit de sécurité, commit
 
 ## 4. Journal des étapes
 
@@ -759,13 +775,108 @@ Fichiers du lot E (commit) :
 
 La migration 0045 est appliquée sur la base de production.
 
+### 2026-10-03 : lot F, étape F1 (journal d'audit, migration 0046)
+
+Fait :
+- Migration `0046_journal_audit.sql` (appliquée) :
+  - Table `audit_log` : date, compte (identifiant et nom ou e-mail **au moment du changement**, lisible même si le compte disparaît), action (`insert`, `update`, `delete`), table, identifiant de la ligne, fiche client et demande de contexte (sans clé étrangère : l'historique survit à une fusion ou une suppression), nom lisible de la ligne, et `changes` = `{ colonne: [avant, après] }`.
+  - **Ajout seul** : RLS avec une seule politique de lecture réservée à l'admin ; `insert`, `update`, `delete` retirés aux rôles `anon` et `authenticated` (seul le déclencheur, en `security definer`, écrit). Seul un accès de service peut purger.
+  - Fonction `fn_audit()` et déclencheurs `after insert or update or delete` sur `clients`, `contacts`, `demandes`, `taches`, `activites`, `financements`, `factures`, `demande_enjeux`. Les colonnes `created_at` et `updated_at` sont ignorées ; une mise à jour qui ne change rien d'autre n'écrit rien ; à la création et à la suppression seules les colonnes renseignées sont notées. Sans compte (SQL, fonctions de service), l'auteur est "Système".
+  - Tables des autres applications de la base : non concernées.
+  - Le journal part de zéro : les changements antérieurs à la migration n'y figurent pas.
+- `engine/audit.js` (nouveau) : libellés des tables, actions et colonnes, phrase lisible ("Marie Dupont a modifié un client : ABC Formation"), mise en forme des valeurs (vide, oui ou non, dates, comptes par leur nom, textes longs coupés), liens vers la fiche ou la demande. `services/audit.js` : lecture par pages de 50, plus récentes d'abord, filtres table, fiche, compte, période, texte.
+- `components/liste-journal.js` et `views/consultant/journal.js` : page **Journal d'audit** (`#/admin/journal`, admin seulement, lien dans le menu admin) avec recherche, type d'élément, compte et période, détail des champs changés sous chaque entrée, "Voir les entrées plus anciennes". `client-fiche.js` : onglet **Modifications** (admin seulement) avec le journal de la fiche (ses contacts, demandes, échanges, tâches, financements et factures compris).
+
+Vérifié en base (transactions annulées, un consultant simulé à partir d'un compte client) : création, modification (seules les colonnes changées, avec avant et après) et suppression notées ; une mise à jour sans changement n'écrit rien ; le contexte client est retrouvé pour un contact et pour une facture (via sa demande) ; l'auteur est le nom du compte ("Système" sans compte) ; l'admin lit le journal, un consultant n'y voit aucune ligne ; un `insert` direct, un `update` et un `delete` du journal sont refusés, même à l'admin ; la création d'une fiche par un consultant est bien notée malgré l'absence de droit d'écriture ; une fusion de fiches note le déplacement de la demande et la suppression de l'ancienne fiche. Après les tests : journal vide, aucune fiche de test, rôle d'origine intact.
+Vérifié : `node --test tests/*.test.mjs` 197 réussis (6 nouveaux dans `tests/audit.test.mjs`), `check-coherence` 0 erreur. Page de test avec un service simulé (supprimée ensuite) : liste, création, modification et suppression avec les bons badges et liens (aucun lien pour une fiche supprimée) ; détail des champs (avant → après, création et suppression à une seule valeur, notes coupées) ; "plus anciennes" avec la bonne suite ; filtres type, recherche et période envoyés ; mode "fiche" sans filtres ; message "aucune entrée". Non testé avec la vraie base et un vrai compte.
+
+Limites : le journal ne note pas les consultations ni l'adresse IP ; les changements de la table `propositions`, des réponses au questionnaire et des notes de cadrage n'y figurent pas (leur historique reste dans `evenements` et `reponses_historique`) ; il garde d'anciennes valeurs, y compris des coordonnées (voir les points ouverts).
+
+### 2026-10-03 : lot F, étape F2 (consentements, migration 0047)
+
+Fait :
+- Migration `0047_consentements.sql` (appliquée) :
+  - Table `consentements` : une ligne par contact et par type (`email_commercial`, `telephone`, `lettre_information`, unique), statut `accorde`, `refuse` ou `retire`, date, source, preuve (texte libre), expiration (jamais avant la date du consentement), date de retrait. Un consentement retiré prend la date du jour comme date de retrait ; redonné, elle est effacée (déclencheur). Les changements successifs se lisent dans le journal d'audit.
+  - Droits : le personnel qui voit le client du contact (`peut_voir_client`) ; un compte client n'y a aucun accès.
+  - `fn_audit()` apprend la table (fiche client retrouvée par le contact) et un déclencheur la journalise.
+- `engine/consentements.js` (nouveau) : types, statuts, suggestions de source, `etatConsentement` (un accord dont l'expiration est dépassée est "expiré" ; le jour d'expiration compris reste valable), `consentementActif`, `sansConsentementEmail`, `preparerConsentement` / `validerConsentement` (source exigée pour un accord seulement), `donneesARevoir` (fiches de tous statuts, archivées comprises, sans activité depuis 36 mois ou plus ; consentements accordés expirés).
+- `services/consentements.js`, `components/consentements-contact.js` (nouveau) : bloc "Consentements" dans chaque carte de contact (état, détail, bouton Renseigner ou Modifier ouvrant une fenêtre), repère "Sans consentement e-mail" quand le contact a une adresse sans consentement actif (jamais renseigné, refusé, retiré ou expiré). `views/consultant/client-contacts.js` charge les consentements avec les contacts.
+- `views/consultant/donnees-a-revoir.js` (nouveau), route `#/admin/donnees-a-revoir` (admin seulement, lien dans le menu) : fiches à revoir et consentements expirés, avec liens vers les fiches ; **rien n'est supprimé**, l'admin décide depuis la fiche. `components/carte-donnees-a-revoir.js` et `tableau-de-bord.js` : alerte "Données à revoir" pour l'admin, absente quand il n'y a rien.
+
+Vérifié en base (transactions annulées, un consultant simulé à partir d'un compte client) : le consultant crée un consentement sur son contact et pas sur celui d'autrui ; un second consentement du même type, un type inconnu et une expiration antérieure à la date sont refusés ; retrait puis nouvel accord gèrent la date de retrait ; le client invité ne voit et n'écrit rien ; l'admin voit tout ; le journal retrouve le contact et la fiche ; la suppression du contact emporte ses consentements. Base propre ensuite.
+Vérifié : `node --test tests/*.test.mjs` 205 réussis (8 nouveaux dans `tests/consentements.test.mjs`), `check-coherence` 0 erreur. Pages de test avec services simulés (supprimées ensuite) : états et détails exacts par contact, repère "Sans consentement e-mail" correct (absent sans adresse), fenêtre (valeurs par défaut, source obligatoire, expiration incohérente refusée sans appel, enregistrement avec les bons champs, préremplissage à la modification, retrait qui fait apparaître le repère), écran "Données à revoir" et alerte du tableau de bord (comptes, liens, absence quand rien à revoir). Non testé avec la vraie base et un vrai compte, ni en thème sombre.
+
+Limites : le repère "Sans consentement e-mail" signale un manque, il n'empêche aucun envoi (l'application n'envoie pas d'e-mails commerciaux) ; la durée de 36 mois est fixe dans le code (pas de table de règles, décision validée).
+
+### 2026-10-03 : lot F, étape F3 (réclamations, migration 0048)
+
+Fait :
+- Migration `0048_reclamations.sql` (appliquée) :
+  - Table `reclamations` : client, demande facultative, date de réception, objet (non vide), description, gravité (`mineure`, `majeure`, `critique`), statut (`ouverte`, `en_cours`, `cloturee`), responsable, action corrective, date de clôture, créateur. **Une réclamation ne se clôture qu'avec une action corrective** (contrainte en base) ; la date de clôture se met toute seule (aujourd'hui) et s'efface à la réouverture ; la demande doit appartenir au client ; sans responsable, le créateur le devient.
+  - Droits : le personnel qui voit le client (`peut_voir_client`) ; un consultant ne voit que celles de ses clients ; un compte client n'y a aucun accès.
+  - Une fiche client qui porte des réclamations ne peut pas être supprimée (`on delete restrict` : trace qualité).
+  - `fn_audit()` apprend la table (et les avis de satisfaction de l'étape suivante) ; un déclencheur la journalise.
+  - `rpc_fusionner_clients` est mise à jour : la fusion déplace aussi les réclamations (et, plus tard, les avis de satisfaction : une table absente est ignorée) et les compte dans l'historique et dans son résultat (`reclamations_et_avis`).
+- `engine/reclamations.js` (nouveau) : gravités, statuts, `validerReclamation` (objet, date, action corrective pour clôturer), `preparerReclamation`, `delaiTraitementJours`, `kpisReclamations` (ouvertes, en cours, clôturées, critiques non clôturées, délai moyen de traitement), `filtrerReclamations` (statut, gravité, recherche sans accents sur l'objet, la description, le client et la référence).
+- `services/reclamations.js`, `components/liste-reclamations.js`, `views/consultant/reclamations.js` (nouveaux) : page **Réclamations** (`#/reclamations`, personnel, lien dans le menu) avec trois indicateurs (ouvertes, total, délai moyen de traitement), filtres (ouvertes et en cours par défaut, toutes, clôturées ; gravité ; recherche) et liste (gravité, statut, date, objet, client, demande, description, responsable, délai de clôture, action corrective) ; bouton "Nouvelle réclamation" ouvrant une fenêtre (client, demande du client, date, objet, gravité, statut, responsable, description, action corrective) ; modification depuis chaque ligne (client verrouillé). Onglet **Réclamations** sur chaque fiche client (même liste, client imposé).
+
+Vérifié en base (transactions annulées, un consultant simulé à partir d'un compte client) : responsable par défaut = créateur ; création refusée sur le client d'un autre, avec un objet vide, avec la demande d'un autre client ; clôture refusée sans action corrective, acceptée avec, date de clôture automatique, effacée à la réouverture ; le consultant ne voit que la sienne, le client rien, l'admin tout ; le journal note les changements ; la suppression d'une fiche qui porte une réclamation est refusée à l'admin (clé étrangère) ; la fusion de deux fiches déplace la réclamation (`reclamations_et_avis` = 1). Base propre ensuite.
+Vérifié : `node --test tests/*.test.mjs` 211 réussis (6 nouveaux dans `tests/reclamations.test.mjs`), `check-coherence` 0 erreur. Page de test avec un service simulé (supprimée ensuite) : indicateurs et filtres exacts, recherche, fenêtre (client et objet obligatoires sans appel ; demandes proposées selon le client ; clôture sans action corrective refusée avec message ; création avec les bons champs et sans responsable pour laisser la base le choisir ; préremplissage et client verrouillé à la modification ; clôture qui met à jour les indicateurs), mode "fiche" sans filtres ni indicateurs. Non testé avec la vraie base et un vrai compte, ni en thème sombre.
+
+Limites : le client ne dépose pas de réclamation lui-même (décision validée) ; pas de pièce jointe ni de contact rattaché à la réclamation ; la page Réclamations montre au consultant ses clients seulement.
+
+### 2026-10-03 : lot F, étape F4 (satisfaction, migration 0049)
+
+Fait :
+- Migration `0049_satisfactions.sql` (appliquée) :
+  - Table `satisfactions` : demande, client (déduit de la demande par la base), moment (`chaud` ou `froid`), statut (`demandee`, `recue`, `sans_reponse`), note 1 à 5, commentaire, date d'envoi, date de réponse, origine (`client` ou `staff`). **Un seul avis par demande et par moment** ; un avis reçu exige une note ; un avis qui n'est plus "reçu" perd sa note ; la demande et le moment ne se modifient pas.
+  - Droits : le personnel qui voit le client lit et écrit ; un client invité sur la demande **lit** ses avis mais ne peut rien écrire directement.
+  - Demande d'avis : une notification "Votre avis nous intéresse" (lien vers l'accueil) est créée pour chaque compte client invité sur la demande (aucun e-mail, décision validée : la fonction d'e-mails n'est pas touchée).
+  - `rpc_repondre_satisfaction(avis, note, commentaire)` (`security definer`) : le client (ou le personnel) répond à un avis demandé ; refuse un avis inconnu ou hors de sa demande, une seconde réponse, une note hors de 1 à 5 ; la réponse porte la date du jour et son origine ; le consultant de la demande reçoit la notification "Avis de satisfaction reçu".
+  - Journal d'audit et fusion de clients : déjà prêts depuis l'étape F3 (les avis suivent la fiche gardée).
+- `engine/satisfactions.js` (nouveau) : moments, statuts, `etoiles`, `lireNote`, `validerReponse` / `preparerReponse`, `avisParMoment`, `kpisSatisfaction` (reçus, en attente, sans réponse, moyenne, taux de réponse, détail à chaud et à froid).
+- `services/satisfactions.js` (nouveau), `components/carte-satisfaction.js` : carte **Satisfaction** dans la vue 360 d'une demande (personnel) avec l'avis à chaud et l'avis à froid : "Demander l'avis", "Saisir un avis reçu" (fenêtre : note et commentaire, pour une réponse reçue autrement), "Saisir la réponse" et "Sans réponse" sur un avis demandé ; un avis reçu affiche les étoiles, la date, l'origine (répondu par le client ou saisi par l'équipe) et le commentaire.
+- `components/carte-avis-client.js` et `views/client/dashboard.js` : carte "Votre avis nous intéresse" en tête du tableau de bord du client, pour chaque avis demandé (note de 1 à 5 en cases avec étoiles, commentaire facultatif, "Envoyer mon avis") ; absente quand rien n'est demandé et en aperçu client de l'admin.
+
+Vérifié en base (transactions annulées, un consultant et deux comptes clients simulés) : le client est déduit de la demande ; un doublon (demande, moment) est refusé ; le client invité reçoit la notification et pas un autre client ; il voit son avis, ne peut pas le modifier directement (0 ligne), ne peut pas envoyer une note de 7 ni répondre deux fois ; un client sans accès à la demande ne voit rien et ne peut pas répondre ("Avis introuvable") ; la saisie manuelle du personnel prend l'origine `staff` ; le passage en "sans réponse" efface la note ; changer le moment est refusé ; un avis "reçu" sans note est refusé ; le journal note les changements ; le consultant est prévenu de la réponse. Base propre ensuite.
+Vérifié : `node --test tests/*.test.mjs` 218 réussis (7 nouveaux dans `tests/satisfactions.test.mjs`), `check-coherence` 0 erreur. Pages de test avec un service simulé (supprimées ensuite) : carte de l'équipe (demande, saisie manuelle avec note obligatoire, sans réponse) et carte du client (note obligatoire sans appel, échec serveur affiché avec bouton réactivé, envoi puis disparition de la carte) ; lisibilité correcte. Non testé avec la vraie base et de vrais comptes (client et consultant), ni en thème sombre ; le tableau de bord client complet n'a pas été chargé en entier (syntaxe vérifiée).
+
+Limites : pas d'e-mail ni de relance automatique (décision validée) : le client voit la demande à sa prochaine visite et la notification dans l'application ; un avis ne se supprime pas depuis l'application.
+
+### 2026-10-03 : lot F, étape F5 (indicateurs qualité, exports CSV)
+
+Fait :
+- `views/consultant/indicateurs.js` (page admin) : nouvelle section **Qualité : satisfaction et réclamations** avec quatre repères (satisfaction moyenne sur 5, taux de réponse aux avis = reçus sur demandés, réclamations ouvertes, délai moyen de traitement en jours), un tableau des avis par moment (à chaud, à froid : demandés, reçus, note moyenne) et un tableau des réclamations par gravité (total, ouvertes), une note qui explique les calculs (sans réponse, en attente, délai), et deux boutons d'export. Leur indisponibilité n'empêche pas la page.
+- `engine/satisfactions.js` : `COLONNES_CSV_AVIS` ; `engine/reclamations.js` : `COLONNES_CSV_RECLAMATIONS`. Exports **Exporter les avis (CSV)** (demande, client, moment, statut, dates, note, commentaire, réponse saisie par le client ou par l'équipe : preuve de l'indicateur 30) et **Exporter les réclamations (CSV)** (client, demande, dates, objet, description, gravité, statut, délai de traitement, action corrective : preuve de l'indicateur 31). Séparateur point-virgule, dates en jj/mm/aaaa, comme les autres exports ; "Rien à exporter" quand la liste est vide.
+
+Vérifié : `node --test tests/*.test.mjs` 220 réussis (2 tests d'export ajoutés), `check-coherence` 0 erreur. Page de test avec services simulés (supprimée ensuite) : repères exacts (4,5 sur 5 pour deux avis reçus de 5 et 4, taux de réponse 50 % pour 2 reçus sur 4 demandés, 2 réclamations ouvertes sur 3, délai moyen de 10 jours), tableaux par moment et par gravité corrects, les deux fichiers CSV produits avec les bons en-têtes et valeurs. Non testé avec la vraie base et un vrai compte, ni en thème sombre.
+
+Limites : les indicateurs portent sur tous les avis et réclamations visibles de l'admin, sans filtre de période (à ajouter si le volume le justifie) ; le CSV des réclamations n'indique pas le responsable.
+
+### 2026-10-03 : lot F, étape F6 (clôture)
+
+Fait :
+- `docs/01_ARCHITECTURE.md` : routes (réclamations, journal d'audit, données à revoir, onglets de la fiche client, carte Satisfaction de la vue 360, avis sur l'accueil du client, qualité dans les indicateurs), tables `audit_log`, `consentements`, `reclamations` et `satisfactions` (section 7), fonctions `fn_audit` et `rpc_repondre_satisfaction` et mise à jour de la fusion (section 7), droits (section 8.2), notifications de satisfaction (section 16), ligne du lot F (section 17).
+- Contrôle d'ensemble : 220 tests réussis, `check-coherence` 0 erreur, aucun tiret cadratin dans les lignes ajoutées.
+- Audit de sécurité Supabase relancé après les migrations 0046 à 0049 : aucune alerte nouvelle sauf la présence de `rpc_repondre_satisfaction` dans les fonctions `security definer` appelables par un compte connecté (21 au lieu de 20), voulue : elle vérifie elle-même l'accès à la demande, refuse une seconde réponse et une note hors de 1 à 5 (testé à l'étape F4). Aucune alerte "RLS désactivée" sur les nouvelles tables. Restent les alertes d'avant le lot (`get_my_role` et `update_updated_at_column` sans `search_path` fixe, quatre fonctions appelables sans connexion, protection contre les mots de passe compromis désactivée).
+
+Fichiers du lot F (commit) :
+- Migrations : `0046_journal_audit.sql`, `0047_consentements.sql`, `0048_reclamations.sql`, `0049_satisfactions.sql`.
+- Nouveaux (`app/js/`) : `engine/audit.js`, `consentements.js`, `reclamations.js`, `satisfactions.js` ; `services/audit.js`, `consentements.js`, `reclamations.js`, `satisfactions.js` ; `components/liste-journal.js`, `consentements-contact.js`, `carte-donnees-a-revoir.js`, `liste-reclamations.js`, `carte-satisfaction.js`, `carte-avis-client.js` ; `views/consultant/journal.js`, `donnees-a-revoir.js`, `reclamations.js` ; tests `audit`, `consentements`, `reclamations`, `satisfactions`.
+- Modifiés : `views/consultant/client-contacts.js`, `client-fiche.js`, `tableau-de-bord.js`, `vue-360.js`, `indicateurs.js`, `views/client/dashboard.js`, `main.js`, `components/entete.js`, `css/dashboard.css`, `docs/01_ARCHITECTURE.md`, `docs/changes.md`.
+- Non inclus (travaux sans rapport avec ce lot) : `app/assets/images/logo.svg`, `supabase/functions/creer-compte/mail.ts`, `supabase/functions/envoyer-notification-email/index.ts`, `app/crm_app.md`, `app/new_design.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.html`, `.claude/skills/`, `docs/05_SKELETONS.md`.
+
+Les migrations 0046 à 0049 sont appliquées sur la base de production.
+
 ## 5. Points ouverts
+
+- **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
 
 - **Tables d'autres applications ouvertes à tout compte connecté** (voir le constat de l'étape S1) : à décider avec l'utilisateur.
 - **Alertes de sécurité Supabase déjà présentes avant le CRM (non traitées)** : `rpc_valider_cadrage(uuid, text)` est exécutable par le rôle `anon` (le `revoke` de 0005 portait sur l'ancienne signature) ; `est_staff`, `get_my_role`, `handle_new_user`, `rls_auto_enable`, `fn_historiser_reponse`, `fn_notifier_evenement` sont exécutables par `anon` ; `get_my_role` et `update_updated_at_column` n'ont pas de `search_path` fixe ; la protection contre les mots de passe compromis est désactivée côté Auth. S'ajoute le trou déjà signalé : `rpc_valider_cadrage` et `rpc_accepter_proposition` ne vérifient pas que l'appelant a accès à la demande. À traiter dans une migration dédiée, avec accord.
 - **Fichiers d'essais d'e-mails dans `app/`** : `app/mail.html` n'est pas de moi, sans doute un essai d'e-mail (`app/mail.ts` et `app/preview.ts` n'existent plus). `app/` est publié sur GitHub Pages : à ne pas commiter tels quels, un gabarit d'e-mail n'a pas de raison d'y être. Le fichier `app/assets/images/logo.svg` est aussi modifié sans être commité : à relire avant de le commiter.
 
-- **Essai réel des lots A, B, C, D, E et Accès** (pour le lot E : tester la recherche et le raccourci "/" dans la vraie barre du haut avec un compte admin puis consultant ; créer deux fiches proches et les fusionner (contacts, demandes, historique), ignorer puis remettre un couple ; vérifier la liste des dormants et la création d'une relance ; pour le lot D : saisir un financement et des factures sur une demande, importer un export Shine avec un vrai compte admin, vérifier qu'un consultant ne voit ni la carte Facturation ni les factures ; pour le lot Accès : créer un compte consultant, lui attribuer une demande, vérifier qu'il ne voit ni les autres demandes ni leurs clients, fichiers ou notifications, et qu'un client peut accepter ou refuser une proposition et réserver un rendez-vous) : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
+- **Essai réel des lots A, B, C, D, E, F et Accès** (pour le lot F : modifier une fiche et lire le journal en admin (un consultant n'y voit rien) ; renseigner un consentement ; enregistrer puis clôturer une réclamation ; demander un avis sur une demande gagnée, y répondre avec un compte client invité et vérifier la notification du consultant ; ouvrir la page Indicateurs et les deux exports ; pour le lot E : tester la recherche et le raccourci "/" dans la vraie barre du haut avec un compte admin puis consultant ; créer deux fiches proches et les fusionner (contacts, demandes, historique), ignorer puis remettre un couple ; vérifier la liste des dormants et la création d'une relance ; pour le lot D : saisir un financement et des factures sur une demande, importer un export Shine avec un vrai compte admin, vérifier qu'un consultant ne voit ni la carte Facturation ni les factures ; pour le lot Accès : créer un compte consultant, lui attribuer une demande, vérifier qu'il ne voit ni les autres demandes ni leurs clients, fichiers ou notifications, et qu'un client peut accepter ou refuser une proposition et réserver un rendez-vous) : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
 
 - `app/crm_app.md` est dans `app/` (dossier publié sur GitHub Pages) et n'est pas versionné : le déplacer dans `docs/` avant tout `git add app`.
 - Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub  et le lot C (`a780eb1`) aussi. Le lot Accès (`ca97dc2`) est poussé lui aussi. Le lot D (`fea958e`) est poussé lui aussi, ainsi que le lot E. Toutes les migrations (0030 à 0045) sont appliquées sur la base de production et le code des lots A à E est publié sur GitHub Pages ; l'essai réel avec un compte consultant et un compte client reste à faire.

@@ -14,6 +14,8 @@ import { navigate } from '../../router.js';
 import { afficherToast } from '../../components/toast.js';
 import { construireFormulaireClient } from '../../components/formulaire-client.js';
 import { construireOngletContacts } from './client-contacts.js';
+import { construireListeJournal } from '../../components/liste-journal.js';
+import { construireListeReclamations } from '../../components/liste-reclamations.js';
 import { construireOngletActivite } from './client-activite.js';
 import { construireOngletDemandes, construireOngletDocuments } from './client-demandes.js';
 import { el, icone, lienBouton } from '../../components/dashboard-ui.js';
@@ -35,6 +37,9 @@ const ONGLETS = [
   { cle: 'contacts', libelle: 'Contacts', chemin: (id) => `#/clients/${id}/contacts` },
   { cle: 'demandes', libelle: 'Demandes', chemin: (id) => `#/clients/${id}/demandes` },
   { cle: 'documents', libelle: 'Documents', chemin: (id) => `#/clients/${id}/documents` },
+  { cle: 'reclamations', libelle: 'Réclamations', chemin: (id) => `#/clients/${id}/reclamations` },
+  // Journal d'audit de la fiche : admin seulement.
+  { cle: 'modifications', libelle: 'Modifications', chemin: (id) => `#/clients/${id}/modifications`, admin: true },
 ];
 
 function formaterDate(date, avecHeure = false) {
@@ -59,10 +64,10 @@ function bouton(classe, texte, nomIcone, action) {
   return b;
 }
 
-function construireOnglets(id, actif) {
+function construireOnglets(id, actif, estAdmin) {
   const nav = el('nav', 'cl-onglets');
   nav.setAttribute('aria-label', 'Sections de la fiche');
-  for (const o of ONGLETS) {
+  for (const o of ONGLETS.filter((o) => !o.admin || estAdmin)) {
     const lien = el('a', `cl-onglet${o.cle === actif ? ' cl-onglet--actif' : ''}`, o.libelle);
     lien.href = o.chemin(id);
     if (o.cle === actif) lien.setAttribute('aria-current', 'page');
@@ -238,7 +243,7 @@ export async function vueClientFiche(id, onglet = 'apercu') {
       })
     );
 
-    main.appendChild(construireOnglets(id, onglet));
+    main.appendChild(construireOnglets(id, onglet, estAdmin));
 
     if (onglet === 'activite') {
       const ids = new Set(demandes.map((d) => d.id));
@@ -258,6 +263,14 @@ export async function vueClientFiche(id, onglet = 'apercu') {
       main.appendChild(construireOngletDemandes({ client, demandes }));
     } else if (onglet === 'documents') {
       main.appendChild(construireOngletDocuments({ demandes }));
+    } else if (onglet === 'reclamations') {
+      const carteReclamations = el('section', 'db-carte');
+      carteReclamations.appendChild(construireListeReclamations({ clientId: id, clients: [client], responsables: responsables ?? [] }));
+      main.appendChild(carteReclamations);
+    } else if (onglet === 'modifications' && estAdmin) {
+      const carteJournal = el('section', 'db-carte');
+      carteJournal.appendChild(construireListeJournal({ clientId: id, noms: Object.fromEntries((responsables ?? []).map((r) => [r.user_id, r.nom || r.email])) }));
+      main.appendChild(carteJournal);
     } else if (edition) {
       const carte = el('section', 'db-carte');
       carte.appendChild(

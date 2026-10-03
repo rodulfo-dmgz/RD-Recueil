@@ -6,6 +6,12 @@ import { el, construireKpis } from '../../components/dashboard-ui.js';
 import { grouperParDemande, delaisDemande, calculerKpis, formaterDelai, ETAPES_DELAIS } from '../../engine/jalons.js';
 import { listerMontants } from '../../services/montants.js';
 import { listerToutesFactures } from '../../services/factures.js';
+import { listerSatisfactions } from '../../services/satisfactions.js';
+import { listerReclamations } from '../../services/reclamations.js';
+import { telechargerCsv } from '../../components/telechargement.js';
+import { genererCsv } from '../../engine/csv.js';
+import { COLONNES_CSV_AVIS, kpisSatisfaction, libelleMoment, MOMENTS_SATISFACTION } from '../../engine/satisfactions.js';
+import { COLONNES_CSV_RECLAMATIONS, GRAVITES, estOuverte, kpisReclamations } from '../../engine/reclamations.js';
 import { facturationParMois, kpisFacturation, resteAFacturerGagnees } from '../../engine/facturation.js';
 import { agregerPipeline, caSigneParMois, formaterMontant, kpisFinance } from '../../engine/finance.js';
 
@@ -44,6 +50,62 @@ function lienDemande(demande) {
   const a = el('a', null, demande.reference);
   a.href = `#/demandes/${demande.reference}`;
   return a;
+}
+
+function construireSectionQualite(avis, reclamations) {
+  const ks = kpisSatisfaction(avis);
+  const kr = kpisReclamations(reclamations);
+  const section = el('section', 'db-carte');
+  section.appendChild(titre('Qualité : satisfaction et réclamations'));
+  section.appendChild(
+    construireKpis([
+      { libelle: 'Satisfaction moyenne', valeur: ks.moyenne === null ? '-' : `${String(ks.moyenne).replace('.', ',')} / 5`, nomIcone: 'smile' },
+      { libelle: 'Taux de réponse aux avis', valeur: formaterTaux(ks.tauxReponse), nomIcone: 'message-circle' },
+      { libelle: 'Réclamations ouvertes', valeur: String(kr.ouvertes), nomIcone: 'message-square-warning', accent: kr.ouvertes > 0 },
+      { libelle: 'Délai moyen de traitement', valeur: kr.delaiMoyenJours === null ? '-' : `${String(kr.delaiMoyenJours).replace('.', ',')} j`, nomIcone: 'timer' },
+    ])
+  );
+  section.appendChild(
+    tableau(
+      ['Avis', 'Demandés', 'Reçus', 'Note moyenne'],
+      [
+        ...MOMENTS_SATISFACTION.map((m) => [libelleMoment(m.valeur), String(ks.parMoment[m.valeur].total), String(ks.parMoment[m.valeur].recus), ks.parMoment[m.valeur].moyenne === null ? '-' : `${String(ks.parMoment[m.valeur].moyenne).replace('.', ',')} / 5`]),
+        ['Ensemble', String(ks.total), String(ks.recus), ks.moyenne === null ? '-' : `${String(ks.moyenne).replace('.', ',')} / 5`],
+      ]
+    )
+  );
+  section.appendChild(
+    tableau(
+      ['Réclamations', 'Total', 'Ouvertes'],
+      [
+        ...GRAVITES.map((g) => {
+          const duNiveau = reclamations.filter((r) => r.gravite === g.valeur);
+          return [g.libelle, String(duNiveau.length), String(duNiveau.filter(estOuverte).length)];
+        }),
+        ['Ensemble', String(kr.total), String(kr.ouvertes)],
+      ]
+    )
+  );
+  section.appendChild(el('p', 'texte-doux', `Taux de réponse : avis reçus sur avis demandés (${ks.sansReponse} sans réponse, ${ks.enAttente} en attente). Délai de traitement : jours entre la réception et la clôture des réclamations clôturées.`));
+  const actions = el('div', 'cl-form__actions');
+  const exporter = (nom, lignes, colonnes) => () => {
+    if (lignes.length === 0) {
+      afficherToast('Rien à exporter.', { type: 'erreur' });
+      return;
+    }
+    telechargerCsv(`${nom}-${new Date().toISOString().slice(0, 10)}.csv`, genererCsv(lignes, colonnes));
+  };
+  for (const [texte, action] of [
+    ['Exporter les avis (CSV)', exporter('avis-satisfaction', avis, COLONNES_CSV_AVIS)],
+    ['Exporter les réclamations (CSV)', exporter('reclamations', reclamations, COLONNES_CSV_RECLAMATIONS)],
+  ]) {
+    const bouton = el('button', 'db-btn db-btn--discret', texte);
+    bouton.type = 'button';
+    bouton.addEventListener('click', action);
+    actions.appendChild(bouton);
+  }
+  section.appendChild(actions);
+  return section;
 }
 
 export async function vueIndicateurs() {
@@ -143,6 +205,16 @@ export async function vueIndicateurs() {
       main.appendChild(fact);
     }
   }
+
+  // Qualité (Qualiopi 30 et 31) : satisfaction et réclamations. Leur indisponibilité n'empêche pas la page.
+  let avis = null;
+  let reclamations = null;
+  try {
+    [avis, reclamations] = await Promise.all([listerSatisfactions(), listerReclamations()]);
+  } catch {
+    avis = null;
+  }
+  if (avis && reclamations) main.appendChild(construireSectionQualite(avis, reclamations));
 
   const moyennes = el('section', 'db-carte');
   moyennes.appendChild(titre('Délais moyens par étape'));
