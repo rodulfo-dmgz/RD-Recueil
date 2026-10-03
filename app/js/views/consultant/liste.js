@@ -6,6 +6,11 @@ import { afficherToast } from '../../components/toast.js';
 import { telechargerCsv } from '../../components/telechargement.js';
 import { listerMontants } from '../../services/montants.js';
 import { libelleSourceMontant } from '../../engine/finance.js';
+import { LIBELLES_STATUT, LIBELLES_TYPE, categorieStatut } from '../../engine/statuts.js';
+import { formaterDate } from '../../engine/dates.js';
+import { el, icone } from '../../components/dashboard-ui.js';
+import { construireEtatVide } from '../../components/etat-vide.js';
+import { tableauListe } from '../../components/tableau-liste.js';
 
 const COLONNES_CSV = [
   { libelle: 'Référence', valeur: (d) => d.reference },
@@ -33,27 +38,64 @@ function nomConsultant(demande) {
   return demande.consultant?.nom || demande.consultant?.email || null;
 }
 
+function pastilleStatutDemande(d) {
+  const pastille = el('span', `cl-statut cl-statut--${categorieStatut(d.statut)}`);
+  pastille.append(el('span', 'cl-statut__point'), LIBELLES_STATUT[d.statut] ?? d.statut);
+  if (!d.archivee) return pastille;
+  const bloc = el('span');
+  bloc.append(pastille, document.createTextNode(' (archivée)'));
+  return bloc;
+}
+
+function colonnesDemandes(estAdmin) {
+  const colonnes = [
+    {
+      titre: 'Référence',
+      icone: 'hash',
+      largeur: 190,
+      figee: true,
+      rendu: (d) => {
+        const lien = el('a', 'cl-nom', d.reference);
+        lien.href = `#/demandes/${d.reference}`;
+        return lien;
+      },
+    },
+    { titre: 'Client', icone: 'building-2', largeur: 240, rendu: (d) => d.clients?.raison_sociale ?? 'Sans nom' },
+    { titre: 'Statut', icone: 'circle-dot', largeur: 190, rendu: pastilleStatutDemande },
+    { titre: 'Types', icone: 'tags', largeur: 220, rendu: (d) => (d.types || []).map((t) => LIBELLES_TYPE[t] ?? t).join(', ') },
+  ];
+  if (estAdmin) colonnes.push({ titre: 'Consultant', icone: 'user-round', largeur: 200, rendu: (d) => nomConsultant(d) ?? 'Non attribuée' });
+  colonnes.push(
+    { titre: 'Date limite', icone: 'calendar', largeur: 150, rendu: (d) => (d.date_limite ? formaterDate(d.date_limite) : '') },
+    { titre: 'Créée le', icone: 'clock', largeur: 150, rendu: (d) => formaterDate(d.created_at) }
+  );
+  return colonnes;
+}
+
 export function vueListeDemandes() {
   const app = document.getElementById('app');
   app.innerHTML = '';
 
-  const main = document.createElement('main');
-  main.className = 'conteneur';
+  const main = el('main', 'db page-liste');
 
-  const titre = document.createElement('h1');
-  titre.textContent = 'Demandes';
-  main.appendChild(titre);
+  const entete = el('div', 'cl-entete');
+  entete.appendChild(el('h1', null, 'Demandes'));
+  const actions = el('div', 'cl-entete__actions');
+  entete.appendChild(actions);
+  main.appendChild(entete);
 
-  const filtres = document.createElement('div');
-  filtres.className = 'liste-demandes__filtres';
+  const filtres = el('div', 'cl-filtres');
 
   const selectStatut = document.createElement('select');
-  selectStatut.className = 'champ-saisie';
+  selectStatut.className = 'champ-saisie cl-statut-filtre';
+  selectStatut.setAttribute('aria-label', 'Filtrer par statut');
   selectStatut.innerHTML =
-    '<option value="">Tous statuts</option>' + STATUTS.map((s) => `<option value="${s}">${s}</option>`).join('');
+    '<option value="">Toutes les demandes</option>' + STATUTS.map((s) => `<option value="${s}">${LIBELLES_STATUT[s] ?? s}</option>`).join('');
+  const nombreVue = el('span', 'cl-vue-nombre texte-doux');
 
   const selectType = document.createElement('select');
-  selectType.className = 'champ-saisie';
+  selectType.className = 'champ-saisie cl-statut-filtre';
+  selectType.setAttribute('aria-label', 'Filtrer par type');
   selectType.innerHTML =
     '<option value="">Tous types</option>' +
     TYPES.map((t) => `<option value="${t.valeur}">${t.libelle}</option>`).join('');
@@ -62,7 +104,7 @@ export function vueListeDemandes() {
   // demandes (un consultant ne voit que les siennes, lot Accès).
   const estAdmin = getProfil()?.role === 'admin';
   const selectConsultant = document.createElement('select');
-  selectConsultant.className = 'champ-saisie';
+  selectConsultant.className = 'champ-saisie cl-statut-filtre';
   selectConsultant.setAttribute('aria-label', 'Filtrer par consultant');
   selectConsultant.hidden = !estAdmin;
   selectConsultant.innerHTML = '<option value="">Tous les consultants</option><option value="aucun">Non attribuées</option>';
@@ -75,14 +117,16 @@ export function vueListeDemandes() {
 
   const boutonExporter = document.createElement('button');
   boutonExporter.type = 'button';
-  boutonExporter.className = 'btn btn--secondaire';
-  boutonExporter.textContent = 'Exporter en CSV';
-  filtres.append(selectStatut, selectType, selectConsultant, labelArchivees, boutonExporter);
+  boutonExporter.className = 'db-btn db-btn--discret';
+  boutonExporter.append(icone('download'), el('span', null, 'Exporter en CSV'));
+  actions.appendChild(boutonExporter);
+  filtres.append(selectStatut, nombreVue, selectType, selectConsultant, labelArchivees);
   main.appendChild(filtres);
 
-  const liste = document.createElement('ul');
-  liste.className = 'liste-demandes';
-  main.appendChild(liste);
+  const carte = el('section', 'db-carte');
+  const liste = el('div');
+  carte.appendChild(liste);
+  main.appendChild(carte);
 
   let dernieresDemandes = [];
 
@@ -108,7 +152,7 @@ export function vueListeDemandes() {
   });
 
   async function rafraichir() {
-    liste.innerHTML = '<li>Chargement…</li>';
+    liste.innerHTML = '<p class="texte-doux">Chargement…</p>';
     try {
       const demandes = await listerDemandes({
         statut: selectStatut.value || undefined,
@@ -117,19 +161,23 @@ export function vueListeDemandes() {
         inclureArchivees: caseArchivees.checked,
       });
       dernieresDemandes = demandes;
+      nombreVue.textContent = `· ${demandes.length}`;
       liste.innerHTML = '';
       if (demandes.length === 0) {
-        liste.innerHTML = '<li>Aucune demande.</li>';
+        liste.appendChild(construireEtatVide({ icone: 'layout-list', titre: 'Aucune demande', texte: 'Aucune demande ne correspond à ces filtres.' }));
         return;
       }
-      for (const d of demandes) {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = `#/demandes/${d.reference}`;
-        a.textContent = `${d.reference} · ${d.clients?.raison_sociale ?? 'Sans nom'} · ${d.statut}${d.archivee ? ' (archivée)' : ''}${estAdmin ? ` · ${nomConsultant(d) ?? 'non attribuée'}` : ''}`;
-        li.appendChild(a);
-        liste.appendChild(li);
-      }
+      liste.appendChild(
+        tableauListe({
+          colonnes: colonnesDemandes(estAdmin),
+          lignes: demandes,
+          onLigne: (d) => {
+            window.location.hash = `#/demandes/${d.reference}`;
+          },
+          libelleTotal: (lignes) => `${lignes.length} demande${lignes.length > 1 ? 's' : ''}`,
+        })
+      );
+      if (window.lucide) window.lucide.createIcons();
     } catch (err) {
       afficherToast(err.message, { type: 'erreur' });
     }

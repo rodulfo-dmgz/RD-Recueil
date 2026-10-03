@@ -220,7 +220,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 ### Phases
 - [x] 1. Socle commun, sans changement visuel
 - [x] 1 bis. Prototype d'allure sur la liste des clients (tableau compact, pastilles, menu clair, tiroir) : fait, **à valider par l'utilisateur** avant de généraliser
-- [ ] 2. Composant tableau (tri, pagination, colonnes, sélection)
+- [~] 2. Composant tableau (tri, pagination, colonnes, sélection) : composant créé, clients et demandes migrés, reste les autres listes
 - [ ] 3. Menu de commandes `Ctrl+K`
 - [ ] 4. Fil d'Ariane et création rapide dans l'en-tête
 - [ ] 5. Panneau latéral (aperçu d'un client depuis la liste)
@@ -971,6 +971,16 @@ Retours sur l'itération 3 (même jour) : barre de défilement du tableau fine e
 Retour sur l'espacement : le contenu est une **carte inscrite** dans la page (marge de 16 px, bordure fine, coins arrondis de 8 px) au lieu de toucher le menu ; cellules plus aérées (compact : lignes de 37 px au lieu de 33, confortable : 49 px) ; barre de vue plus haute. Non vérifié dans le navigateur.
 
 Retour sur la comparaison avec le modèle fourni (NextAdmin) : **barre du haut et contenu forment une même carte** posée sur le fond gris (marge de 16 px, 8 px sur téléphone, coins arrondis), barre de 64 px ; menu latéral plus ample (marges de 24 px, liens de 42 px à 15 px) ; tableau en 15 px avec cellules de 41 px (compact) et 53 px (confortable) ; barre de vue avec 24 px de marge. Non vérifié dans le navigateur ; la règle `:has()` (coins carrés sous la barre pour les listes) demande un navigateur récent.
+
+### 2026-10-03 : refonte, phase 2 (composant tableau), étape 1
+
+Fait : `components/tableau-liste.js` (nouveau), tableau commun : colonnes à largeur fixe et défilement horizontal, colonne figée, cases à cocher et sélection facultatives, ligne de totaux, clic sur la ligne (nouvelle allure), cellules vides. Chaque écran ne décrit plus que ses colonnes (`titre`, `icone`, `largeur`, `rendu`, `total`).
+- **Clients** : refactoré sur ce composant (même rendu qu'avant, code plus court).
+- **Demandes** : la liste de liens devient un tableau (Référence, Client, Statut en pastille colorée avec libellé lisible au lieu du code, Types, Consultant pour l'admin, Date limite, Créée le), barre de vue avec nombre, export déplacé en haut à droite, état vide soigné, clic sur la ligne ouvre la demande. Mise en page en `db page-liste` aussi avec l'allure actuelle (tableau simple).
+
+Vérifié : 227 tests, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée) pour la liste des demandes : colonnes, libellés, totaux, lignes de 41 px, aucune erreur console. Non revérifié dans le navigateur : la liste des clients après refactorisation (même code de rendu, syntaxe contrôlée seulement).
+
+Reste de la phase 2 : appliquer le composant aux tâches, réclamations, comptes, journal d'audit, données à revoir ; tri par clic sur les en-têtes et pagination (si les volumes l'exigent).
 
 ## 5. Points ouverts
 

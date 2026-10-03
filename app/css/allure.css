@@ -213,3 +213,16 @@ body.look-nouveau.menu-replie .barre-haut { left: var(--marge-page); }
   body.look-nouveau.layout-lateral #app, body.look-nouveau.menu-replie.layout-lateral #app { margin-left: 8px; margin-right: 8px; }
   body.look-nouveau .barre-haut, body.look-nouveau.menu-replie .barre-haut { left: 8px; right: 8px; padding: 0 12px; }
 }
+
+/* Tableaux sans colonne de cases : la première colonne se fige tout à gauche */
+body.look-nouveau .db-table--dense.sans-selection .col-nom,
+body.look-nouveau .db-table--dense.sans-selection tfoot .total-libelle { left: 0; }
+
+/* Statuts des demandes (même pastille que les clients, selon la catégorie de couleur) */
+body.look-nouveau .cl-statut--succes { background: color-mix(in srgb, var(--rd-turquoise) 18%, transparent); }
+body.look-nouveau .cl-statut--attention { background: color-mix(in srgb, var(--rd-orange) 18%, transparent); }
+body.look-nouveau .cl-statut--neutre { background: color-mix(in srgb, var(--rd-bleu) 12%, transparent); }
+body.look-nouveau .cl-statut--cloture { background: color-mix(in srgb, var(--texte-doux) 16%, transparent); }
+.cl-statut--succes .cl-statut__point { background: var(--rd-turquoise); }
+.cl-statut--attention .cl-statut__point { background: var(--rd-orange); }
+.cl-statut--neutre .cl-statut__point { background: var(--rd-bleu); }
