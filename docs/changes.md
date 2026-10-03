@@ -1079,6 +1079,14 @@ Retour : la mise en place des éléments (liste, Kanban) et la fenêtre de créa
 Vérifié : 256 tests, `check-coherence` 0 erreur ; mesures des positions dans le navigateur avec des données simulées (supprimées) : barre d'outils sur une ligne à droite des onglets quand la place le permet (retour à la ligne à droite sinon), cartes de liste à 7 colonnes sans débordement, colonnes du Kanban, fenêtre à 760 px avec les cinq pastilles sur une seule ligne, pied de fenêtre dans le bon ordre, liste des membres contenue dans la fenêtre.
 Non vérifié : **aucune capture d'écran n'a pu être prise** (elles expirent dans mon outil) : l'apparence réelle (couleurs, ombres, espacement) est à juger par l'utilisateur ; l'écran étroit et le thème sombre.
 
+### 2026-10-03 : listes déroulantes arrondies (retour de l'utilisateur)
+
+Retour : la liste d'un `<select>` s'ouvrait en carré, avec le style du système, hors du reste de l'interface. Un seul bloc de styles (`css/allure.css`) s'applique à **tous** les `<select>` simples de l'application, dans les deux allures : liste aux coins arrondis (12 px), bordure fine, ombre douce, options arrondies (survol gris, option choisie teintée de bleu RD avec une coche), flèche qui se retourne à l'ouverture, hauteur limitée avec défilement. Basé sur la fonction du navigateur `appearance: base-select` (Chrome et Edge récents), sans JavaScript, donc accessible au clavier comme avant. Les listes à choix multiple ne changent pas. Les pastilles du formulaire de tâche gardent leur propre flèche.
+
+Limites connues : Firefox et Safari gardent pour l'instant la liste native (le fonctionnement est identique, seul l'aspect diffère) ; la liste d'un champ date (calendrier du navigateur) reste celle du navigateur.
+
+Vérifié : styles calculés sur une page de test (supprimée) : mode appliqué aux listes simples et pas à la liste multiple, fenêtre de choix arrondie, bordure, fond, option arrondie, option choisie teintée, coche présente, flèche masquée dans les pastilles. Non vérifié : l'ouverture réelle de la liste (aucune capture possible, le clic de test ne l'a pas ouverte), le thème sombre.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

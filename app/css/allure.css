@@ -392,7 +392,8 @@ span.tl-fait { cursor: default; }
 .pastille-champ { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 10px; font-size: 14px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); color: var(--texte); cursor: pointer; }
 .pastille-champ > svg { flex-shrink: 0; width: 16px; height: 16px; stroke: var(--texte-doux); }
 .pastille-champ:focus-within { box-shadow: 0 0 0 2px color-mix(in srgb, var(--rd-bleu) 35%, transparent); }
-.pastille-champ__champ { min-width: 0; padding: 0; border: none; border-radius: 0; background: transparent; color: inherit; font: inherit; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; }
+.pastille-champ__champ { min-width: 0; padding: 0; border: none; border-radius: 0; background: transparent; color: inherit; font: inherit; outline: none; cursor: pointer; }
+input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
 .pastille-champ__point { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--texte-doux); }
 .pastille-champ[data-couleur="info"] .pastille-champ__point { background: var(--rd-bleu); }
 .pastille-champ[data-couleur="attention"] .pastille-champ__point { background: var(--rd-orange); }
@@ -427,3 +428,34 @@ span.tl-fait { cursor: default; }
 .tiroir-pieces__nom:hover, .tiroir-pieces__nom:focus-visible { background: var(--fond); }
 .tiroir-pieces__nom svg { flex-shrink: 0; width: 14px; height: 14px; }
 .tiroir-pieces__nom span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+/* Listes déroulantes : liste arrondie, ombrée et aux couleurs de l'application, partout où un
+   <select> existe. S'appuie sur `appearance: base-select` (Chrome et Edge récents) ; les autres
+   navigateurs gardent la liste native, sans conséquence sur le fonctionnement. */
+@supports (appearance: base-select) {
+  select:not([multiple]):not([size]),
+  select:not([multiple]):not([size])::picker(select) { appearance: base-select; }
+  select:not([multiple]):not([size])::picker(select) {
+    box-sizing: border-box;
+    max-height: min(320px, 50vh);
+    margin-top: 6px;
+    padding: 6px;
+    border: 1px solid var(--bordure);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--texte);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .16);
+  }
+  select:not([multiple]):not([size]) option { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: var(--texte); font: inherit; cursor: pointer; }
+  select:not([multiple]):not([size]) option:hover,
+  select:not([multiple]):not([size]) option:focus-visible { background: var(--fond); }
+  select:not([multiple]):not([size]) option:checked { background: color-mix(in srgb, var(--rd-bleu) 10%, transparent); color: var(--bleu-texte); font-weight: 600; }
+  select:not([multiple]):not([size]) option::checkmark { order: 1; margin-left: auto; }
+  select:not([multiple]):not([size])::picker-icon { color: var(--texte-doux); transition: rotate .1s ease; }
+  select:not([multiple]):not([size]):open::picker-icon { rotate: 180deg; }
+  /* Les pastilles du formulaire de tâche ont déjà leur propre chevron. */
+  .pastille-champ select::picker-icon { display: none; }
+}
+@supports not (appearance: base-select) {
+  select.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
+}
