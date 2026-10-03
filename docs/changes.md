@@ -1091,6 +1091,8 @@ Suite (même retour) : le triangle noir du navigateur est remplacé, sur toutes 
 
 Suite (même retour) : texte et chevron des listes sont **centrés verticalement** (alignement du bouton de la liste). Captures d'écran désormais possibles : vérification visuelle de la liste, du Kanban et de la fenêtre de création. Corrigés grâce à elles : icônes de la fenêtre (membres, date, urgence, type, trombone, croix) qui ne s'affichaient pas faute d'appel à `createIcons`, double chevron dans les pastilles (règle de masquage trop faible), pastille « Type » qui passait à la ligne (fenêtre portée à 820 px : les cinq pastilles tiennent sur une ligne).
 
+Suite (même retour) : les listes s'ouvrent toujours **vers le bas** (le navigateur ne les retourne plus vers le haut) ; dans la fenêtre de tâche, le champ occupe **toute la pastille** (un clic sur le chevron ou l'icône ouvre la liste, avant seul le texte réagissait). Vérifié par un vrai clic sur le chevron : liste ouverte sous la pastille, quatre options. Non vérifié : le choix d'une option par clic, le cas d'une pastille tout en bas de l'écran (la liste peut alors dépasser).
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

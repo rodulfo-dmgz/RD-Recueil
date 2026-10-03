@@ -16,14 +16,14 @@ const MAX_FICHIERS = 10;
 
 const nomMembre = (m) => m.nom || m.email || 'Membre';
 
-// Pastille de formulaire : icône (ou point de couleur) à gauche, champ natif, chevron pour les listes.
-function pastille({ nomIcone, libelle, champ: noeud, point = false, liste = true }) {
+// Pastille de formulaire : le champ natif occupe toute la pastille (un clic n'importe où l'ouvre) ;
+// l'icône (ou le point de couleur) est posée par-dessus à gauche, le chevron est celui de la liste.
+function pastille({ nomIcone, libelle, champ: noeud, point = false }) {
   const boite = el('label', 'pastille-champ');
   boite.appendChild(point ? el('span', 'pastille-champ__point') : icone(nomIcone));
   noeud.setAttribute('aria-label', libelle);
   noeud.classList.add('pastille-champ__champ');
   boite.appendChild(noeud);
-  if (liste) boite.appendChild(icone('chevron-down'));
   return boite;
 }
 
@@ -39,7 +39,7 @@ function liste(options, valeur, libelle) {
 // fixe : identifiant qui reste coché (un consultant ne peut pas se retirer).
 function selecteurMembres(equipe, coches, fixe) {
   const bloc = el('details', 'membres-tache');
-  const resume = el('summary', 'pastille-champ membres-tache__resume');
+  const resume = el('summary', 'pastille-champ pastille-champ--bouton membres-tache__resume');
   const texte = el('span', 'membres-tache__texte');
   resume.append(icone('users'), texte, icone('chevron-down'));
   bloc.appendChild(resume);
@@ -121,7 +121,7 @@ export function ouvrirModaleTache({ clients, equipe, profil, estAdmin, clientId 
   const choixType = liste(TYPES_TACHE, 'autre', 'type');
 
   const rangee = el('div', 'modale-tache__pastilles');
-  rangee.append(pastilleStatut, membres, pastille({ nomIcone: 'calendar', libelle: 'Date', champ: echeance, liste: false }), pastille({ nomIcone: 'flag', libelle: 'Urgence', champ: choixUrgence }), pastille({ nomIcone: 'tag', libelle: 'Type', champ: choixType }));
+  rangee.append(pastilleStatut, membres, pastille({ nomIcone: 'calendar', libelle: 'Date', champ: echeance }), pastille({ nomIcone: 'flag', libelle: 'Urgence', champ: choixUrgence }), pastille({ nomIcone: 'tag', libelle: 'Type', champ: choixType }));
   const erreurs = el('span', 'cl-champ__erreur');
   erreurs.setAttribute('role', 'alert');
 

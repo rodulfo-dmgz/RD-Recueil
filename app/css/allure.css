@@ -389,11 +389,15 @@ span.tl-fait { cursor: default; }
 .modale-tache__fermer { position: absolute; top: 20px; right: 20px; display: grid; place-items: center; width: 32px; height: 32px; border: none; border-radius: 8px; background: transparent; color: var(--texte-doux); cursor: pointer; }
 .modale-tache__fermer:hover, .modale-tache__fermer:focus-visible { background: var(--fond); color: var(--texte); }
 .modale-tache__pastilles { display: flex; flex-wrap: wrap; gap: 8px; }
-.pastille-champ { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 10px; font-size: 14px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); color: var(--texte); cursor: pointer; }
-.pastille-champ > svg { flex-shrink: 0; width: 16px; height: 16px; stroke: var(--texte-doux); }
-.pastille-champ:focus-within { box-shadow: 0 0 0 2px color-mix(in srgb, var(--rd-bleu) 35%, transparent); }
-.pastille-champ__champ { min-width: 0; padding: 0; border: none; border-radius: 0; background: transparent; color: inherit; font: inherit; outline: none; cursor: pointer; }
+.pastille-champ { position: relative; display: inline-flex; align-items: center; }
+.pastille-champ > svg, .pastille-champ__point { position: absolute; left: 12px; top: 50%; translate: 0 -50%; pointer-events: none; }
+.pastille-champ > svg { width: 16px; height: 16px; stroke: var(--texte-doux); }
+.pastille-champ__champ { min-height: 42px; padding: 0 12px 0 36px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); color: var(--texte); font: inherit; font-size: 14px; outline: none; cursor: pointer; }
 input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
+.pastille-champ:focus-within .pastille-champ__champ { box-shadow: 0 0 0 2px color-mix(in srgb, var(--rd-bleu) 35%, transparent); }
+/* Pastille qui est elle-même un bouton (membres) : icônes dans le flux. */
+.pastille-champ.pastille-champ--bouton { gap: 8px; min-height: 42px; padding: 0 10px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--surface); font-size: 14px; cursor: pointer; }
+.pastille-champ.pastille-champ--bouton > svg { position: static; translate: none; pointer-events: auto; flex-shrink: 0; }
 .pastille-champ__point { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--texte-doux); }
 .pastille-champ[data-couleur="info"] .pastille-champ__point { background: var(--rd-bleu); }
 .pastille-champ[data-couleur="attention"] .pastille-champ__point { background: var(--rd-orange); }
@@ -445,6 +449,9 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
     background: var(--surface);
     color: var(--texte);
     box-shadow: 0 8px 24px rgba(15, 23, 42, .16);
+    /* Toujours sous le champ, jamais au-dessus (le navigateur retournerait la liste vers le haut faute de place). */
+    position-area: block-end span-inline-end;
+    position-try-fallbacks: none;
   }
   select:not([multiple]):not([size]) option { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: var(--texte); font: inherit; cursor: pointer; }
   select:not([multiple]):not([size]) option:hover,
@@ -466,8 +473,6 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
     transition: rotate .1s ease;
   }
   select:not([multiple]):not([size]):open::picker-icon { rotate: 180deg; }
-  /* Les pastilles du formulaire de tâche ont déjà leur propre chevron. */
-  .pastille-champ select:not([multiple]):not([size])::picker-icon { display: none; }
 }
 @supports not (appearance: base-select) {
   select.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
