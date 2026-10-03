@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { STATUTS_TACHE, classerTaches, colonnesKanban, deplacerTache, estOuverte, libelleStatutTache, tachesVersJalons } from '../app/js/engine/taches.js';
+import { STATUTS_TACHE, URGENCES, classerTaches, colonnesKanban, deplacerTache, estOuverte, libelleStatutTache, libelleUrgence, membresDeTache, nomFichierSur, tachesVersJalons, validerNouvelleTache } from '../app/js/engine/taches.js';
 
 const maintenant = new Date('2026-10-10T10:00:00Z');
 const tache = (id, statut, echeance, extra = {}) => ({ id, titre: `T${id}`, statut, echeance, created_at: `2026-10-0${id}T08:00:00Z`, client_id: 'c', ...extra });
@@ -57,4 +57,37 @@ test('deplacerTache : change le statut sans modifier l’original, gère la date
   assert.equal(apres[1], taches[1]);
   const retour = deplacerTache(apres, 1, 'en_cours', maintenant);
   assert.equal(retour[0].terminee_le, null);
+});
+
+test('membresDeTache : responsable d’abord, autres membres, sans doublon, nom ou e-mail', () => {
+  const tache = {
+    assignee_id: 'u1',
+    assignee: { nom: 'Rodulfo', email: 'r@x.fr' },
+    membres: [{ user_id: 'u2', profil: { nom: null, email: 'm@x.fr' } }, { user_id: 'u1', profil: { nom: 'Rodulfo' } }, { user_id: 'u3', profil: null }],
+  };
+  assert.deepEqual(membresDeTache(tache), [
+    { user_id: 'u1', nom: 'Rodulfo' },
+    { user_id: 'u2', nom: 'm@x.fr' },
+    { user_id: 'u3', nom: 'Membre' },
+  ]);
+  assert.deepEqual(membresDeTache({}), []);
+  assert.deepEqual(membresDeTache(null), []);
+});
+
+test('nomFichierSur : sans accents ni espaces, extension conservée en minuscules', () => {
+  assert.equal(nomFichierSur('Devis été 2026 (v2).PDF'), 'Devis-ete-2026-v2.pdf');
+  assert.equal(nomFichierSur('../../etc/passwd.docx'), 'etc-passwd.docx');
+  assert.equal(nomFichierSur('éé'), 'ee');
+  assert.equal(nomFichierSur('***.png'), 'fichier.png');
+  assert.equal(nomFichierSur(''), 'fichier');
+});
+
+test('validerNouvelleTache : titre, client, date, urgence et statut', () => {
+  const valide = { titre: 'Appeler', client_id: 'c1', echeance: '2026-10-10', type: 'appel', urgence: 'haute', statut: 'en_cours' };
+  assert.deepEqual(validerNouvelleTache(valide), {});
+  assert.deepEqual(Object.keys(validerNouvelleTache({ ...valide, titre: ' ', client_id: '', echeance: '2026-02-31', urgence: 'x', statut: 'annulee' })).sort(), ['client_id', 'echeance', 'statut', 'titre', 'urgence']);
+  assert.deepEqual(validerNouvelleTache({ titre: 'x', client_id: 'c', echeance: '2026-10-10' }), {}); // urgence et statut facultatifs
+  assert.equal(libelleUrgence('haute'), 'Haute');
+  assert.equal(libelleUrgence(undefined), 'Moyenne');
+  assert.deepEqual(URGENCES.map((u) => u.valeur), ['faible', 'moyenne', 'haute']);
 });

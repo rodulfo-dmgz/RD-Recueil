@@ -1046,6 +1046,27 @@ Non vérifié : le rendu visuel en capture d'écran (les captures ont expiré), 
 
 Pas encore fait : le bouton « Ajouter une tâche » du modèle (une tâche est rattachée à un client : elle se crée depuis sa fiche), l'ordre des cartes à l'intérieur d'une colonne (trié par échéance), le Kanban des demandes prévu en phase 7.
 
+### 2026-10-03 : « Ajouter une tâche » (urgence, plusieurs membres, pièces jointes)
+
+Demande (d'après un modèle fourni) : formulaire « Créer une nouvelle tâche » avec statut, **un ou plusieurs membres de l'équipe**, date, **urgence** (faible, moyenne, haute) et **pièces jointes**. Décision validée : **tout le personnel peut ajouter des collègues** à une tâche.
+
+Fait :
+- **Migration 0054** (appliquée en production) :
+  - `taches.urgence` (faible, moyenne par défaut, haute).
+  - `tache_membres` : le responsable (`assignee_id`) reste celui qui crée la tâche (ou que l'admin désigne), les autres membres y sont listés ; un membre voit la tâche et peut la faire avancer, **même si le client ne lui est pas attribué** (il ne voit alors ni la fiche ni le nom du client, mais le titre, le message et les pièces jointes) ; seul le responsable ou l'admin la supprime ; seuls l'admin et les consultants peuvent être membres (jamais un client).
+  - `tache_pieces_jointes` et bucket privé `taches` (chemin `{tâche}/{horodatage}-{nom}`, 20 Mo, extensions pdf, docx, xlsx, pptx, png, jpg, jpeg, vérifiées aussi côté stockage) ; l'accès suit celui de la tâche.
+  - Fonctions `est_membre_tache`, `peut_voir_tache`, `peut_voir_tache_chemin` (definer, droit d'exécution aux seuls connectés).
+- **Formulaire** (`components/modale-tache.js`, bouton « Ajouter une tâche » sur la liste et le Kanban) : nom, client (celui du filtre par défaut), message, statut, membres (bloc à cases ; un consultant reste coché et responsable, l'admin choisit, le premier coché devient responsable), date (aujourd'hui par défaut), urgence, type, pièces jointes (10 au plus, types et taille contrôlés dès le choix). La tâche est créée d'abord ; un membre ou un fichier qui échoue ne l'annule pas, un message le signale.
+- **Affichage** : carte Kanban avec urgence en couleur, pile d'avatars (3 puis « +n »), nombre de pièces jointes ; ligne de la liste avec urgence et équipe ; clic sur le titre ou la carte : **tiroir de détail** (statut, urgence, échéance, client, type, équipe, message, pièces jointes à télécharger, ajout de pièces jointes).
+- `listerTaches` : « mes tâches » inclut celles où l'on est membre ; `supprimerTache` retire aussi les fichiers du stockage.
+- Moteur (+3 tests) : `URGENCES`, `membresDeTache`, `nomFichierSur` (nom sûr pour le stockage), `validerNouvelleTache`.
+
+Vérifié : 255 tests, `check-coherence` 0 erreur. **Base** (transaction annulée, avec trois consultants fictifs) : sans lien, un consultant ne voit rien ; ajouté comme membre, il voit la tâche, la modifie (statut, urgence), ne peut pas la supprimer, ne voit pas le client, voit les membres, peut ajouter un collègue et une pièce jointe, dépose un pdf mais pas un exe ni un chemin quelconque ; un client ne peut pas être membre ; un consultant sans lien ne voit ni la tâche ni ses pièces et ne peut ni s'ajouter, ni déposer ; le responsable supprime, les membres partent avec. **Navigateur** (services simulés, supprimés ensuite) : formulaire complet en admin et en consultant, erreurs de saisie, fichier refusé, appel de création avec les bons champs, carte, tiroir, ajout de pièce jointe, téléchargement.
+
+Non vérifié : le vrai envoi des fichiers vers le stockage et leur téléchargement (services simulés ; règles de la base testées), le rendu en capture d'écran, un vrai compte consultant, l'écran tactile.
+
+À noter : pas de notification quand on est ajouté à une tâche ; pas de retrait d'un membre ni de modification du message depuis le tiroir ; l'ordre des cartes dans une colonne reste celui de l'échéance.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

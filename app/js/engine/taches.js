@@ -30,6 +30,41 @@ export const STATUTS_TACHE = [
 ];
 export const STATUTS_OUVERTS = ['a_faire', 'en_cours', 'a_reviser'];
 
+// Urgence d'une tâche (colonne `urgence`, « moyenne » par défaut).
+export const URGENCES = [
+  { valeur: 'faible', libelle: 'Faible', couleur: 'succes' },
+  { valeur: 'moyenne', libelle: 'Moyenne', couleur: 'attention' },
+  { valeur: 'haute', libelle: 'Haute', couleur: 'erreur' },
+];
+
+export function libelleUrgence(valeur) {
+  return URGENCES.find((u) => u.valeur === valeur)?.libelle ?? 'Moyenne';
+}
+
+// Membres d'une tâche : le responsable d'abord, puis les autres membres, sans doublon.
+// Chaque élément : { user_id, nom } (le nom retombe sur l'e-mail).
+export function membresDeTache(tache) {
+  const vus = new Set();
+  const membres = [];
+  const ajouter = (userId, profil) => {
+    if (!userId || vus.has(userId)) return;
+    vus.add(userId);
+    membres.push({ user_id: userId, nom: profil?.nom || profil?.email || 'Membre' });
+  };
+  ajouter(tache?.assignee_id, tache?.assignee);
+  for (const m of tache?.membres ?? []) ajouter(m.user_id, m.profil);
+  return membres;
+}
+
+// Nom de fichier sûr pour le stockage : sans accents, espaces ni caractères spéciaux.
+export function nomFichierSur(nom) {
+  const brut = String(nom ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const point = brut.lastIndexOf('.');
+  const base = (point > 0 ? brut.slice(0, point) : brut).replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'fichier';
+  const extension = point > 0 ? brut.slice(point + 1).replace(/[^A-Za-z0-9]/g, '').toLowerCase().slice(0, 8) : '';
+  return extension ? `${base}.${extension}` : base;
+}
+
 export const estOuverte = (tache) => STATUTS_OUVERTS.includes(tache?.statut);
 
 export function libelleStatutTache(valeur) {
@@ -121,6 +156,16 @@ export function preparerTache(valeurs) {
   };
   if ('assignee_id' in valeurs) tache.assignee_id = propre(valeurs.assignee_id);
   return tache;
+}
+
+// Formulaire « Créer une nouvelle tâche » : comme validerTache, avec le client obligatoire
+// et une urgence connue.
+export function validerNouvelleTache(valeurs) {
+  const erreurs = validerTache(valeurs);
+  if (estVide(valeurs.client_id)) erreurs.client_id = 'Choisissez un client.';
+  if (!estVide(valeurs.urgence) && !URGENCES.some((u) => u.valeur === valeurs.urgence)) erreurs.urgence = 'Urgence inconnue.';
+  if (!STATUTS_TACHE.some((s) => s.valeur === (valeurs.statut || 'a_faire'))) erreurs.statut = 'Statut inconnu.';
+  return erreurs;
 }
 
 export function validerTache(valeurs) {

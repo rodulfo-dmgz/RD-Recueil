@@ -318,3 +318,46 @@ body.look-nouveau .cl-filtres .outils-vue__bouton:hover, body.look-nouveau .cl-f
 .kanban__pied { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid var(--bordure); }
 .kanban__statut { width: auto; min-height: 32px; margin-left: auto; font-size: 13px; }
 .kanban__vide { margin: 0; padding: 16px 8px; border: 1px dashed var(--bordure); border-radius: 10px; font-size: 14px; text-align: center; }
+
+/* Création et détail d'une tâche : urgence, membres, pièces jointes */
+.taches-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.taches-entete h1 { margin: 0; }
+.tache-urgence { display: inline-block; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 600; line-height: 20px; }
+.tache-urgence--succes { background: color-mix(in srgb, var(--succes) 14%, transparent); color: var(--succes); }
+.tache-urgence--attention { background: color-mix(in srgb, var(--rd-orange) 16%, transparent); color: var(--alerte); }
+.tache-urgence--erreur { background: color-mix(in srgb, var(--erreur) 14%, transparent); color: var(--erreur); }
+.cl-tache__titre-bouton, .kanban__titre--bouton { display: inline; padding: 0; border: none; background: transparent; color: inherit; font: inherit; font-weight: 600; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.kanban__titre--bouton { font-weight: 500; }
+.cl-tache__titre-bouton:hover, .kanban__titre--bouton:hover { text-decoration: underline; }
+.cl-tache__corps .tache-urgence { margin-left: 8px; vertical-align: middle; }
+.kanban__carte { cursor: pointer; }
+.kanban__membres { display: inline-flex; }
+.kanban__avatar { display: grid; place-items: center; width: 26px; height: 26px; margin-left: -6px; border: 2px solid var(--surface); border-radius: 50%; background: var(--rd-turquoise); color: #fff; font-size: 10px; font-weight: 700; }
+.kanban__avatar:first-child { margin-left: 0; }
+.kanban__avatar--plus { background: color-mix(in srgb, var(--rd-bleu) 15%, var(--surface)); color: var(--bleu-texte); }
+.kanban__pj { display: inline-flex; align-items: center; gap: 4px; color: var(--texte-doux); font-size: 13px; }
+.kanban__pj svg { width: 14px; height: 14px; }
+.modale-tache__grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.modale-tache__pieces { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.modale-tache__aide { font-size: 13px; }
+.modale-tache__fichiers { flex-basis: 100%; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.modale-tache__fichier { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--bordure); border-radius: 8px; font-size: 14px; }
+.modale-tache__fichier svg { width: 14px; height: 14px; flex-shrink: 0; }
+.modale-tache__fichier span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.membres-tache { position: relative; }
+.membres-tache__resume { display: flex; align-items: center; min-height: 44px; cursor: pointer; list-style: none; }
+.membres-tache__resume::-webkit-details-marker { display: none; }
+.membres-tache__liste { display: flex; flex-direction: column; gap: 2px; max-height: 200px; margin-top: 4px; padding: 6px; overflow-y: auto; border: 1px solid var(--bordure); border-radius: 8px; background: var(--surface); }
+.membres-tache__ligne { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px; border-radius: 6px; cursor: pointer; }
+.membres-tache__ligne:hover { background: var(--fond); }
+.membres-tache__ligne input { width: 18px; height: 18px; accent-color: var(--rd-bleu); }
+.taches-statut { display: inline-flex; align-items: center; gap: 8px; }
+.tiroir-equipe { display: flex; flex-wrap: wrap; gap: 6px; }
+.tiroir-message { white-space: pre-wrap; }
+.tiroir-pieces { margin-top: 20px; }
+.tiroir-pieces__titre { margin: 0 0 8px; font-size: 14px; }
+.tiroir-pieces__liste { margin: 0 0 8px; padding: 0; list-style: none; }
+.tiroir-pieces__nom { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 8px; border: none; border-radius: 8px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.tiroir-pieces__nom:hover, .tiroir-pieces__nom:focus-visible { background: var(--fond); }
+.tiroir-pieces__nom svg { width: 14px; height: 14px; flex-shrink: 0; }
+.tiroir-pieces__nom span { flex: 1; min-width: 0; overflow-wrap: anywhere; }

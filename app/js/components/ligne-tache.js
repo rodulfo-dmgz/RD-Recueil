@@ -3,7 +3,8 @@
 // clair, report rapide, suppression facultative.
 import { el, icone } from './dashboard-ui.js';
 import { nomComplet } from '../engine/fiche-client.js';
-import { STATUTS_TACHE, ajouterJours, joursDeRetard, libelleEcheance, libelleStatutTache, libelleTypeTache } from '../engine/taches.js';
+import { STATUTS_TACHE, ajouterJours, joursDeRetard, libelleEcheance, libelleStatutTache, libelleTypeTache, membresDeTache } from '../engine/taches.js';
+import { pastilleUrgence } from './apercu-tache.js';
 import { cleJour } from '../engine/jalons.js';
 
 const REPORTS = [
@@ -24,8 +25,9 @@ export function echeanceApresReport(jours) {
 // opts : estAdmin, profilId (pour afficher le responsable quand ce n'est pas
 // soi), avecClient (nom du client en lien vers sa fiche), onTerminer,
 // onReporter(jours), onSupprimer (facultatif : sans lui, pas de bouton),
-// onStatut(statut) (facultatif : ajoute le sélecteur de statut).
-export function construireLigneTache(tache, { estAdmin = false, profilId = null, avecClient = false, onTerminer, onReporter, onSupprimer, onStatut }) {
+// onStatut(statut) (facultatif : ajoute le sélecteur de statut), onOuvrir (facultatif :
+// le titre ouvre le détail de la tâche).
+export function construireLigneTache(tache, { estAdmin = false, profilId = null, avecClient = false, onTerminer, onReporter, onSupprimer, onStatut, onOuvrir }) {
   const retard = joursDeRetard(tache.echeance);
   const ligne = el('li', `cl-tache${retard > 0 ? ' cl-tache--retard' : ''}`);
 
@@ -36,7 +38,15 @@ export function construireLigneTache(tache, { estAdmin = false, profilId = null,
   fait.addEventListener('click', onTerminer);
 
   const corps = el('div', 'cl-tache__corps');
-  corps.appendChild(el('strong', null, tache.titre));
+  if (onOuvrir) {
+    const titre = el('button', 'cl-tache__titre-bouton', tache.titre);
+    titre.type = 'button';
+    titre.addEventListener('click', onOuvrir);
+    corps.appendChild(titre);
+  } else {
+    corps.appendChild(el('strong', null, tache.titre));
+  }
+  if (tache.urgence && onOuvrir) corps.appendChild(pastilleUrgence(tache.urgence));
   if (avecClient && tache.clients?.raison_sociale) {
     const lien = el('a', 'cl-tache__client', tache.clients.raison_sociale);
     lien.href = `#/clients/${tache.client_id}/activite`;
@@ -46,7 +56,9 @@ export function construireLigneTache(tache, { estAdmin = false, profilId = null,
   const morceaux = [libelleTypeTache(tache.type), libelleEcheance(tache.echeance)];
   if (tache.contacts) morceaux.push(nomComplet(tache.contacts));
   if (tache.demandes?.reference) morceaux.push(tache.demandes.reference);
-  if ((estAdmin || tache.assignee_id !== profilId) && tache.assignee) morceaux.push(`Responsable : ${nomResponsable(tache.assignee)}`);
+  const membres = membresDeTache(tache);
+  if (membres.length > 1) morceaux.push(`Équipe : ${membres.map((m) => m.nom).join(', ')}`);
+  else if ((estAdmin || tache.assignee_id !== profilId) && tache.assignee) morceaux.push(`Responsable : ${nomResponsable(tache.assignee)}`);
   meta.textContent = morceaux.filter(Boolean).join(' · ');
   corps.appendChild(meta);
   if (tache.description) corps.appendChild(el('p', 'cl-tache__description', tache.description));
