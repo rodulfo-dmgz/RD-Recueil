@@ -19,7 +19,7 @@ export async function vueEntretien(reference) {
   try {
     const demande = await obtenirDemandeParReference(reference);
     if (!demande) {
-      app.innerHTML = '<main class="conteneur"><h1>Demande introuvable</h1></main>';
+      app.innerHTML = '<main class="conteneur"><h1>Demande introuvable</h1><p class="texte-doux">Elle n’existe pas, ou elle n’est pas attribuée à votre compte.</p></main>';
       return;
     }
 

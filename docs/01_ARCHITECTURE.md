@@ -27,8 +27,8 @@
 
 | Rôle | Qui | Droits principaux |
 |---|---|---|
-| `admin` | Rodulfo Dominguez | Tout. Publie les versions du questionnaire et du glossaire. Gère les comptes. |
-| `consultant` | Formateur ou consultant RD Formation | Crée des demandes, invite des clients, remplit les questions `F` et `C/F`, rédige et envoie la note de cadrage. |
+| `admin` | Rodulfo Dominguez | Tout, sur toutes les demandes et tous les clients. Publie les versions du questionnaire et du glossaire. Gère les comptes. Attribue les demandes aux consultants. |
+| `consultant` | Formateur ou consultant RD Formation | Ne voit que **ses** demandes (celles qui lui sont attribuées) et les clients qui leur sont liés ou dont il est responsable. Crée des demandes (qui lui sont attribuées d'office), invite des clients, remplit les questions `F` et `C/F`, rédige et envoie la note de cadrage. |
 | `client` | Contact invité du client | Accède uniquement à ses demandes. Remplit les questions `C` et `C/F`. Lit et valide la note de cadrage. Ne voit jamais la partie 3 (`ANA`) ni les commentaires internes. |
 
 Un même client peut avoir plusieurs contacts invités sur une même demande.
@@ -111,9 +111,9 @@ L'espace client utilise un menu latéral (tableau de bord, mes demandes, mes doc
 | `#/clients/nouveau` | Nouveau client ou prospect | Fiche pré-remplie par la recherche SIRET (base SIRENE), statut `prospect` par défaut. |
 | `#/clients/:id` (+ `/activite`, `/contacts`, `/demandes`, `/documents`) | Fiche client | Aperçu (informations modifiables, notes internes, import des données TC-1 d'une demande, dernières étapes), Activité (tâches ouvertes, échanges notés, historique avec les étapes des demandes, ajout rapide d'un contact), Contacts (rôles, contact principal, import des interlocuteurs TC-2), Demandes, Documents partagés avec le client. Archivage ; suppression réservée à l'admin et impossible si le client a des demandes. |
 | `#/taches` | Tâches | Mes tâches par défaut (l'admin peut voir celles de l'équipe) ; filtres statut et client ; groupes En retard, Aujourd'hui, Cette semaine, Plus tard ; Terminer, Reporter, accès à la fiche. |
-| `#/demandes` | Liste | Filtres : statut, type de prestation, consultant, date. |
+| `#/demandes` | Liste | Filtres : statut, type de prestation et, pour l'admin, consultant (ou « non attribuées »). Un consultant ne reçoit que ses demandes. |
 | `#/demandes/nouvelle` (+ `/:clientId`) | Création | Client existant (liste déroulante, présélectionné depuis sa fiche) ou nouveau (raison sociale, SIRET ; un SIRET déjà connu sélectionne le client existant), types pressentis (pré-coche TC-0.01), date limite. |
-| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». Carte « Enjeu commercial » (montant retenu et sa source, probabilité, pondéré ; estimation et probabilité modifiables). |
+| `#/demandes/:ref` | Vue 360 | Réponses par section, points « à définir », fichiers, commentaires, journal. Pour une demande envoyée, « Créer une tâche de relance » par personne invitée (échéance par défaut dans 3 jours) ; bouton « Fiche client ». Carte « Enjeu commercial » (montant retenu et sa source, probabilité, pondéré ; estimation et probabilité modifiables). Pour l'admin, carte « Consultant responsable » (attribution de la demande). |
 | `#/demandes/:ref/entretien` | Mode entretien | Voir 4.3. |
 | `#/demandes/:ref/cadrage` | Éditeur de note | Voir section 10. |
 | `#/admin/questionnaire` | Versions | Import des `.md`, prévisualisation, publication. |
@@ -616,7 +616,10 @@ create table notifications (
 | `rpc_changer_statut(demande_id, vers, commentaire)` `security definer` | Vérifie la transition (3.2) et le rôle, écrit dans `evenements`. Seul moyen de changer un statut. |
 | `rpc_soumettre(demande_id, ids_obligatoires)` `security definer` | `ids_obligatoires` : questions obligatoires actuellement visibles calculées côté client (seule implémentation de la visibilité conditionnelle, section 6.4). Vérifie que chacune a une réponse enregistrée, puis passe à `soumise`. |
 | `rpc_valider_cadrage(note_id, signature_image)` | Client uniquement ; enregistre le tracé de signature et un code de vérification généré côté serveur (`signature_credential`), horodate, enregistre l'IP, passe la demande à `cadrage_valide`. |
-| `est_staff()`, `a_acces(demande_id)` | Fonctions utilitaires pour les politiques RLS. |
+| `est_staff()`, `est_admin()`, `a_acces(demande_id)` | Fonctions utilitaires pour les politiques RLS. |
+| `peut_voir_demande(id)`, `peut_voir_client(id)`, `acces_demande(id)` `security definer` (0039, 0040) | Accès par consultant : l'admin voit tout ; un consultant voit ses demandes (`consultant_id`) et les clients dont il est responsable (`responsable_id`) ou qui ont l'une de ses demandes ; `acces_demande` ajoute le client invité sur la demande. |
+| `rpc_assigner_demande(demande_id, consultant_id)` `security definer` (0043) | Admin uniquement : attribue une demande à un membre du personnel, la journalise (événement `assignation`) et le notifie. |
+| Triggers d'attribution (0039) | Seul l'admin change `demandes.consultant_id` ou `clients.responsable_id` (sans effet pour le SQL direct et les Edge Functions) ; un consultant qui crée une demande ou un client en devient titulaire d'office. |
 
 ---
 
@@ -636,7 +639,9 @@ create table notifications (
 
 > Correctif (0033) : la politique `profils_staff` autorisait tout le staff, donc un simple consultant, à modifier ou supprimer n'importe quel profil depuis son navigateur, notamment à se donner le rôle `admin`. Elle est désormais en lecture seule ; l'application ne fait que lire `profils`.
 
-### 8.2 Politiques RLS (`0003_rls.sql`)
+### 8.2 Politiques RLS (`0003_rls.sql`, refondues par `0039_acces_consultant.sql`)
+
+**Règle d'accès du personnel (lot Accès).** L'admin voit tout. Un consultant ne voit que ses demandes et les données qui s'y rattachent : `peut_voir_demande(demande_id)` pour les tables rattachées à une demande, `peut_voir_client(client_id)` pour les contacts et les échanges notés ; `demandes` et `clients` portent leur règle directement (une ligne tout juste insérée doit rester visible dans le `RETURNING`). Dans le tableau ci-dessous, « staff » désigne donc l'admin (tout) ou le consultant concerné (ses demandes et ses clients). Les fonctions `security definer` qui contournent la RLS vérifient elles-mêmes l'accès (`acces_demande`, migration 0040). Fichiers : un consultant n'accède qu'aux fichiers dont la référence de demande (2e segment du chemin) est la sienne (0042).
 
 | Table | Staff (`admin`, `consultant`) | Client |
 |---|---|---|
@@ -645,8 +650,8 @@ create table notifications (
 | `activites` | Lecture et création ; modification et suppression par l'auteur ou l'admin (0035) | Aucun accès |
 | `probabilites_statut` | Lecture ; modification réservée à l'admin (0038) | Aucun accès |
 | `demande_enjeux`, vue `v_demandes_montants` | Lecture et écriture (la vue : lecture) (0038) | Aucun accès |
-| `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, création pour lui seul, modification, suppression ; réassignation refusée) (0034) | Aucun accès |
-| `profils` | Lecture seule (0033) ; créations, changements de rôle et suppressions par les Edge Functions (`service_role`) | Lecture de son propre profil |
+| `taches` | Admin : tout. Consultant : uniquement les tâches qui lui sont assignées (lecture, modification, suppression ; création pour lui seul et sur un client qu'il voit ; réassignation refusée). Une tâche confiée par l'admin reste visible même sur un client que le consultant ne voit pas (0034, 0039) | Aucun accès |
+| `profils` | Lecture seule (0033) : le personnel est lisible par tous, un profil client seulement s'il est invité sur une demande visible (0039) ; créations, changements de rôle et suppressions par les Edge Functions (`service_role`) | Lecture de son propre profil |
 | `demandes` | Lecture et écriture | Lecture si `a_acces()` |
 | `reponses` | Tout | Lecture si `a_acces()` et question non `F` ; écriture si droit `editeur`, question `C` ou `C/F`, statut `envoyee` ou `en_saisie`. Colonne `annotation_consultant` masquée par une vue `v_reponses_client`. |
 | `fichiers` + bucket Storage `demandes` | Tout | Lecture et dépôt dans `demandes/{client}/{reference}/…` si `a_acces()` (le 2e segment, `reference`, est la clé vérifiée par la RLS - le 1er, un slug du nom du client, ne sert qu'à regrouper visuellement les fichiers par client dans Supabase Storage) |
@@ -815,7 +820,7 @@ Export « Dossier de preuves » (V2) : un PDF par demande regroupant réponses, 
 | `gagnee` | Staff |
 | `perdue` | Staff |
 
-« Staff » = tous les comptes `admin`/`consultant` (pas d'affectation par demande). « Client » = les comptes de `demande_acces` pour la demande concernée.
+« Staff » = l'admin et le consultant de la demande (lot Accès ; auparavant tous les comptes `admin`/`consultant`). « Client » = les comptes de `demande_acces` pour la demande concernée.
 
 **Notification interne** - table `notifications` (`destinataire`, `demande_id`, `reference`, `type`, `titre`, `lu`) alimentée par un unique trigger `fn_notifier_evenement` sur `evenements` (`AFTER INSERT`) : toute transition passe déjà par `rpc_changer_statut`, qui écrit dans `evenements` - un seul trigger centralisé suffit, sans modifier chaque RPC. RLS : un compte ne voit et ne marque comme lues que ses propres notifications.
 
@@ -836,6 +841,7 @@ L'application évolue vers un CRM autour de la demande, qui reste l'objet centra
 | A | Fiche client, contacts, onglets Demandes et Documents, SIRET unique | réalisé (migrations 0030 à 0032) |
 | B | Échanges notés, tâches (droits par responsable), bloc « Aujourd'hui » et calendrier des échéances, relances en tâches | réalisé (migrations 0033 à 0036) |
 | C | Montants (estimation, proposition), probabilités par statut, CA pondéré et signé, pipeline en euros, indicateurs financiers (admin) | réalisé (migration 0038) |
+| Accès | Cloisonnement par consultant : chacun ne voit que ses demandes, seul l'admin voit tout ; correctifs de sécurité (fonctions, e-mails, transitions client) | réalisé (migrations 0039 à 0043) |
 | D | Financements, références de factures (outil de facturation externe) | à faire |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |

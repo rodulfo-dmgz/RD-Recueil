@@ -101,6 +101,19 @@ Deno.serve(async (req: Request) => {
     return reponseJson({ erreur: "Non authentifié." }, 401);
   }
 
+  // Client "appelant" : porte le JWT du demandeur, soumis au RLS. Sert à
+  // vérifier qui appelle et s'il a accès à la demande (lot Accès).
+  const clientAppelant = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: autorisation } },
+  });
+  const {
+    data: { user: appelant },
+    error: erreurUtilisateur,
+  } = await clientAppelant.auth.getUser();
+  if (erreurUtilisateur || !appelant) {
+    return reponseJson({ erreur: "Non authentifié." }, 401);
+  }
+
   let corps: Record<string, unknown>;
   try {
     corps = await req.json();
@@ -129,17 +142,43 @@ Deno.serve(async (req: Request) => {
 
   const { data: demande } = await clientAdmin
     .from("demandes")
-    .select("id")
+    .select("id, consultant_id")
     .eq("reference", reference)
     .maybeSingle();
   if (!demande) {
     return reponseJson({ erreur: "Demande introuvable." }, 404);
   }
 
+  // Accès à la demande : personnel concerné (admin, consultant de la demande)
+  // ou compte client invité. Même réponse qu'une demande inexistante.
+  const { data: aAcces } = await clientAppelant.rpc("acces_demande", { p_demande_id: demande.id });
+  if (!aAcces) {
+    return reponseJson({ erreur: "Demande introuvable." }, 404);
+  }
+
+  // Anti-abus : l'e-mail n'a de sens que juste après la transition qui l'a
+  // déclenchée (l'application l'appelle aussitôt après l'action).
+  const depuis = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const { data: evenement } = await clientAdmin
+    .from("evenements")
+    .select("id")
+    .eq("demande_id", demande.id)
+    .eq("type", "statut")
+    .eq("vers", vers)
+    .gte("created_at", depuis)
+    .limit(1);
+  if (!evenement || evenement.length === 0) {
+    return reponseJson({ envoyes: 0 });
+  }
+
   let emails: string[] = [];
   if (VERS_STAFF.has(vers)) {
-    const { data } = await clientAdmin.from("profils").select("email").in("role", ["admin", "consultant"]);
-    emails = (data || []).map((p) => p.email).filter(Boolean);
+    // L'admin et le consultant de la demande seulement (lot Accès).
+    const { data } = await clientAdmin.from("profils").select("email, role, user_id").in("role", ["admin", "consultant"]);
+    emails = (data || [])
+      .filter((p) => p.role === "admin" || p.user_id === demande.consultant_id)
+      .map((p) => p.email)
+      .filter(Boolean);
   } else {
     const { data } = await clientAdmin
       .from("demande_acces")

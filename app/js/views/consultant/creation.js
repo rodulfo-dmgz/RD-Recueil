@@ -1,5 +1,5 @@
 import { creerDemande } from '../../services/demandes.js';
-import { listerClients, trouverClientParSiret } from '../../services/clients.js';
+import { listerClients, trouverClientParSiret, listerResponsables } from '../../services/clients.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
@@ -110,6 +110,17 @@ export async function vueCreationDemande(clientIdPresel) {
     fieldsetTypes.appendChild(label);
   }
 
+  // L'admin choisit le consultant de la demande (lui-même par défaut) ; un
+  // consultant crée toujours pour lui (lot Accès).
+  const estAdmin = getProfil()?.role === 'admin';
+  const champConsultant = document.createElement('label');
+  champConsultant.className = 'champ';
+  champConsultant.hidden = !estAdmin;
+  champConsultant.innerHTML = '<span>Consultant responsable</span>';
+  const selectConsultant = document.createElement('select');
+  selectConsultant.className = 'champ-saisie';
+  champConsultant.appendChild(selectConsultant);
+
   const bouton = document.createElement('button');
   bouton.type = 'submit';
   bouton.className = 'btn btn--primaire';
@@ -123,7 +134,7 @@ export async function vueCreationDemande(clientIdPresel) {
   }
   selectClientExistant.addEventListener('change', basculerChampsClient);
 
-  form.append(champClientExistant, champRaisonSociale, champSiret, fieldsetTypes, champDateLimite, bouton);
+  form.append(champClientExistant, champRaisonSociale, champSiret, fieldsetTypes, champDateLimite, champConsultant, bouton);
   main.appendChild(form);
   app.appendChild(main);
   if (window.lucide) window.lucide.createIcons();
@@ -139,7 +150,7 @@ export async function vueCreationDemande(clientIdPresel) {
         siret: valeurSiret,
         types,
         dateLimite: document.getElementById('date-limite').value || null,
-        consultantId: getProfil()?.user_id,
+        consultantId: (estAdmin && selectConsultant.value) || getProfil()?.user_id,
       });
       afficherToast('Demande créée.', { type: 'succes' });
       navigate(`/demandes/${demande.reference}`);
@@ -148,6 +159,17 @@ export async function vueCreationDemande(clientIdPresel) {
       bouton.disabled = false;
     }
   });
+
+  if (estAdmin) {
+    try {
+      const responsables = await listerResponsables();
+      selectConsultant.innerHTML = responsables
+        .map((r) => `<option value="${r.user_id}"${r.user_id === getProfil()?.user_id ? ' selected' : ''}>${r.nom || r.email}${r.role === 'admin' ? ' (admin)' : ''}</option>`)
+        .join('');
+    } catch (err) {
+      afficherToast(err.message, { type: 'erreur' });
+    }
+  }
 
   try {
     const clients = await listerClients();

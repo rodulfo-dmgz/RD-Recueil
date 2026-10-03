@@ -1,4 +1,6 @@
 import { listerDemandes } from '../../services/demandes.js';
+import { listerResponsables } from '../../services/clients.js';
+import { getProfil } from '../../store.js';
 import { genererCsv } from '../../engine/csv.js';
 import { afficherToast } from '../../components/toast.js';
 import { telechargerCsv } from '../../components/telechargement.js';
@@ -27,6 +29,10 @@ const TYPES = [
   { valeur: 'CER', libelle: 'Démarche certifiante' },
 ];
 
+function nomConsultant(demande) {
+  return demande.consultant?.nom || demande.consultant?.email || null;
+}
+
 export function vueListeDemandes() {
   const app = document.getElementById('app');
   app.innerHTML = '';
@@ -52,6 +58,15 @@ export function vueListeDemandes() {
     '<option value="">Tous types</option>' +
     TYPES.map((t) => `<option value="${t.valeur}">${t.libelle}</option>`).join('');
 
+  // Colonne et filtre "Consultant" : réservés à l'admin, seul à voir toutes les
+  // demandes (un consultant ne voit que les siennes, lot Accès).
+  const estAdmin = getProfil()?.role === 'admin';
+  const selectConsultant = document.createElement('select');
+  selectConsultant.className = 'champ-saisie';
+  selectConsultant.setAttribute('aria-label', 'Filtrer par consultant');
+  selectConsultant.hidden = !estAdmin;
+  selectConsultant.innerHTML = '<option value="">Tous les consultants</option><option value="aucun">Non attribuées</option>';
+
   const labelArchivees = document.createElement('label');
   labelArchivees.className = 'champ-question__nsp';
   const caseArchivees = document.createElement('input');
@@ -62,7 +77,7 @@ export function vueListeDemandes() {
   boutonExporter.type = 'button';
   boutonExporter.className = 'btn btn--secondaire';
   boutonExporter.textContent = 'Exporter en CSV';
-  filtres.append(selectStatut, selectType, labelArchivees, boutonExporter);
+  filtres.append(selectStatut, selectType, selectConsultant, labelArchivees, boutonExporter);
   main.appendChild(filtres);
 
   const liste = document.createElement('ul');
@@ -77,16 +92,16 @@ export function vueListeDemandes() {
       return;
     }
     // Montants (HT) ajoutés quand ils sont disponibles ; sinon l'export reste possible sans eux.
-    let colonnes = COLONNES_CSV;
+    let colonnes = estAdmin ? [...COLONNES_CSV, { libelle: 'Consultant', valeur: (d) => nomConsultant(d) ?? '' }] : COLONNES_CSV;
     try {
       const parDemande = new Map((await listerMontants()).map((m) => [m.demande_id, m]));
       colonnes = [
-        ...COLONNES_CSV,
+        ...colonnes,
         { libelle: 'Montant HT', valeur: (d) => parDemande.get(d.id)?.montant_retenu ?? '' },
         { libelle: 'Source du montant', valeur: (d) => (parDemande.has(d.id) ? libelleSourceMontant(parDemande.get(d.id).source_montant) : '') },
       ];
     } catch {
-      colonnes = COLONNES_CSV;
+      // montants indisponibles : l'export garde les colonnes déjà prévues.
     }
     const csv = genererCsv(dernieresDemandes, colonnes);
     telechargerCsv(`demandes-${new Date().toISOString().slice(0, 10)}.csv`, csv);
@@ -98,6 +113,7 @@ export function vueListeDemandes() {
       const demandes = await listerDemandes({
         statut: selectStatut.value || undefined,
         type: selectType.value || undefined,
+        consultantId: estAdmin ? selectConsultant.value || undefined : undefined,
         inclureArchivees: caseArchivees.checked,
       });
       dernieresDemandes = demandes;
@@ -110,7 +126,7 @@ export function vueListeDemandes() {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = `#/demandes/${d.reference}`;
-        a.textContent = `${d.reference} · ${d.clients?.raison_sociale ?? 'Sans nom'} · ${d.statut}${d.archivee ? ' (archivée)' : ''}`;
+        a.textContent = `${d.reference} · ${d.clients?.raison_sociale ?? 'Sans nom'} · ${d.statut}${d.archivee ? ' (archivée)' : ''}${estAdmin ? ` · ${nomConsultant(d) ?? 'non attribuée'}` : ''}`;
         li.appendChild(a);
         liste.appendChild(li);
       }
@@ -119,6 +135,14 @@ export function vueListeDemandes() {
     }
   }
 
+  if (estAdmin) {
+    listerResponsables()
+      .then((responsables) => {
+        for (const r of responsables) selectConsultant.appendChild(Object.assign(document.createElement('option'), { value: r.user_id, textContent: r.nom || r.email }));
+      })
+      .catch((err) => afficherToast(err.message, { type: 'erreur' }));
+  }
+  selectConsultant.addEventListener('change', rafraichir);
   selectStatut.addEventListener('change', rafraichir);
   selectType.addEventListener('change', rafraichir);
   caseArchivees.addEventListener('change', rafraichir);

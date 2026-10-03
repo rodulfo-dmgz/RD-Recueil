@@ -13,6 +13,13 @@ export async function trouverClientParSiret(siret) {
   return data.find((c) => normaliserSiret(c.siret) === chiffres) ?? null;
 }
 
+// Un consultant ne voit que ses clients : l'index unique du SIRET peut donc
+// refuser un client qu'il ne voit pas. Message sans nom (lot Accès).
+function erreurSiretSuivi(error) {
+  if (error?.code === '23505') return new Error('Ce SIRET est déjà suivi. Contactez l’administrateur.');
+  return error;
+}
+
 // Réutilise le client existant quand le SIRET est déjà connu (l'index unique
 // de la migration 0031 interdit les doublons) ; `dejaExistant` le signale.
 export async function creerClient({ raisonSociale, siret }) {
@@ -24,7 +31,7 @@ export async function creerClient({ raisonSociale, siret }) {
     .insert({ raison_sociale: raisonSociale, siret: normaliserSiret(siret) || null })
     .select()
     .single();
-  if (error) throw error;
+  if (error) throw erreurSiretSuivi(error);
   return { ...data, dejaExistant: false };
 }
 
@@ -60,7 +67,7 @@ export async function enregistrerClient(id, champs) {
   }
   const requete = id ? supabase.from('clients').update(champs).eq('id', id) : supabase.from('clients').insert(champs);
   const { data, error } = await requete.select().single();
-  if (error) throw error;
+  if (error) throw erreurSiretSuivi(error);
   return data;
 }
 

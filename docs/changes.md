@@ -22,7 +22,8 @@ Projet Supabase de Recueil : `kowvfsesbuevylxayinl`. Le LMS est un autre projet 
 | A | Fiche client et contacts | terminé et commité (`db4b088`, non poussé) ; reste un essai avec un vrai compte |
 | B | Activités, tâches, bloc "Aujourd'hui", relances dans le calendrier | terminé et commité ; reste un essai avec un vrai compte |
 | C | Montants, CA pondéré, pipeline en euros, KPI financiers | terminé et commité ; reste un essai avec un vrai compte |
-| D | Financements, références de factures (Shine) | à faire |
+| Accès | Cloisonnement par consultant (avant le lot D, voir 3d) | terminé et commité ; reste un essai avec un vrai compte |
+| D | Financements, références de factures (Shine) | à faire (après le lot Accès) |
 | E | Recherche globale, fusion de doublons, clients dormants | à faire |
 | F | Satisfaction, réclamations, consentement des contacts, journal d'audit | à faire |
 
@@ -130,6 +131,29 @@ Rappels automatiques, tâches créées automatiquement à chaque changement de s
 
 ### Hors lot C
 Date de signature estimée et prévision mensuelle, motif de perte structuré (la raison existe déjà en texte libre), objectifs de chiffre d'affaires, remises, acomptes et factures (lot D), TVA, écran d'administration des probabilités.
+
+## 3d. Lot Accès : cloisonnement par consultant
+
+Origine : en répondant au plan du lot D, l'utilisateur a rappelé que "chaque consultant voit ses demandes, seulement l'admin a une vue sur toutes les demandes". Ce n'était pas appliqué : les 28 politiques de 20 tables s'appuyaient sur `est_staff()` (tout le personnel voit tout). Option A choisie : ce lot d'abord, le lot D ensuite, construit dessus.
+
+### Règle et décisions validées (les cinq points)
+- Un consultant voit uniquement ses demandes (`demandes.consultant_id`) et les clients dont il est responsable (`clients.responsable_id`) ou qui ont l'une de ses demandes. L'admin voit tout. Le client ne change pas (`a_acces`).
+- Une tâche confiée par l'admin sur un client que le consultant ne voit pas : le consultant voit la tâche, pas la fiche du client (l'admin lui confie le client s'il en a besoin).
+- Notifications du personnel : l'admin et le consultant de la demande seulement (plus tous).
+- Changer le consultant d'une demande ou le responsable d'un client : réservé à l'admin.
+- SIRET déjà suivi par un autre consultant : message sans nom ("déjà suivi, contactez l'administrateur").
+
+### Technique
+- Fonctions `peut_voir_demande(id)` et `peut_voir_client(id)` (security definer) pour les tables enfants ; `demandes` et `clients` portent leur règle directement, pour qu'une ligne tout juste insérée reste visible dans le RETURNING.
+- Triggers : seul l'admin change `consultant_id` ou `responsable_id` (sans effet pour le SQL direct et les Edge Functions, où `auth.uid()` est nul) ; un consultant qui crée une demande ou un client en devient le titulaire d'office.
+
+### Étapes
+- [x] S1. Fonctions d'accès, politiques de toutes les tables, verrous d'assignation, matrice de tests en base
+- [x] S2. Fonctions de la base (changement de statut, soumission, signature, archivage, calendrier `rpc_jalons`, notifications) : vérifications d'accès, fermeture de l'accès sans connexion
+- [x] S3. Règles du dossier de fichiers (Storage)
+- [x] S4. Application : création de client (SIRET), choix du consultant responsable (admin), messages d'accès refusé
+- [x] S5. Liste des demandes : colonne et filtre "Consultant" (admin)
+- [x] S6. Documentation, tests, audit de sécurité, commit
 
 ## 4. Journal des étapes
 
@@ -432,13 +456,89 @@ Fichiers du lot C (commit) :
 - Modifiés : `app/css/dashboard.css`, `app/js/views/consultant/vue-360.js`, `tableau-de-bord.js`, `indicateurs.js`, `clients.js`, `client-fiche.js`, `liste.js`, `docs/01_ARCHITECTURE.md`, `docs/changes.md`.
 - Non inclus : les mêmes fichiers que pour le lot B (`app/assets/images/logo.svg`, `app/crm_app.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.ts`, `app/preview.ts`, `.claude/skills/`, `docs/05_SKELETONS.md`, les deux fichiers d'e-mails).
 
+### 2026-10-02 : lot Accès, étape S1 (migration 0039)
+
+Fait : migration `0039_acces_consultant.sql` appliquée sur la base et enregistrée dans `supabase/migrations/`.
+- Fonctions `peut_voir_demande` et `peut_voir_client` (exécutables par les comptes connectés seulement).
+- Nouvelles politiques : demandes (`consultant_id`), commentaires, invitations (`demande_acces`), enjeux, créneaux, fichiers, notes de cadrage, propositions et leurs lignes, réponses, événements, historique des réponses (`peut_voir_demande`) ; clients (règle directe), contacts, échanges notés (`peut_voir_client`) ; création de tâche (client visible) ; profils (personnel lisible, un profil client seulement s'il est invité sur une demande visible).
+- Triggers `trg_demandes_proteger_assignation`, `trg_clients_proteger_assignation`, `trg_demandes_attribuer`, `trg_clients_attribuer`.
+
+Vérifié en base (transactions annulées ; deux consultants simulés c1 et c2 à partir de deux comptes clients, avec c1 titulaire de RDF-2026-0006 et c2 de RDF-2026-0008 ; état revérifié ensuite : 4 demandes toutes à l'admin, 4 clients, 0 consultant, rien de résiduel) :
+- l'admin voit exactement tout ce qu'il voyait (demandes 4/4, réponses 145/145, historique 597/597, événements 14/14, invitations 3/3, notes 1/1, propositions 1/1, créneaux 1/1, fichiers 2/2, enjeux 3/3, profils 4/4, clients 4, vues de montants et de clients 4) ;
+- c1 et c2 ne voient que les leurs : 1 demande, 1 invitation, 1 enjeu, 1 événement, 1 fichier, 1 client, 1 contact, 1 échange, et 0 réponse, 0 historique, 0 note, 0 proposition, 0 ligne de proposition, 0 créneau (les 145 réponses, 597 lignes d'historique et la proposition appartiennent à d'autres demandes) ; un commentaire interne de l'autre n'est pas visible ;
+- c1 crée un client et le retrouve (responsable posé d'office), crée une demande qui lui est attribuée d'office, ne peut pas en créer une pour c2, c2 ne voit ni ce client ni cette demande ;
+- écritures croisées refusées : modifier la demande de c2 (0 ligne), réassigner sa propre demande ou son client (exception), noter un échange, ajouter un contact ou créer une tâche chez un client de c2 ;
+- tâche confiée par l'admin à c1 sur le client de c2 : c1 la voit, pas la fiche du client ; l'admin réassigne sans obstacle ;
+- profils : c1 voit le personnel (3 profils sur 4) mais pas le compte client d'une demande qui n'est pas la sienne.
+
+Constat à part (non traité, hors CRM) : cette base contient aussi des tables d'autres applications (`stagiaires`, `groupes`, `sessions`, `documents_generes`, `titres`, `wall_*`, `profils_utilisateurs`, etc.) dont certaines ont des politiques `authenticated_all` (tout compte connecté lit et écrit). Un compte client de RD Recueil, qui est un compte connecté, pourrait donc lire ou modifier ces données. À regarder avec l'utilisateur avant d'y toucher, au risque de casser ces autres applications.
+
+### 2026-10-02 : lot Accès, étape S2 (migrations 0040 et 0041, Edge Function)
+
+Fait :
+- Migration `0040_acces_fonctions.sql` (appliquée) : fonction `acces_demande(id)` (personnel concerné ou client invité) ; vérification d'accès ajoutée dans `rpc_changer_statut`, `rpc_soumettre`, `rpc_demander_modification`, `rpc_valider_cadrage`, `rpc_accepter_proposition`, `rpc_refuser_proposition`, `rpc_confirmer_reservation_calcom` (qui n'en avaient aucune : tout compte connecté pouvait agir sur n'importe quelle demande par son identifiant) ; `rpc_archiver_demande` limité au personnel concerné ; `rpc_jalons` filtré par `acces_demande` ; `fn_notifier_evenement` notifie l'admin et le consultant de la demande (plus tous) ; exécution de `rpc_valider_cadrage` retirée à `anon` (appelable sans connexion) ; `fn_historiser_reponse` et `fn_notifier_evenement` retirées de l'API.
+- **Régression trouvée et corrigée (migration `0041_transitions_client.sql`, appliquée).** La migration 0019 avait réécrit `rpc_changer_statut` sans les transitions `gagnee`, `perdue` et `entretien_planifie` pour le rôle client (présentes dans 0014 et 0015). En production, un client ne pouvait donc ni accepter ou refuser une proposition ni confirmer un rendez-vous Cal.com (les fonctions dédiées appellent `rpc_changer_statut` avec son identité et levaient "Rôle client non autorisé"). Correctif : un client ne déclenche `soumise`, `cadrage_valide`, `cadrage_a_revoir`, `gagnee`, `perdue` et `entretien_planifie` que par les fonctions dédiées (qui posent un indicateur de transaction `app.transition_client_via_rpc`, non posable par l'API), jamais par un appel direct à `rpc_changer_statut` (ce qui fermait aussi le contournement de la signature et du contrôle des questions obligatoires) ; il garde `abandonnee` en appel direct. Les parcours client de l'application passent déjà par les fonctions dédiées.
+- **Edge Function `envoyer-notification-email` redéployée (version 9).** Elle ne vérifiait que la présence d'un en-tête Authorization : n'importe quel compte connecté pouvait déclencher des e-mails pour n'importe quelle demande. Elle valide maintenant l'appelant (`getUser`), vérifie l'accès à la demande (`acces_demande`, même réponse qu'une demande inexistante), n'envoie que si la transition correspondante a été enregistrée dans les 15 dernières minutes, et écrit à l'admin et au consultant de la demande seulement. Le gabarit déployé est resté celui d'avant (le nouveau gabarit reste local, non déployé comme convenu) : le correctif a été appliqué à la version commitée et déployé ; la même modification a été reportée dans le fichier de travail qui contient le nouveau gabarit.
+
+Vérifié en base (transactions annulées, deux consultants simulés et un vrai compte client de RDF-2026-0007, état revérifié ensuite : statuts inchangés, rien de résiduel) :
+- refusés : changement de statut, soumission, archivage et réservation sur la demande d'un autre (consultant étranger comme client étranger), acceptation, refus, validation et demande de modification de documents d'une autre demande ;
+- acceptés : le consultant fait avancer, archive et désarchive sa demande ; le client refuse puis accepte sa propre proposition, confirme un rendez-vous (statut entretien_planifie) et peut abandonner ; refusés au client : `gagnee`, `perdue`, `entretien_planifie` et `en_analyse` en appel direct ;
+- notifications de soumission : l'admin et le consultant de la demande, pas l'autre consultant ;
+- `rpc_jalons` : admin 3 demandes (la quatrième est archivée), consultant 1, client 1 ;
+- appel sans connexion à `rpc_valider_cadrage` : permission refusée.
+Edge Function : sans session valide elle répond 401 (en-tête absent ou clé publique seule).
+
+À noter : accepter ou refuser une proposition exige désormais d'avoir accès à la demande (un consultant de la demande le pourrait donc encore, comme avant) ; on pourrait réserver ces signatures aux seuls comptes clients invités (valeur de preuve), à décider avec l'utilisateur.
+
+### 2026-10-02 : lot Accès, étape S3 (migration 0042)
+
+Fait : migration `0042_stockage_consultant.sql` (appliquée) : la politique `stockage_staff` du bucket `demandes` ("tout le staff, tout le bucket") devient : l'admin garde tout (y compris les anciens chemins qui commencent par la référence) ; un consultant n'accède qu'aux fichiers dont le deuxième segment du chemin (`{client}/{référence}/…`, cf. 0027) est la référence d'une de ses demandes, en lecture, dépôt, modification et suppression. Les règles du client ne changent pas.
+
+Vérifié en base (transaction annulée, objets de test insérés puis annulés) : 4 fichiers au total (3 de test et 1 ancien) : l'admin en voit 4, chaque consultant 1 (celui de sa demande), le client de RDF-2026-0007 1 (le sien) ; un consultant dépose un fichier chez lui, est refusé chez l'autre, et ne modifie aucun fichier de l'autre (0 ligne).
+
+### 2026-10-02 : lot Accès, étape S4 (application, migration 0043)
+
+Fait :
+- Migration `0043_assigner_demande.sql` (appliquée) : `rpc_assigner_demande(demande, consultant)`, réservée à l'admin, qui vérifie que la cible est un admin ou un consultant, change `consultant_id`, journalise l'attribution (événement de type `assignation`, sans effet sur les statuts, le calendrier ni les notifications de statut) et prévient le consultant ("Demande attribuée"). Vérifié en base (transaction annulée) : un consultant est refusé ("Réservé à l'administrateur"), une cible qui n'est pas du personnel est refusée ("Consultant introuvable"), l'admin attribue, le journal indique le nom, la notification est créée.
+- `services/demandes.js` : `assignerDemande`. `services/clients.js` : un SIRET déjà porté par un client que le consultant ne voit pas (l'index unique le refuse) donne "Ce SIRET est déjà suivi. Contactez l'administrateur." sans nommer le client, à la création comme à la modification.
+- `components/carte-attribution.js` (nouveau), insérée dans la vue 360 pour l'admin : "Demande attribuée à" (liste du personnel, le consultant actuel présélectionné) et "Attribuer" (sans effet si le choix n'a pas changé ; la vue se recharge ensuite).
+- `views/consultant/creation.js` : l'admin voit "Consultant responsable" (lui-même par défaut) ; un consultant crée toujours pour lui.
+- `components/formulaire-client.js` : le choix du responsable du client n'existe plus que pour l'admin (fiche et création) ; sinon la clé n'est même pas envoyée.
+- `components/lecture-demande.js` : l'attribution se lit en clair dans le journal ("Demande attribuée : nom"). Le séparateur des autres lignes du journal passe d'un tiret cadratin à un point médian.
+- Messages : "Demande introuvable" (vue 360, éditeur de note, éditeur de proposition, créneaux, entretien) et "Client introuvable" ajoutent "Elle n'existe pas, ou elle n'est pas attribuée à votre compte".
+
+Vérifié : `node --test tests/*.test.mjs` 137 réussis, 0 échec. Pages de test avec services simulés (supprimées ensuite) : création de demande (admin : choix visible, appel avec le consultant choisi ; consultant : choix masqué, appel avec lui-même), carte d'attribution (options, aucun appel quand rien ne change, appel puis rechargement et message), formulaire client (responsable absent et non envoyé pour un consultant, présent et envoyé pour l'admin) ; services réels de clients avec un faux client Supabase : le code d'erreur 23505 devient le message sans nom. Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-03 : lot Accès, étape S5 (liste des demandes pour l'admin)
+
+Fait :
+- `services/demandes.js` : `listerDemandes` accepte `consultantId` (un identifiant, ou `aucun` pour les demandes sans consultant) et renvoie `consultant_id` et le nom du consultant (jointure sur `profils`).
+- `views/consultant/liste.js` : pour l'admin seulement, un filtre "Consultant" (Tous les consultants, Non attribuées, un choix par membre du personnel), le nom du consultant (ou "non attribuée") sur chaque ligne, et une colonne "Consultant" dans l'export CSV ; un consultant ne voit ni le filtre, ni le nom, ni la colonne (il ne reçoit de toute façon que ses demandes, par la base).
+
+Vérifié : `node --test tests/*.test.mjs` 137 réussis, 0 échec. Requêtes exactes envoyées à l'API REST avec la clé publique : jointure et filtre acceptés (200, liste vide faute de session), jointure inexistante refusée (400). Page de test avec services simulés (supprimée ensuite) : admin (filtre visible, liste complète avec le consultant sur chaque ligne, filtre par consultant et "Non attribuées" avec le bon paramètre, CSV avec la colonne Consultant avant les montants), consultant (filtre masqué, aucun nom, CSV sans la colonne). Non testé avec la vraie base et un vrai compte.
+
+### 2026-10-03 : lot Accès, étape S6 (clôture)
+
+Fait :
+- `docs/01_ARCHITECTURE.md` : rôles (le consultant ne voit que ses demandes, l'admin attribue), liste des demandes et carte d'attribution (4.2), fonctions `peut_voir_demande`, `peut_voir_client`, `acces_demande`, `est_admin`, `rpc_assigner_demande` et triggers d'attribution (7), règle d'accès du personnel et lignes de droits corrigées (8.2), destinataires des notifications du personnel (16), ligne "Accès" de la feuille de route (17).
+- Contrôle d'ensemble : 137 tests réussis, `check-coherence` 0 erreur, aucun tiret cadratin dans les lignes ajoutées.
+- Audit de sécurité Supabase relancé : aucune alerte nouvelle due à ce lot. Restent des alertes déjà présentes avant le lot : `get_my_role` et `update_updated_at_column` sans `search_path` fixe, `est_staff`, `get_my_role`, `handle_new_user` et `rls_auto_enable` appelables sans connexion, liste de fonctions `security definer` appelables par un compte connecté, protection contre les mots de passe compromis désactivée. Non corrigées ici (voir points ouverts).
+
+Fichiers du lot Accès (commit) :
+- Nouveaux : `supabase/migrations/0039_acces_consultant.sql`, `0040_acces_fonctions.sql`, `0041_transitions_client.sql`, `0042_stockage_consultant.sql`, `0043_assigner_demande.sql` ; `app/js/components/carte-attribution.js`.
+- Modifiés : `supabase/functions/envoyer-notification-email/index.ts` (version déjà déployée : même gabarit qu'avant avec le correctif d'accès), `app/js/services/demandes.js`, `clients.js`, `views/consultant/creation.js`, `vue-360.js`, `liste.js`, `client-fiche.js`, `client-nouveau.js`, `entretien.js`, `creneaux.js`, `editeur-note.js`, `editeur-proposition.js`, `components/formulaire-client.js`, `lecture-demande.js`, `docs/01_ARCHITECTURE.md`, `docs/changes.md`.
+- Non inclus (travaux sans rapport avec ce lot) : `app/assets/images/logo.svg` (logo aux bords arrondis), `supabase/functions/creer-compte/mail.ts` (nouveau gabarit d'e-mail), le nouveau gabarit dans `envoyer-notification-email` (seul le correctif d'accès sur l'ancien gabarit est commité, via l'index), `app/crm_app.md`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`, `app/mail.html`, `.claude/skills/`, `docs/05_SKELETONS.md`.
+
+Les migrations 0039 à 0043 et la nouvelle version de l'Edge Function sont déjà en production alors que le code publié sur GitHub Pages est encore celui du lot C. Le compte admin voit tout, donc il n'est pas gêné ; le comportement pour un compte consultant ou client avec l'ancien code reste à confirmer lors de l'essai réel.
+
 ## 5. Points ouverts
 
+- **Tables d'autres applications ouvertes à tout compte connecté** (voir le constat de l'étape S1) : à décider avec l'utilisateur.
 - **Alertes de sécurité Supabase déjà présentes avant le CRM (non traitées)** : `rpc_valider_cadrage(uuid, text)` est exécutable par le rôle `anon` (le `revoke` de 0005 portait sur l'ancienne signature) ; `est_staff`, `get_my_role`, `handle_new_user`, `rls_auto_enable`, `fn_historiser_reponse`, `fn_notifier_evenement` sont exécutables par `anon` ; `get_my_role` et `update_updated_at_column` n'ont pas de `search_path` fixe ; la protection contre les mots de passe compromis est désactivée côté Auth. S'ajoute le trou déjà signalé : `rpc_valider_cadrage` et `rpc_accepter_proposition` ne vérifient pas que l'appelant a accès à la demande. À traiter dans une migration dédiée, avec accord.
-- **Fichiers inconnus dans `app/`** : `app/mail.ts` (gabarit d'e-mail d'activation) et `app/preview.ts` (génère un aperçu HTML de ce gabarit) datent de ce soir et ne sont pas de moi, sans doute vos essais d'e-mails. `app/` est publié sur GitHub Pages : à ne pas commiter tels quels, un gabarit d'e-mail n'a pas de raison d'y être.
+- **Fichiers d'essais d'e-mails dans `app/`** : `app/mail.html` n'est pas de moi, sans doute un essai d'e-mail (`app/mail.ts` et `app/preview.ts` n'existent plus). `app/` est publié sur GitHub Pages : à ne pas commiter tels quels, un gabarit d'e-mail n'a pas de raison d'y être. Le fichier `app/assets/images/logo.svg` est aussi modifié sans être commité : à relire avant de le commiter.
 
-- **Essai réel des lots A et B** : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
+- **Essai réel des lots A, B, C et Accès** (pour le lot Accès : créer un compte consultant, lui attribuer une demande, vérifier qu'il ne voit ni les autres demandes ni leurs clients, fichiers ou notifications, et qu'un client peut accepter ou refuser une proposition et réserver un rendez-vous) : à faire une fois déployé, avec un compte admin (liste, fiche, modification, import depuis une demande, contacts, création de demande depuis une fiche, bouton "Fiche client" de la vue 360) et avec un compte client (aucun accès aux fiches).
 
 - `app/crm_app.md` est dans `app/` (dossier publié sur GitHub Pages) et n'est pas versionné : le déplacer dans `docs/` avant tout `git add app`.
-- Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub ; le lot C (migration 0038 appliquée en base) est commité en local, pas encore poussé. Toutes les migrations (0030 à 0037) sont déjà appliquées sur la base de production alors que le code publié sur GitHub Pages est encore celui d'avant le CRM.
+- Les lots A (`db4b088`) et B (`b57125b`) sont commités et poussés sur GitHub  et le lot C (`a780eb1`) aussi. Le lot Accès est commité en local, pas poussé. Toutes les migrations (0030 à 0043) sont déjà appliquées sur la base de production ; le code publié sur GitHub Pages est celui du lot C tant que le lot Accès n'est pas poussé (compatibilité à confirmer lors de l'essai réel).
 - Hors CRM, toujours en attente : modèles d'e-mails refondus (`creer-compte/mail.ts`, `envoyer-notification-email/index.ts`) à ne pas déployer sans accord ; `docs/05_SKELETONS.md` non commité ; fichiers locaux non versionnés (`.claude/skills/`, `app/arb.bat`, `app/arborescence.txt`, `app/security.md`) ; trou de droits sur `rpc_valider_cadrage` et `rpc_accepter_proposition` (accès à vérifier par demande), proposé et non traité.

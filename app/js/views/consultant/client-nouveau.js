@@ -1,6 +1,7 @@
 // Création d'un client ou d'un prospect (CRM, lot A). Réservé au staff.
 import { enregistrerClient, listerResponsables } from '../../services/clients.js';
 import { navigate } from '../../router.js';
+import { getProfil } from '../../store.js';
 import { afficherToast } from '../../components/toast.js';
 import { construireFormulaireClient } from '../../components/formulaire-client.js';
 import { el, icone } from '../../components/dashboard-ui.js';
@@ -29,6 +30,7 @@ export async function vueClientNouveau() {
       // Un contact qui n'a pas encore fait de demande est un prospect.
       valeurs: { statut: 'prospect' },
       responsables,
+      avecResponsable: getProfil()?.role === 'admin',
       libelleBouton: 'Créer la fiche',
       onAnnuler: () => navigate('/clients'),
       onEnregistrer: async (champs) => {

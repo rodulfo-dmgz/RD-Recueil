@@ -64,7 +64,7 @@ export function rendreJournal(journal) {
   for (const e of journal) {
     const li = document.createElement('li');
     const date = new Date(e.created_at).toLocaleString('fr-FR');
-    li.textContent = `${date} — ${e.de ?? '∅'} → ${e.vers ?? e.type}`;
+    li.textContent = e.type === 'assignation' ? `${date} · Demande attribuée : ${e.commentaire ?? ''}` : `${date} · ${e.de ?? '∅'} → ${e.vers ?? e.type}`;
     liste.appendChild(li);
   }
   bloc.appendChild(liste);

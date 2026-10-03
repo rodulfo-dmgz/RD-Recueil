@@ -10,13 +10,17 @@ export async function obtenirDemandeParReference(reference) {
   return data;
 }
 
-export async function listerDemandes({ statut, type, inclureArchivees = false } = {}) {
+// consultantId : demandes d'un consultant ; 'aucun' pour celles qui ne sont attribuées à personne
+// (liste de l'admin : un consultant ne voit de toute façon que les siennes).
+export async function listerDemandes({ statut, type, consultantId, inclureArchivees = false } = {}) {
   let requete = supabase
     .from('demandes')
-    .select('id, reference, statut, date_limite, types, created_at, archivee, clients(raison_sociale)')
+    .select('id, reference, statut, date_limite, types, created_at, archivee, consultant_id, clients(raison_sociale), consultant:profils!consultant_id(nom, email)')
     .order('created_at', { ascending: false });
   if (statut) requete = requete.eq('statut', statut);
   if (type) requete = requete.contains('types', [type]);
+  if (consultantId === 'aucun') requete = requete.is('consultant_id', null);
+  else if (consultantId) requete = requete.eq('consultant_id', consultantId);
   if (!inclureArchivees) requete = requete.eq('archivee', false);
 
   const { data, error } = await requete;
@@ -53,6 +57,16 @@ export async function archiverDemande(demandeId, archiver) {
   const { error } = await supabase.rpc('rpc_archiver_demande', {
     p_demande_id: demandeId,
     p_archiver: archiver,
+  });
+  if (error) throw error;
+}
+
+// Attribution d'une demande à un consultant : réservée à l'admin (lot Accès,
+// migration 0043) ; journalisée, et le consultant est prévenu.
+export async function assignerDemande(demandeId, consultantId) {
+  const { error } = await supabase.rpc('rpc_assigner_demande', {
+    p_demande_id: demandeId,
+    p_consultant_id: consultantId,
   });
   if (error) throw error;
 }

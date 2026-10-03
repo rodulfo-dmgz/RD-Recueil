@@ -191,7 +191,7 @@ export async function vueClientFiche(id, onglet = 'apercu') {
     return;
   }
   if (!client) {
-    app.innerHTML = '<main class="conteneur"><h1>Client introuvable</h1><p><a href="#/clients">Retour aux clients</a></p></main>';
+    app.innerHTML = '<main class="conteneur"><h1>Client introuvable</h1><p class="texte-doux">Il n’existe pas, ou il n’est pas rattaché à votre compte.</p><p><a href="#/clients">Retour aux clients</a></p></main>';
     return;
   }
 
@@ -264,6 +264,7 @@ export async function vueClientFiche(id, onglet = 'apercu') {
         construireFormulaireClient({
           valeurs: client,
           responsables,
+          avecResponsable: estAdmin,
           onAnnuler: () => {
             edition = false;
             rendre();

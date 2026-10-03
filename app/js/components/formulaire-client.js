@@ -42,7 +42,8 @@ function champTexte(champ, valeur, erreurs) {
 // valeurs : fiche existante (ou {}), responsables : profils staff.
 // onEnregistrer(ligne) reçoit la ligne prête pour la base et peut lancer une
 // erreur, affichée sous le formulaire ; onAnnuler : retour sans enregistrer.
-export function construireFormulaireClient({ valeurs = {}, responsables = [], onEnregistrer, onAnnuler, libelleBouton = 'Enregistrer' }) {
+// avecResponsable : choix du responsable du client, réservé à l'admin (lot Accès).
+export function construireFormulaireClient({ valeurs = {}, responsables = [], avecResponsable = false, onEnregistrer, onAnnuler, libelleBouton = 'Enregistrer' }) {
   const formulaire = el('form', 'cl-form');
   formulaire.noValidate = true;
   const champs = {};
@@ -109,7 +110,8 @@ export function construireFormulaireClient({ valeurs = {}, responsables = [], on
     valeurs.responsable_id,
     'Non attribué'
   );
-  suivi.append(statut.wrapper, source.wrapper, responsable.wrapper);
+  suivi.append(statut.wrapper, source.wrapper);
+  if (avecResponsable) suivi.appendChild(responsable.wrapper);
   formulaire.appendChild(suivi);
 
   const notes = el('label', 'cl-champ cl-champ--pleine');
@@ -138,7 +140,8 @@ export function construireFormulaireClient({ valeurs = {}, responsables = [], on
   formulaire.addEventListener('submit', async (evenement) => {
     evenement.preventDefault();
     erreurGenerale.textContent = '';
-    const saisie = { statut: statut.select.value, source: source.select.value, responsable_id: responsable.select.value, notes: zoneNotes.value };
+    const saisie = { statut: statut.select.value, source: source.select.value, notes: zoneNotes.value };
+    if (avecResponsable) saisie.responsable_id = responsable.select.value;
     for (const [cle, { input }] of Object.entries(champs)) saisie[cle] = input.value;
 
     const erreurs = validerFiche(saisie);

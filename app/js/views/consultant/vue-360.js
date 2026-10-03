@@ -23,6 +23,7 @@ import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { LIBELLES_STATUT, categorieStatut } from '../../engine/statuts.js';
 import { construireEtapes } from '../../components/dashboard-ui.js';
 import { construireCarteEnjeu } from '../../components/carte-enjeu.js';
+import { construireCarteAttribution } from '../../components/carte-attribution.js';
 import { getProfil, setApercuRole, setClientApercuId } from '../../store.js';
 import { navigate } from '../../router.js';
 
@@ -45,7 +46,7 @@ export async function vueVue360(reference) {
   try {
     const demande = await obtenirDemandeParReference(reference);
     if (!demande) {
-      app.innerHTML = '<main class="conteneur"><h1>Demande introuvable</h1></main>';
+      app.innerHTML = '<main class="conteneur"><h1>Demande introuvable</h1><p class="texte-doux">Elle n’existe pas, ou elle n’est pas attribuée à votre compte.</p></main>';
       return;
     }
 
@@ -130,6 +131,9 @@ function rendre({
   suivi.appendChild(construireEtapes(demande.statut));
   main.appendChild(suivi);
   main.appendChild(construireCarteEnjeu({ demande }));
+  if (getProfil()?.role === 'admin') {
+    main.appendChild(construireCarteAttribution({ demande, onAttribue: () => vueVue360(demande.reference) }));
+  }
 
   main.appendChild(
     creerCarteListe(rendreLignesDocuments({ demande, reponses, noteEnvoyee, proposition, lignesProposition }))
