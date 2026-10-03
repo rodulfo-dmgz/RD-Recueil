@@ -226,3 +226,8 @@ body.look-nouveau .cl-statut--cloture { background: color-mix(in srgb, var(--tex
 .cl-statut--succes .cl-statut__point { background: var(--rd-turquoise); }
 .cl-statut--attention .cl-statut__point { background: var(--rd-orange); }
 .cl-statut--neutre .cl-statut__point { background: var(--rd-bleu); }
+
+/* Tri par clic sur l'en-tête (composant tableau-liste) */
+.th-tri { display: inline-flex; align-items: center; gap: 0; padding: 0; border: none; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+.th-tri:hover { color: var(--texte); }
+.th-tri svg { width: 14px; height: 14px; margin-left: 6px; stroke-width: 1.8; }

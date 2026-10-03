@@ -54,20 +54,21 @@ function colonnesDemandes(estAdmin) {
       icone: 'hash',
       largeur: 190,
       figee: true,
+      tri: (d) => d.reference,
       rendu: (d) => {
         const lien = el('a', 'cl-nom', d.reference);
         lien.href = `#/demandes/${d.reference}`;
         return lien;
       },
     },
-    { titre: 'Client', icone: 'building-2', largeur: 240, rendu: (d) => d.clients?.raison_sociale ?? 'Sans nom' },
-    { titre: 'Statut', icone: 'circle-dot', largeur: 190, rendu: pastilleStatutDemande },
+    { titre: 'Client', icone: 'building-2', largeur: 240, tri: (d) => d.clients?.raison_sociale, rendu: (d) => d.clients?.raison_sociale ?? 'Sans nom' },
+    { titre: 'Statut', icone: 'circle-dot', largeur: 190, tri: (d) => LIBELLES_STATUT[d.statut] ?? d.statut, rendu: pastilleStatutDemande },
     { titre: 'Types', icone: 'tags', largeur: 220, rendu: (d) => (d.types || []).map((t) => LIBELLES_TYPE[t] ?? t).join(', ') },
   ];
-  if (estAdmin) colonnes.push({ titre: 'Consultant', icone: 'user-round', largeur: 200, rendu: (d) => nomConsultant(d) ?? 'Non attribuée' });
+  if (estAdmin) colonnes.push({ titre: 'Consultant', icone: 'user-round', largeur: 200, tri: (d) => nomConsultant(d), rendu: (d) => nomConsultant(d) ?? 'Non attribuée' });
   colonnes.push(
-    { titre: 'Date limite', icone: 'calendar', largeur: 150, rendu: (d) => (d.date_limite ? formaterDate(d.date_limite) : '') },
-    { titre: 'Créée le', icone: 'clock', largeur: 150, rendu: (d) => formaterDate(d.created_at) }
+    { titre: 'Date limite', icone: 'calendar', largeur: 150, tri: (d) => d.date_limite, rendu: (d) => (d.date_limite ? formaterDate(d.date_limite) : '') },
+    { titre: 'Créée le', icone: 'clock', largeur: 150, tri: (d) => d.created_at, rendu: (d) => formaterDate(d.created_at) }
   );
   return colonnes;
 }
@@ -169,6 +170,7 @@ export function vueListeDemandes() {
       }
       liste.appendChild(
         tableauListe({
+          id: 'demandes',
           colonnes: colonnesDemandes(estAdmin),
           lignes: demandes,
           onLigne: (d) => {

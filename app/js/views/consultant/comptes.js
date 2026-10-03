@@ -5,6 +5,8 @@
 import { listerComptes, listerDemandesDuCompte, supprimerUtilisateur } from '../../services/comptes.js';
 import { afficherToast } from '../../components/toast.js';
 import { creerBoutonRetour } from '../../components/bouton-retour.js';
+import { el } from '../../components/dashboard-ui.js';
+import { tableauListe } from '../../components/tableau-liste.js';
 
 const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Client' };
 
@@ -27,35 +29,42 @@ export async function vueComptes() {
 
   function rendre(comptes) {
     app.innerHTML = '';
-    const main = document.createElement('main');
-    main.className = 'conteneur';
+    const main = el('main', 'db');
     main.appendChild(creerBoutonRetour('#/tableau-de-bord', 'Retour au tableau de bord'));
 
     const titre = document.createElement('h1');
     titre.textContent = 'Comptes';
     main.appendChild(titre);
 
-    const liste = document.createElement('ul');
-    liste.className = 'liste-demandes';
+    const carte = el('section', 'db-carte');
     if (comptes.length === 0) {
-      liste.innerHTML = '<li class="texte-doux">Aucun compte.</li>';
+      carte.appendChild(el('p', 'texte-doux', 'Aucun compte.'));
+    } else {
+      carte.appendChild(
+        tableauListe({
+          id: 'comptes',
+          colonnes: [
+            { titre: 'Nom', icone: 'user-round', largeur: 240, figee: true, tri: (c) => c.nom || c.email, rendu: (c) => c.nom },
+            { titre: 'E-mail', icone: 'mail', largeur: 300, tri: (c) => c.email, rendu: (c) => c.email },
+            { titre: 'Rôle', icone: 'shield', largeur: 150, tri: (c) => LIBELLES_ROLE[c.role] || c.role, rendu: (c) => LIBELLES_ROLE[c.role] || c.role },
+            { titre: '', largeur: 140, rendu: (c) => boutonSupprimer(c) },
+          ],
+          lignes: comptes,
+          cle: (c) => c.user_id,
+          libelleTotal: (lignes) => `${lignes.length} compte${lignes.length > 1 ? 's' : ''}`,
+        })
+      );
     }
-    for (const compte of comptes) {
-      const li = document.createElement('li');
-      li.className = 'relance-ligne';
-      const info = document.createElement('span');
-      info.textContent = `${compte.nom ? `${compte.nom} · ` : ''}${compte.email} · ${LIBELLES_ROLE[compte.role] || compte.role}`;
-      const bouton = document.createElement('button');
-      bouton.type = 'button';
-      bouton.className = 'btn btn--secondaire';
-      bouton.textContent = 'Supprimer';
-      bouton.addEventListener('click', () => confirmerEtSupprimer(compte, bouton));
-      li.append(info, bouton);
-      liste.appendChild(li);
-    }
-    main.appendChild(liste);
+    main.appendChild(carte);
     app.appendChild(main);
     if (window.lucide) window.lucide.createIcons();
+  }
+
+  function boutonSupprimer(compte) {
+    const bouton = el('button', 'btn btn--secondaire', 'Supprimer');
+    bouton.type = 'button';
+    bouton.addEventListener('click', () => confirmerEtSupprimer(compte, bouton));
+    return bouton;
   }
 
   async function confirmerEtSupprimer(compte, bouton) {

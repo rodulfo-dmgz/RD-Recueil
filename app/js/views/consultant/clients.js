@@ -77,29 +77,31 @@ const somme = (lignes, cle) => lignes.reduce((total, c) => total + (Number(c[cle
 
 function colonnesClients(avecFinance) {
   const colonnes = [
-    { titre: 'Entreprise', icone: 'building-2', largeur: 260, figee: true, rendu: (c) => celluleEntreprise(c, avecFinance) },
-    { titre: 'SIRET', icone: 'hash', largeur: 150, rendu: (c) => c.siret },
-    { titre: 'Statut', icone: 'circle-dot', largeur: 120, rendu: (c) => pastilleStatut(c.statut) },
-    { titre: 'Ville', icone: 'map-pin', largeur: 150, rendu: (c) => c.ville },
-    { titre: 'Contact principal', icone: 'user-round', largeur: 210, rendu: (c) => (c.contact_principal ? pastillePersonne(c.contact_principal) : '') },
+    { titre: 'Entreprise', icone: 'building-2', largeur: 260, figee: true, tri: (c) => c.raison_sociale, rendu: (c) => celluleEntreprise(c, avecFinance) },
+    { titre: 'SIRET', icone: 'hash', largeur: 150, tri: (c) => c.siret, rendu: (c) => c.siret },
+    { titre: 'Statut', icone: 'circle-dot', largeur: 120, tri: (c) => libelleStatutClient(c.statut), rendu: (c) => pastilleStatut(c.statut) },
+    { titre: 'Ville', icone: 'map-pin', largeur: 150, tri: (c) => c.ville, rendu: (c) => c.ville },
+    { titre: 'Contact principal', icone: 'user-round', largeur: 210, tri: (c) => c.contact_principal, rendu: (c) => (c.contact_principal ? pastillePersonne(c.contact_principal) : '') },
     { titre: 'E-mail', icone: 'mail', proto: true, largeur: 230, rendu: (c) => pastilleContact(c.email_general, `mailto:${c.email_general}`) },
     { titre: 'Téléphone', icone: 'phone', proto: true, largeur: 150, rendu: (c) => pastilleContact(c.telephone, `tel:${String(c.telephone ?? '').replace(/\s/g, '')}`) },
     {
       titre: 'Demandes',
       icone: 'layout-list',
       largeur: 150,
+      tri: (c) => c.nb_demandes,
       rendu: (c) => (c.nb_demandes === 0 ? '' : `${c.nb_demandes}${c.nb_actives > 0 ? ` (${c.nb_actives} en cours)` : ''}`),
       total: (lignes) => String(somme(lignes, 'nb_demandes')),
     },
-    { titre: 'Tâches', icone: 'list-checks', largeur: 100, rendu: (c) => (c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : ''), total: (lignes) => String(somme(lignes, 'nb_taches_ouvertes')) },
+    { titre: 'Tâches', icone: 'list-checks', largeur: 100, tri: (c) => c.nb_taches_ouvertes, rendu: (c) => (c.nb_taches_ouvertes > 0 ? String(c.nb_taches_ouvertes) : ''), total: (lignes) => String(somme(lignes, 'nb_taches_ouvertes')) },
   ];
-  if (avecFinance) colonnes.push({ titre: 'CA signé', icone: 'euro', largeur: 120, rendu: (c) => (c.ca_signe > 0 ? formaterMontant(c.ca_signe) : ''), total: (lignes) => formaterMontant(somme(lignes, 'ca_signe')) });
-  colonnes.push({ titre: 'Dernière activité', icone: 'clock', largeur: 160, rendu: (c) => formaterDate(c.derniere_activite) });
+  if (avecFinance) colonnes.push({ titre: 'CA signé', icone: 'euro', largeur: 120, tri: (c) => c.ca_signe, rendu: (c) => (c.ca_signe > 0 ? formaterMontant(c.ca_signe) : ''), total: (lignes) => formaterMontant(somme(lignes, 'ca_signe')) });
+  colonnes.push({ titre: 'Dernière activité', icone: 'clock', largeur: 160, tri: (c) => c.derniere_activite, rendu: (c) => formaterDate(c.derniere_activite) });
   return colonnes;
 }
 
 function construireTableau(clients, avecFinance, selection, onSelection) {
   return tableauListe({
+    id: 'clients',
     colonnes: colonnesClients(avecFinance),
     lignes: clients,
     libelleLigne: (c) => c.raison_sociale,
@@ -228,7 +230,6 @@ export async function vueClients({ dormants = false } = {}) {
       else selection.delete(id);
     }
     majSelection();
-    if (toutes) rafraichir();
   }
 
   function majDensite() {

@@ -220,7 +220,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 ### Phases
 - [x] 1. Socle commun, sans changement visuel
 - [x] 1 bis. Prototype d'allure sur la liste des clients (tableau compact, pastilles, menu clair, tiroir) : fait, **à valider par l'utilisateur** avant de généraliser
-- [~] 2. Composant tableau (tri, pagination, colonnes, sélection) : composant créé, clients et demandes migrés, reste les autres listes
+- [x] 2. Composant tableau (tri, colonnes, sélection) : clients, demandes et comptes migrés ; pagination non faite (volumes faibles)
 - [ ] 3. Menu de commandes `Ctrl+K`
 - [ ] 4. Fil d'Ariane et création rapide dans l'en-tête
 - [ ] 5. Panneau latéral (aperçu d'un client depuis la liste)
@@ -981,6 +981,14 @@ Fait : `components/tableau-liste.js` (nouveau), tableau commun : colonnes à lar
 Vérifié : 227 tests, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée) pour la liste des demandes : colonnes, libellés, totaux, lignes de 41 px, aucune erreur console. Non revérifié dans le navigateur : la liste des clients après refactorisation (même code de rendu, syntaxe contrôlée seulement).
 
 Reste de la phase 2 : appliquer le composant aux tâches, réclamations, comptes, journal d'audit, données à revoir ; tri par clic sur les en-têtes et pagination (si les volumes l'exigent).
+
+### 2026-10-03 : refonte, phase 2 (composant tableau), étape 2
+
+Fait : **tri par clic sur les en-têtes** (clic : croissant, deuxième clic : décroissant, troisième : ordre d'origine ; valeurs absentes toujours en dernier ; accents et casse ignorés ; « FOR-2 » avant « FOR-10 ») dans les listes Clients et Demandes ; le tri choisi est retenu par tableau, il survit à une recherche ou à un filtre. Logique pure dans `engine/tri.js` (+4 tests). **Comptes** (admin) migré : tableau Nom, E-mail, Rôle, bouton Supprimer (la confirmation avec la liste des demandes perdues est inchangée), total.
+
+Choix : les **tâches** (cartes regroupées par échéance avec actions sur chaque ligne), les **réclamations** et le **journal d'audit** (listes à détail dépliable, déjà réutilisées dans la fiche client) gardent leur présentation : un tableau y ferait perdre de l'information. À reprendre au besoin pendant la phase 5 (tiroir de détail).
+
+Vérifié : 231 tests, `check-coherence` 0 erreur ; page de test avec services simulés (supprimée) : tri croissant, décroissant, retour à l'ordre d'origine, valeurs absentes en dernier, `aria-sort`, tri par date ; liste des comptes (colonnes, boutons, total) ; aucune erreur console. Non vérifié : la liste des clients après ajout du tri (même composant, syntaxe seulement), la suppression d'un compte de bout en bout.
 
 ## 5. Points ouverts
 
