@@ -457,7 +457,8 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
   select:not([multiple]):not([size]) option:hover,
   select:not([multiple]):not([size]) option:focus-visible { background: var(--fond); }
   select:not([multiple]):not([size]) option:checked { background: color-mix(in srgb, var(--rd-bleu) 10%, transparent); color: var(--bleu-texte); font-weight: 600; }
-  select:not([multiple]):not([size]) option::checkmark { order: 1; margin-left: auto; }
+  /* Pas de coche : l'option choisie se reconnaît à son fond teinté et à son texte en gras. */
+  select:not([multiple]):not([size]) option::checkmark { display: none; }
   /* Chevron fin, de la couleur du texte secondaire, à la place du triangle noir du navigateur. */
   select:not([multiple]):not([size]) { align-items: center; gap: 8px; }
   select:not([multiple]):not([size])::picker-icon {

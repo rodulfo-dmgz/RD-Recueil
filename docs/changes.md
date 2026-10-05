@@ -1093,6 +1093,8 @@ Suite (même retour) : texte et chevron des listes sont **centrés verticalement
 
 Suite (même retour) : les listes s'ouvrent toujours **vers le bas** (le navigateur ne les retourne plus vers le haut) ; dans la fenêtre de tâche, le champ occupe **toute la pastille** (un clic sur le chevron ou l'icône ouvre la liste, avant seul le texte réagissait). Vérifié par un vrai clic sur le chevron : liste ouverte sous la pastille, quatre options. Non vérifié : le choix d'une option par clic, le cas d'une pastille tout en bas de l'écran (la liste peut alors dépasser).
 
+Suite : la coche à droite de l'option choisie est supprimée dans toutes les listes déroulantes (l'option choisie reste reconnaissable à son fond bleuté et son texte en gras). Non vérifié en capture.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
