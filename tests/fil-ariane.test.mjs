@@ -46,3 +46,8 @@ test('filAriane : tâches, liste et Kanban', () => {
   assert.deepEqual(lib(filAriane('#/taches')), ['Tâches', 'Liste']);
   assert.deepEqual(lib(filAriane('#/taches/kanban')), ['Tâches', 'Kanban']);
 });
+
+test('filAriane : Kanban des demandes (« kanban » n’est pas une référence)', () => {
+  assert.deepEqual(filAriane('#/demandes/kanban'), [{ libelle: 'Demandes', href: '#/demandes' }, { libelle: 'Kanban' }]);
+  assert.deepEqual(lib(filAriane('#/demandes/FOR-1')), ['Demandes', 'FOR-1']);
+});

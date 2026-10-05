@@ -225,7 +225,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 - [x] 4. Fil d'Ariane et création rapide dans l'en-tête
 - [x] 5. Panneau latéral (aperçu d'un client et d'une demande depuis la liste)
 - [x] 6. Filtres avancés et vues enregistrées (migration 0052, vues personnelles, clients et demandes)
-- [ ] 7. Kanban des demandes
+- [x] 7. Kanban des demandes
 - [ ] 8. Responsive, accessibilité, performance, audit final
 
 ## 4. Journal des étapes
@@ -1094,6 +1094,16 @@ Suite (même retour) : texte et chevron des listes sont **centrés verticalement
 Suite (même retour) : les listes s'ouvrent toujours **vers le bas** (le navigateur ne les retourne plus vers le haut) ; dans la fenêtre de tâche, le champ occupe **toute la pastille** (un clic sur le chevron ou l'icône ouvre la liste, avant seul le texte réagissait). Vérifié par un vrai clic sur le chevron : liste ouverte sous la pastille, quatre options. Non vérifié : le choix d'une option par clic, le cas d'une pastille tout en bas de l'écran (la liste peut alors dépasser).
 
 Suite : la coche à droite de l'option choisie est supprimée dans toutes les listes déroulantes (l'option choisie reste reconnaissable à son fond bleuté et son texte en gras). Non vérifié en capture.
+
+### 2026-10-05 : refonte, phase 7 (Kanban des demandes)
+
+Fait : page « Demandes en Kanban » (menu : groupe **Demandes** avec Liste et Kanban, route `#/demandes/kanban`, fil d'Ariane « Demandes / Kanban », menu de commandes). Neuf colonnes du parcours : À démarrer (brouillon, envoyée, en saisie), Soumises (soumise, entretien planifié), En analyse, Cadrage (envoyée, à revoir, validée), Proposition, Gagnées, Perdues, Réorientées, Abandonnées ; le statut exact reste affiché sur chaque carte (avec la référence, le client, la date limite, les types et, pour l'admin, le consultant). Recherche par référence ou client, filtre par consultant pour l'admin ; un clic sur la carte ouvre le tiroir de détail.
+
+**Glisser-déposer limité au parcours autorisé** : seuls les changements que le consultant fait déjà d'un clic dans la fiche (rouvrir la saisie d'une demande soumise, réorienter une demande en analyse, abandonner avec confirmation) se font par glisser ; pendant le glissement les colonnes permises sont cerclées de turquoise, les autres atténuées ; un dépôt refusé affiche une explication (étape à faire depuis la demande, gagnée ou perdue = décision du client, demande terminée). La carte change de colonne tout de suite et revient si la base refuse (`rpc_changer_statut` reste l'arbitre). Un sélecteur « Déplacer… » par carte (seulement les changements permis) sert de clavier et d'écran tactile.
+
+`engine/kanban-demandes.js` (pur, +5 tests, vérifie que tous les statuts sont rangés une seule fois), `views/consultant/demandes-kanban.js`, +1 test du fil d'Ariane. Aucune migration.
+
+Vérifié : 262 tests, `check-coherence` 0 erreur ; navigateur (services simulés, supprimés ensuite) : glisser permis (soumise vers à démarrer, abandon avec confirmation), refus expliqués (gagnée, étape dédiée, demande terminée), refus de la base avec retour de la carte, sélecteurs ne proposant que les changements permis, capture de la mise en page (ligne d'infos qui débordait : corrigée). Non vérifié : un vrai compte consultant, l'écran étroit, le thème sombre.
 
 ## 5. Points ouverts
 

@@ -45,6 +45,7 @@ export function filAriane(hash, { nomClient = null, titreRepli = 'RD Recueil' } 
     if (troisieme && ONGLETS_CLIENT[troisieme]) return [clients, { libelle: fiche, href: `#/clients/${deuxieme}` }, { libelle: ONGLETS_CLIENT[troisieme] }];
     return [clients, { libelle: fiche }];
   }
+  if (racine === 'demandes' && deuxieme === 'kanban') return [{ libelle: 'Demandes', href: '#/demandes' }, { libelle: 'Kanban' }];
   if (racine === 'demandes' && parties.length >= 2) {
     const demandes = { libelle: 'Demandes', href: '#/demandes' };
     if (deuxieme === 'nouvelle') return [demandes, { libelle: 'Nouvelle demande' }];

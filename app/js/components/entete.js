@@ -34,7 +34,15 @@ const LIENS_STAFF = [
     ],
   },
   { href: '#/reclamations', icone: 'message-square-warning', libelle: 'Réclamations' },
-  { href: '#/demandes', icone: 'list', libelle: 'Demandes' },
+  {
+    groupe: true,
+    icone: 'list',
+    libelle: 'Demandes',
+    enfants: [
+      { href: '#/demandes', icone: 'list', libelle: 'Liste' },
+      { href: '#/demandes/kanban', icone: 'kanban', libelle: 'Kanban' },
+    ],
+  },
   { href: '#/glossaire', icone: 'book-open', libelle: 'Glossaire' },
 ];
 
@@ -51,6 +59,7 @@ const LIBELLES_ROLE = { admin: 'Admin', consultant: 'Consultant', client: 'Clien
 
 function estLienActif(href) {
   const hash = location.hash || '#/';
+  if (href === '#/demandes') return hash.startsWith('#/demandes') && !hash.startsWith('#/demandes/kanban');
   if (href === '#/taches') return hash === '#/taches' || hash.startsWith('#/taches?');
   if (href === '#/mes-demandes') return hash.startsWith('#/mes-demandes') || hash.startsWith('#/d/');
   return hash.startsWith(href);

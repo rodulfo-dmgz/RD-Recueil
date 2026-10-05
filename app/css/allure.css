@@ -369,7 +369,7 @@ span.tl-fait { cursor: default; }
 .kanban__carte:active { cursor: grabbing; }
 .kanban__carte--deplacee { opacity: .45; }
 .kanban__titre { font-weight: 500; overflow-wrap: anywhere; }
-.kanban__infos { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.kanban__infos { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; }
 .kanban__pied { display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid var(--bordure); }
 .kanban__pied .tl-pj { margin-left: auto; }
 .kanban__statut { width: auto; min-height: 30px; font-size: 13px; }
@@ -479,3 +479,13 @@ input.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
   select.pastille-champ__champ { appearance: none; -webkit-appearance: none; }
 }
 body.look-nouveau .champ-saisie { border-radius: 10px; }
+
+/* Kanban des demandes : colonnes où le dépôt est permis ou refusé pendant un glissement */
+.kanban__colonne--permise { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rd-turquoise) 55%, transparent); }
+.kanban__colonne--interdite { opacity: .55; }
+.kanban__colonne--permise.kanban__colonne--survol { background: color-mix(in srgb, var(--rd-turquoise) 10%, var(--fond)); box-shadow: inset 0 0 0 2px var(--rd-turquoise); }
+.kanban__colonne--interdite.kanban__colonne--survol { background: color-mix(in srgb, var(--erreur) 8%, var(--fond)); box-shadow: inset 0 0 0 2px var(--erreur); }
+.tl-titre__client--texte { color: var(--texte-doux); }
+.kanban__types { flex: 1; min-width: 0; overflow: hidden; color: var(--texte-doux); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+a.kanban__titre--bouton { text-decoration: none; }
+a.kanban__titre--bouton:hover { text-decoration: underline; }
