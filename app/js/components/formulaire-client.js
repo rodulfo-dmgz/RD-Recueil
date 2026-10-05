@@ -43,7 +43,8 @@ function champTexte(champ, valeur, erreurs) {
 // onEnregistrer(ligne) reçoit la ligne prête pour la base et peut lancer une
 // erreur, affichée sous le formulaire ; onAnnuler : retour sans enregistrer.
 // avecResponsable : choix du responsable du client, réservé à l'admin (lot Accès).
-export function construireFormulaireClient({ valeurs = {}, responsables = [], avecResponsable = false, onEnregistrer, onAnnuler, libelleBouton = 'Enregistrer' }) {
+// blocSupplementaire : élément facultatif placé avant les notes (ex. invitation du contact à la création).
+export function construireFormulaireClient({ valeurs = {}, responsables = [], avecResponsable = false, onEnregistrer, onAnnuler, libelleBouton = 'Enregistrer', blocSupplementaire = null }) {
   const formulaire = el('form', 'cl-form');
   formulaire.noValidate = true;
   const champs = {};
@@ -113,6 +114,8 @@ export function construireFormulaireClient({ valeurs = {}, responsables = [], av
   suivi.append(statut.wrapper, source.wrapper);
   if (avecResponsable) suivi.appendChild(responsable.wrapper);
   formulaire.appendChild(suivi);
+
+  if (blocSupplementaire) formulaire.appendChild(blocSupplementaire);
 
   const notes = el('label', 'cl-champ cl-champ--pleine');
   notes.appendChild(el('span', 'cl-champ__libelle', 'Notes internes (jamais visibles du client)'));

@@ -76,8 +76,19 @@ export async function vueCreationCompte() {
   selectDroit.innerHTML = '<option value="editeur">Éditeur (peut saisir)</option><option value="lecteur">Lecteur (consultation seule)</option>';
   champDroit.appendChild(selectDroit);
 
+  // Pour une entreprise nouvelle, le parcours « Nouveau client » fait tout en une fois (SIRET, fiche, demande, compte).
+  const noteNouveauClient = document.createElement('p');
+  noteNouveauClient.className = 'texte-doux';
+  noteNouveauClient.hidden = true;
+  noteNouveauClient.append('Nouvelle entreprise ? Utilisez plutôt ');
+  const lienNouveauClient = document.createElement('a');
+  lienNouveauClient.href = '#/clients/nouveau';
+  lienNouveauClient.textContent = 'Nouveau client ou prospect';
+  noteNouveauClient.append(lienNouveauClient, ' : avec le SIRET, la fiche, la demande et le compte se créent en une fois. Cette page sert à donner un accès à une demande déjà ouverte.');
+
   function basculerChampsClient() {
     const estClient = selectRole.value === 'client';
+    noteNouveauClient.hidden = !estClient;
     champDemande.hidden = !estClient;
     champDroit.hidden = !estClient;
     selectDemande.required = estClient;
@@ -89,7 +100,7 @@ export async function vueCreationCompte() {
   bouton.className = 'btn btn--primaire';
   bouton.textContent = 'Créer le compte';
 
-  form.append(champNom, champEmail, champRole, champDemande, champDroit, bouton);
+  form.append(champNom, champEmail, champRole, noteNouveauClient, champDemande, champDroit, bouton);
   main.appendChild(form);
 
   const resultat = document.createElement('div');

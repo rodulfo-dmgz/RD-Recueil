@@ -254,9 +254,9 @@ export function ficheDepuisSirene(etablissement) {
 // Champs texte de la fiche, dans l'ordre d'affichage : `groupe` regroupe
 // l'affichage, `suggestions` alimente une liste de saisie.
 export const CHAMPS_FICHE = [
+  { cle: 'siret', libelle: 'SIRET', groupe: 'Identité' },
   { cle: 'raison_sociale', libelle: 'Raison sociale', groupe: 'Identité', obligatoire: true },
   { cle: 'nom_commercial', libelle: 'Nom commercial', groupe: 'Identité' },
-  { cle: 'siret', libelle: 'SIRET', groupe: 'Identité' },
   { cle: 'forme_juridique', libelle: 'Forme juridique', groupe: 'Identité', suggestions: FORMES_JURIDIQUES },
   { cle: 'code_naf', libelle: 'Code NAF', groupe: 'Identité' },
   { cle: 'secteur', libelle: 'Secteur d’activité', groupe: 'Identité' },

@@ -1136,6 +1136,18 @@ Suite de l'audit : **pages côté client** (axe-core, clair et sombre, vrai code
 
 Limite : la base simulée est presque vide, donc plusieurs pages (récapitulatif, note de cadrage, proposition, questionnaire par section) n'ont affiché que leur état vide ou d'erreur ; les écrans pleins de données du questionnaire ne sont pas couverts. À compléter avec de vraies données ou un compte client de test.
 
+### 2026-10-05 : un seul parcours « Nouveau client » (SIRET, fiche, demande, compte) et pré-remplissage de « Identification de la structure »
+
+Demande de l'utilisateur : « Créer un compte » faisait doublon avec la création d'un client ; utiliser le SIRET pour tout remplir, y compris la fiche et le formulaire « Identification de la structure ». Décisions validées : **un seul parcours « Nouveau client »** ; réponses **pré-remplies et modifiables** par le client. Un compte (la personne qui se connecte, rattachée à une demande) et un client (l'entreprise) restent deux notions ; la page « Créer un compte » reste pour les consultants et admins et, pour un compte client, renvoie vers le nouveau parcours (le rattachement à une demande déjà ouverte y reste possible).
+
+Fait :
+- **SIRET en premier** dans la fiche (création et modification) : la recherche SIRENE existante remplit raison sociale, forme juridique, NAF, secteur, effectif et adresse.
+- **Case « Inviter le contact »** sur « Nouveau client ou prospect » : nom et e-mail du contact, types de prestation pressentis, date limite, consultant responsable (admin). À l'enregistrement, en une fois : fiche, contact principal, demande, **réponses de TC-1 pré-remplies** (raison sociale, SIRET, forme juridique, NAF, secteur, adresse du siège, effectif, convention collective, organisme de formation, NDA, Qualiopi quand la base SIRENE les donne, site web de la fiche), compte client avec mot de passe temporaire affiché dans une fenêtre avant d'ouvrir la demande. La fiche passe à « client » (et non « prospect ») dès qu'une demande est ouverte.
+- Chaque étape après la fiche peut échouer sans défaire les précédentes (rien n'est supprimé) : un message dit ce qui reste à faire, par exemple « Le compte client n'a pas pu être créé, réessayez depuis la demande ».
+- `engine/pre-remplissage.js` (pur, +5 tests : correspondance données SIRENE vers questions TC-1, la fiche prime pour la raison sociale et le SIRET, découpage du nom), `services/ouverture-dossier.js`, `views/consultant/client-nouveau.js` ; la correspondance données vers questions est maintenant partagée avec la recherche par SIRET du questionnaire (`views/client/section.js`).
+
+Vérifié : 267 tests, `check-coherence` 0 erreur ; navigateur (services simulés, supprimés ensuite) : SIRET en premier champ, bloc d'invitation replié puis déplié, erreurs de saisie claires, appel avec les bons champs (statut client, contact, types, consultant), fenêtre des identifiants puis ouverture de la demande ; capture de la mise en page. **Non vérifié** : le parcours complet sur la vraie base (création du compte par la fonction serveur, écriture des réponses, doublon de SIRET), la recherche SIRENE en direct, l'OPCO de la fiche (non repris dans TC-1 : les identifiants des options ne correspondent pas aux libellés de la fiche).
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.

@@ -530,3 +530,10 @@ body.look-nouveau .db-table-defilement { max-width: 100%; -webkit-overflow-scrol
 /* Contrastes : texte blanc sur le bouton orange et texte orange sur fond orange pâle (tableau de bord) */
 .db-btn--accent { background: color-mix(in srgb, var(--rd-orange) 78%, #000); }
 .db-ligne__action { color: var(--texte-urgence-attention); }
+
+/* Nouveau client : bloc « Accès du client » (invitation du contact) */
+.cl-form__invitation { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.cl-form__types { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; border: none; }
+.cl-form__types legend { padding: 0; margin-bottom: 4px; font-weight: 600; }
+.cl-form__groupe.cl-form__acces { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.cl-form__acces .cl-form__invitation { max-width: 520px; }

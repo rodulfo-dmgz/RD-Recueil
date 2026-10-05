@@ -7,6 +7,7 @@ import { creerBoutonRetour } from '../../components/bouton-retour.js';
 import { navigate } from '../../router.js';
 import { chargerEtatDemande } from './accueil.js';
 import { STATUTS_MODIFIABLES_CLIENT } from '../../engine/statuts.js';
+import { CIBLES_SIRENE } from '../../engine/pre-remplissage.js';
 
 const LIBELLE_STATUT = {
   'en-attente': 'Modifications non enregistrées…',
@@ -18,20 +19,7 @@ const LIBELLE_STATUT = {
 // Depuis le SIRET saisi sur cette question, quels autres champs de la même
 // demande sont pré-remplis (annuaire public des entreprises) - remplace
 // systématiquement la valeur existante par la donnée officielle.
-const AUTO_REMPLISSAGE_SIRET = {
-  'TC-1.03': {
-    raisonSociale: 'TC-1.01',
-    formeJuridique: 'TC-1.02',
-    codeNaf: 'TC-1.04',
-    secteurActivite: 'TC-1.05',
-    adresse: 'TC-1.06',
-    effectif: 'TC-1.08',
-    conventionCollective: 'TC-1.09',
-    estOrganismeFormation: 'TC-1.12',
-    nda: 'TC-1.13',
-    estQualiopi: 'TC-1.14',
-  },
-};
+const AUTO_REMPLISSAGE_SIRET = { 'TC-1.03': CIBLES_SIRENE };
 
 function questionsVisiblesDeLaSection(etat, sectionId) {
   return etat.questionnaire.questions
