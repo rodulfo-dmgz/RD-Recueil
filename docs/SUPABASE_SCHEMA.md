@@ -19,9 +19,9 @@ Date : 3 octobre 2026. Projet `kowvfsesbuevylxayinl`. Lecture seule : rien n'a �
 | Qualité et conformité | `consentements` (11), `reclamations` (15), `satisfactions` (13), `audit_log` (11) | `consentements` -> `contacts` ; `reclamations`, `satisfactions` -> `clients`, `demandes` | Personnel du client ; le client passe par des fonctions (`rpc_deposer_reclamation`, `rpc_mes_reclamations`, `rpc_repondre_satisfaction`). Journal : lecture admin, ajout par déclencheur seulement. |
 | Comptes et alertes | `profils` (6), `notifications` (9) | `profils.user_id` -> `auth.users` | Profils en lecture seule (créations par fonctions de service). |
 
-## 3. Tables du LMS (autre projet, même base)
+## 3. Tables du LMS (retirées)
 
-`sessions` (13), `stagiaires` (42), `groupes` (13), `inscriptions_session` (13), `jurys` (7), `jurys_sessions` (4), `titres` (28), `examens_blancs` (5), `wall_sessions` (6), `wall_ideas` (7), `profils_utilisateurs` (12), `documents_generes` (9, 57 lignes : aucun code de ce CRM ne l'utilise). Ce CRM ne les utilise pas et n'en dépend pas. **Ces douze tables ont une politique « vrai pour tous »** : voir `docs/AUDIT_CRM.md`, section 7.
+Les douze tables du LMS (`sessions`, `stagiaires`, `groupes`, `inscriptions_session`, `jurys`, `jurys_sessions`, `titres`, `examens_blancs`, `wall_sessions`, `wall_ideas`, `profils_utilisateurs`, `documents_generes`) ont été **retirées de ce projet le 2026-10-05** (migration `0055_retrait_lms.sql`), avec le déclencheur `on_auth_user_created`, les fonctions `handle_new_user`, `get_my_role` et `update_updated_at_column`, et dix comptes de test du LMS. La base ne contient plus que RD Recueil (33 tables, toutes avec RLS). Sauvegarde complète (schéma, politiques, droits, données, comptes de test) hors dépôt : dossier `sauvegardes/rd-flow-lms-2026-10-05` et sa copie sur le Bureau.
 
 ## 4. Vues
 
@@ -52,4 +52,4 @@ Date : 3 octobre 2026. Projet `kowvfsesbuevylxayinl`. Lecture seule : rien n'a �
 - **Pas de table pour les vues enregistrées ni les préférences d'affichage** : la phase « vues » demandera une table nouvelle (par utilisateur, avec RLS). Aucune structure équivalente n'existe.
 - **Pas de table « opportunités »** ni « prospects » : ce sont les `demandes` et les `clients` au statut `prospect` (décisions des lots A et C).
 - **Volume** : `v_clients` calcule des sous-requêtes pour chaque ligne ; une pagination côté base sera nécessaire avant de gros volumes.
-- **Sécurité** : voir `docs/AUDIT_CRM.md`, section 7 (tables du LMS, alertes anciennes).
+- **Sécurité** : les alertes sur les tables du LMS ont disparu avec leur retrait. Restent : fonctions de droits exécutables par les connecteurs (voulu), protection contre les mots de passe compromis désactivée (réglage du tableau de bord Supabase).

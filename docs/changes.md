@@ -1154,6 +1154,12 @@ Demande : que le projet Supabase rd-flow ne contienne que les tables de RD Recue
 
 Constats utiles pour la suite : aucune table, vue, fonction ni politique de RD Recueil ne dépend des tables du LMS ; seul le déclencheur `on_auth_user_created` (sur `auth.users`, fonction `handle_new_user`) écrit dans une table du LMS (sans bloquer la création de comptes si la table disparaît) ; les comptes `auth.users` sont communs aux deux applications ; aucun fichier de stockage lié au LMS. Suppression des tables : non faite, à décider par l'utilisateur.
 
+### 2026-10-05 : retrait du LMS de la base rd-flow (migration 0055, appliquée en production)
+
+Après la sauvegarde (voir l'entrée précédente) et sa copie sur le Bureau (empreintes identiques), suppression de tout ce qui relève du LMS : déclencheur `on_auth_user_created` et fonction `handle_new_user`, les 12 tables (avec leurs politiques, index et contraintes), les fonctions `get_my_role` et `update_updated_at_column` (aucun déclencheur ne l'utilisait), et les 10 comptes de connexion de test du LMS (`test.compta1` à `10@example.com`, sans lien avec Recueil ; leurs lignes sont dans la sauvegarde).
+
+Vérifié après coup : comptes de lignes de RD Recueil identiques avant et après (clients 4, demandes 4, réponses 145, profils 4, tâches 1, questions 187, glossaire 134, événements 15, notifications 5) ; 4 comptes de connexion (ceux de Recueil) ; 33 tables, toutes avec RLS ; plus aucune politique « vrai pour tous » hors la lecture publique voulue du questionnaire et du glossaire ; une insertion de compte de test (annulée) passe sans erreur, le déclencheur de Recueil restant seul. Les 5 fonctions serveur déployées sont toutes celles de Recueil. Alertes de sécurité restantes : fonctions de droits exécutables par les connecteurs (voulu) et protection contre les mots de passe compromis désactivée (réglage du tableau de bord Supabase, à activer).
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
