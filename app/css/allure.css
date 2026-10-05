@@ -132,7 +132,7 @@ body.look-nouveau .cl-nom { display: inline-flex; align-items: center; gap: 6px;
 body.look-nouveau .cl-nom:hover { background: var(--bordure); text-decoration: none; }
 body.look-nouveau .cl-sous-nom { display: inline; }
 body.look-nouveau .chip { display: inline-flex; align-items: center; gap: 6px; padding: 0 6px 0 3px; border-radius: 4px; background: var(--fond); font-size: 14px; line-height: 22px; }
-body.look-nouveau .chip__avatar { display: grid; place-items: center; flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; background: var(--rd-turquoise); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0; }
+body.look-nouveau .chip__avatar { display: grid; place-items: center; flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; background: var(--fond-avatar); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0; }
 body.look-nouveau .chip__avatar--carre { border-radius: 4px; background: var(--rd-bleu); }
 body.look-nouveau .pastille-contact { display: inline-block; max-width: 100%; padding: 0 10px; border: 1px solid var(--bordure); border-radius: 999px; background: var(--surface); color: var(--texte); font-size: 13px; line-height: 20px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; }
 body.look-nouveau .pastille-contact:hover { background: var(--fond); }
@@ -191,7 +191,7 @@ body.look-nouveau .menu-lateral__pied { display: none; }
 .profil-haut__bouton { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 8px 0 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--texte); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background .1s ease; }
 .profil-haut__bouton:hover, .profil-haut__bouton[aria-expanded="true"] { background: var(--fond); }
 .profil-haut__chevron { width: 16px; height: 16px; stroke: var(--texte-doux); }
-.profil-haut__avatar { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--rd-turquoise); color: #fff; font-size: 12px; font-weight: 700; }
+.profil-haut__avatar { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--fond-avatar); color: #fff; font-size: 12px; font-weight: 700; }
 .profil-haut__menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 70; width: 280px; padding: 8px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--surface); box-shadow: 0 8px 24px rgba(15, 23, 42, .14); }
 .profil-haut__id { display: flex; align-items: center; gap: 12px; padding: 8px 8px 12px; border-bottom: 1px solid var(--bordure); margin-bottom: 8px; }
 .profil-haut__id .profil-haut__avatar { width: 40px; height: 40px; font-size: 14px; }
@@ -333,7 +333,7 @@ span.tl-fait { cursor: default; }
 .tl-date svg, .kanban__echeance svg { width: 16px; height: 16px; }
 .tl-ligne--retard .tl-date, .kanban__carte--retard .kanban__echeance { color: var(--erreur); }
 .tl-avatars { display: inline-flex; }
-.tl-avatar { display: grid; place-items: center; width: 28px; height: 28px; margin-left: -8px; border: 2px solid var(--surface); border-radius: 50%; background: var(--rd-turquoise); color: #fff; font-size: 10px; font-weight: 700; }
+.tl-avatar { display: grid; place-items: center; width: 28px; height: 28px; margin-left: -8px; border: 2px solid var(--surface); border-radius: 50%; background: var(--fond-avatar); color: #fff; font-size: 10px; font-weight: 700; }
 .tl-avatar:first-child { margin-left: 0; }
 .tl-avatar--plus { background: color-mix(in srgb, var(--rd-bleu) 15%, var(--surface)); color: var(--bleu-texte); }
 .tl-pj { display: inline-flex; align-items: center; gap: 4px; color: var(--texte-doux); font-size: 14px; }
@@ -377,8 +377,8 @@ span.tl-fait { cursor: default; }
 
 /* Urgence */
 .tache-urgence { display: inline-block; justify-self: start; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 600; line-height: 20px; }
-.tache-urgence--succes { background: color-mix(in srgb, var(--succes) 14%, transparent); color: var(--succes); }
-.tache-urgence--attention { background: color-mix(in srgb, var(--rd-orange) 16%, transparent); color: var(--alerte); }
+.tache-urgence--succes { background: color-mix(in srgb, var(--succes) 14%, transparent); color: var(--texte-urgence-succes); }
+.tache-urgence--attention { background: color-mix(in srgb, var(--rd-orange) 16%, transparent); color: var(--texte-urgence-attention); }
 .tache-urgence--erreur { background: color-mix(in srgb, var(--erreur) 14%, transparent); color: var(--erreur); }
 
 /* Fenêtre « Créer une nouvelle tâche » */
@@ -521,3 +521,8 @@ a.kanban__titre--bouton:hover { text-decoration: underline; }
 
 /* Défilement horizontal des tableaux au doigt (iPhone compris) */
 body.look-nouveau .db-table-defilement { max-width: 100%; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; overscroll-behavior-x: contain; }
+
+/* Couleurs de texte accessibles (contraste d'au moins 4,5 : 1) pour les pastilles d'urgence et les avatars */
+:root { --fond-avatar: color-mix(in srgb, var(--rd-turquoise) 62%, #000); --texte-urgence-succes: color-mix(in srgb, var(--rd-turquoise) 55%, #000); --texte-urgence-attention: color-mix(in srgb, var(--rd-orange) 52%, #000); }
+:root.dark { --texte-urgence-succes: color-mix(in srgb, var(--rd-turquoise) 70%, #fff); --texte-urgence-attention: color-mix(in srgb, var(--rd-orange) 62%, #fff); }
+:root.dark .tache-urgence--erreur { color: #ff9494; }

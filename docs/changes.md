@@ -1117,6 +1117,15 @@ Non fait : audit de performance chiffré (volumes actuels faibles ; pas de pagin
 
 Retour de l'utilisateur (iPhone, Safari) : impossible de faire défiler les tableaux vers la droite ou la gauche. Cause probable : le tableau à largeur fixe est rétréci par Safari au lieu de déborder, et le cadre qui le contient coupe ce qui dépasse. Corrections : largeur minimale du tableau égale à la somme de ses colonnes (variable posée par `tableau-liste.js`), cadre de la liste en `overflow: clip` (coupe sans devenir une zone de défilement), zone de défilement du tableau avec `touch-action: pan-x pan-y`, `-webkit-overflow-scrolling: touch` et largeur maximale du cadre. Vérifié sous Chrome en émulation téléphone (tableau de 1832 px dans 349 px, défilement obtenu, colonnes case et entreprise figées). **Non vérifié sur Safari/iPhone**, où le défaut a été constaté : à retester par l'utilisateur après rechargement forcé.
 
+### 2026-10-05 : phase 8, audit d'accessibilité outillé (axe-core)
+
+Contrôle automatique (axe-core 4.10, règles de contraste, étiquettes, noms de boutons, listes, liens, ARIA) sur la liste des clients, la liste et le Kanban des tâches, le Kanban des demandes et la fenêtre de création, en thème clair et sombre (données simulées, page de test supprimée).
+- **Trouvé et corrigé** : contraste insuffisant des pastilles d'urgence « Faible » (2,77 : 1) et « Moyenne » (2,61 : 1), des avatars blancs sur turquoise (3,21 : 1, listes de tâches, puces de personnes, avatar de la barre du haut) et de l'urgence « Haute » en thème sombre (4,48 : 1). Nouvelles couleurs de texte et de fond dérivées des couleurs RD (variables `--fond-avatar`, `--texte-urgence-*`) : plus aucune violation de contraste sur ces écrans dans les deux thèmes.
+- **Sans objet** : les alertes de repères (« main » en double) venaient de ma page de test, pas de l'application.
+- **Aucune autre violation** sur les noms accessibles des boutons, étiquettes de champs, listes déroulantes, liens, attributs ARIA et nom de la fenêtre de création.
+
+Reste à faire pour clore l'audit : test au lecteur d'écran, essai sur un vrai téléphone, audit de la fiche client, de la fiche demande et du tableau de bord (thème sombre, téléphone, axe-core), mesures de performance.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
