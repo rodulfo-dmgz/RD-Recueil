@@ -1148,6 +1148,12 @@ Fait :
 
 Vérifié : 267 tests, `check-coherence` 0 erreur ; navigateur (services simulés, supprimés ensuite) : SIRET en premier champ, bloc d'invitation replié puis déplié, erreurs de saisie claires, appel avec les bons champs (statut client, contact, types, consultant), fenêtre des identifiants puis ouverture de la demande ; capture de la mise en page. **Non vérifié** : le parcours complet sur la vraie base (création du compte par la fonction serveur, écriture des réponses, doublon de SIRET), la recherche SIRENE en direct, l'OPCO de la fiche (non repris dans TC-1 : les identifiants des options ne correspondent pas aux libellés de la fiche).
 
+### 2026-10-05 : sauvegarde des 12 tables du LMS (avant nettoyage de rd-flow)
+
+Demande : que le projet Supabase rd-flow ne contienne que les tables de RD Recueil ; export et sauvegarde complète (tables, RLS, politiques) des tables du LMS. **Rien n'a été supprimé** : la base n'a pas été modifiée. Sauvegarde dans `sauvegardes/rd-flow-lms-2026-10-05/` (dossier **ignoré par git** : données personnelles) : `01_schema_lms.sql` (12 tables, contraintes, index, RLS, 34 politiques, 252 droits, commentaires, fonctions `get_my_role` et `handle_new_user`), `02_donnees_lms.sql` (toutes les lignes : 7 + 1 + 10 + 1 + 10 + 2 + 0 + 0 + 7 + 28 + 14 + 77, comptes vérifiés), `LISEZ-MOI.md` (restauration et précautions).
+
+Constats utiles pour la suite : aucune table, vue, fonction ni politique de RD Recueil ne dépend des tables du LMS ; seul le déclencheur `on_auth_user_created` (sur `auth.users`, fonction `handle_new_user`) écrit dans une table du LMS (sans bloquer la création de comptes si la table disparaît) ; les comptes `auth.users` sont communs aux deux applications ; aucun fichier de stockage lié au LMS. Suppression des tables : non faite, à décider par l'utilisateur.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
