@@ -526,3 +526,7 @@ body.look-nouveau .db-table-defilement { max-width: 100%; -webkit-overflow-scrol
 :root { --fond-avatar: color-mix(in srgb, var(--rd-turquoise) 62%, #000); --texte-urgence-succes: color-mix(in srgb, var(--rd-turquoise) 55%, #000); --texte-urgence-attention: color-mix(in srgb, var(--rd-orange) 52%, #000); }
 :root.dark { --texte-urgence-succes: color-mix(in srgb, var(--rd-turquoise) 70%, #fff); --texte-urgence-attention: color-mix(in srgb, var(--rd-orange) 62%, #fff); }
 :root.dark .tache-urgence--erreur { color: #ff9494; }
+
+/* Contrastes : texte blanc sur le bouton orange et texte orange sur fond orange pâle (tableau de bord) */
+.db-btn--accent { background: color-mix(in srgb, var(--rd-orange) 78%, #000); }
+.db-ligne__action { color: var(--texte-urgence-attention); }

@@ -1126,6 +1126,12 @@ Contrôle automatique (axe-core 4.10, règles de contraste, étiquettes, noms de
 
 Reste à faire pour clore l'audit : test au lecteur d'écran, essai sur un vrai téléphone, audit de la fiche client, de la fiche demande et du tableau de bord (thème sombre, téléphone, axe-core), mesures de performance.
 
+Suite de l'audit (pages hors refonte : tableau de bord, fiche client avec ses onglets, fiche demande), avec le vrai code des pages et une base simulée (page de test supprimée) :
+- **axe-core** : fiche client (aperçu, activité), fiche demande : aucune violation, clair et sombre. Tableau de bord : 2 contrastes insuffisants, corrigés : texte blanc sur le bouton orange « Nouvelle demande » (3,17 : 1) et texte orange sur fond orange pâle des actions de ligne (2,75 : 1). Le bouton orange est désormais un orange un peu plus profond (78 % de l'orange RD, mélangé de noir) pour que le texte blanc soit lisible ; le texte des actions utilise la même couleur foncée que les urgences. **Ajustement de la charte à valider par l'utilisateur** (le bouton orange est légèrement plus sombre).
+- **Téléphone (375 px)** : tableau de bord, fiche client et fiche demande sans défilement horizontal de la page (les onglets de la fiche client défilent dans leur propre zone).
+
+Reste : lecteur d'écran, vrai téléphone, onglets de la fiche client autres que l'aperçu et l'activité, pages côté client, mesures de performance.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
