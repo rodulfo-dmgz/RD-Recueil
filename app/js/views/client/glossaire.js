@@ -38,9 +38,11 @@ function rendre(termes) {
   recherche.type = 'search';
   recherche.className = 'champ-saisie';
   recherche.placeholder = 'Rechercher un terme…';
+  recherche.setAttribute('aria-label', 'Rechercher un terme du glossaire');
 
   const filtre = document.createElement('select');
   filtre.className = 'champ-saisie';
+  filtre.setAttribute('aria-label', 'Filtrer par catégorie');
   const toutes = document.createElement('option');
   toutes.value = '';
   toutes.textContent = 'Toutes les catégories';

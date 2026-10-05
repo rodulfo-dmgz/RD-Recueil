@@ -1132,6 +1132,10 @@ Suite de l'audit (pages hors refonte : tableau de bord, fiche client avec ses on
 
 Reste : lecteur d'écran, vrai téléphone, onglets de la fiche client autres que l'aperçu et l'activité, pages côté client, mesures de performance.
 
+Suite de l'audit : **pages côté client** (axe-core, clair et sombre, vrai code des pages, base simulée, page de test supprimée) : tableau de bord, mes demandes, mes documents, rapport, charte RGPD, glossaire, signaler un problème, accueil d'une demande, récapitulatif, note de cadrage, proposition, créneaux, connexion. **Une seule violation** : dans le glossaire, la liste des catégories et le champ de recherche n'avaient pas de nom accessible (corrigé par des `aria-label`). Aucune violation de contraste.
+
+Limite : la base simulée est presque vide, donc plusieurs pages (récapitulatif, note de cadrage, proposition, questionnaire par section) n'ont affiché que leur état vide ou d'erreur ; les écrans pleins de données du questionnaire ne sont pas couverts. À compléter avec de vraies données ou un compte client de test.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
