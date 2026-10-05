@@ -59,7 +59,7 @@ body.look-nouveau .menu-lateral__deconnexion:hover { background: var(--bordure);
 
 /* ─── Page de liste plein cadre : en-tête fin, barre de vue, tableau ────── */
 /* Une seule ligne : barre de vue à gauche, actions à droite (l'en-tête « disparaît », ses actions rejoignent la barre de vue). */
-body.look-nouveau .db.page-liste { display: flex; flex-flow: row wrap; align-items: stretch; min-width: 0; max-width: none; margin: 0; padding: 0; gap: 0; overflow: hidden; border: 1px solid var(--bordure); border-top: none; border-radius: 0 0 8px 8px; background: var(--surface); }
+body.look-nouveau .db.page-liste { display: flex; flex-flow: row wrap; align-items: stretch; min-width: 0; max-width: none; margin: 0; padding: 0; gap: 0; overflow: clip; border: 1px solid var(--bordure); border-top: none; border-radius: 0 0 8px 8px; background: var(--surface); }
 body.look-nouveau .page-liste .cl-entete { display: contents; }
 body.look-nouveau .page-liste .cl-entete h1 { display: none; }
 body.look-nouveau .page-liste .cl-entete__actions { order: 2; flex: 0 0 auto; align-items: center; gap: 8px; padding: 16px 24px 16px 0; border-bottom: 1px solid var(--bordure); background: var(--surface); }
@@ -83,7 +83,7 @@ body.look-nouveau .page-liste .cl-compteur { display: none; }
 
 /* Tableau : quadrillage fin, en-têtes avec icône, cases, totaux */
 /* Largeurs fixes (variable --w posée par le tableau) : le tableau défile à l'horizontale, case et entreprise restent figées à gauche. */
-body.look-nouveau .db-table--dense { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 15px; }
+body.look-nouveau .db-table--dense { width: 100%; min-width: var(--largeur-mini, 0); table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 15px; }
 body.look-nouveau .db-table--dense th { width: var(--w, auto); }
 body.look-nouveau .db-table--dense th,
 body.look-nouveau .db-table--dense td { padding: 8px 14px; line-height: 24px; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--bordure); border-bottom: 1px solid var(--bordure); }
@@ -518,3 +518,6 @@ a.kanban__titre--bouton:hover { text-decoration: underline; }
   .taches-onglet, .taches-outil, .taches-filtre select, .tl-ajout { min-height: 44px; }
   .taches-outil { width: 44px; height: 44px; }
 }
+
+/* Défilement horizontal des tableaux au doigt (iPhone compris) */
+body.look-nouveau .db-table-defilement { max-width: 100%; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; overscroll-behavior-x: contain; }

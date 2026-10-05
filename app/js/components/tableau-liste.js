@@ -76,6 +76,9 @@ export function tableauListe({ id, colonnes, lignes, cle = (l) => l.id, libelleL
     const affichees = colonneTri ? trierLignes(lignes, colonneTri.tri, etatTri.sens) : lignes;
 
     const tableau = el('table', `db-table db-table--dense${avecSelection ? '' : ' sans-selection'}`);
+    // Largeur minimale (somme des colonnes) : le tableau déborde toujours de son cadre et défile, même dans les
+    // navigateurs qui rétrécissent un tableau à largeur fixe (Safari sur iPhone).
+    tableau.style.setProperty('--largeur-mini', `${(avecSelection ? 32 : 0) + colonnes.reduce((somme, c) => somme + c.largeur, 0)}px`);
 
     const ligneTete = el('tr');
     if (avecSelection) {

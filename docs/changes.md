@@ -1115,6 +1115,8 @@ Contrôle visuel (captures) des écrans refaits, puis corrections :
 
 Non fait : audit de performance chiffré (volumes actuels faibles ; pas de pagination), test au lecteur d'écran, essai sur un vrai téléphone, pages hors refonte (fiche client, demande) en thème sombre et sur téléphone.
 
+Retour de l'utilisateur (iPhone, Safari) : impossible de faire défiler les tableaux vers la droite ou la gauche. Cause probable : le tableau à largeur fixe est rétréci par Safari au lieu de déborder, et le cadre qui le contient coupe ce qui dépasse. Corrections : largeur minimale du tableau égale à la somme de ses colonnes (variable posée par `tableau-liste.js`), cadre de la liste en `overflow: clip` (coupe sans devenir une zone de défilement), zone de défilement du tableau avec `touch-action: pan-x pan-y`, `-webkit-overflow-scrolling: touch` et largeur maximale du cadre. Vérifié sous Chrome en émulation téléphone (tableau de 1832 px dans 349 px, défilement obtenu, colonnes case et entreprise figées). **Non vérifié sur Safari/iPhone**, où le défaut a été constaté : à retester par l'utilisateur après rechargement forcé.
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
