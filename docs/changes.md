@@ -1160,6 +1160,10 @@ Après la sauvegarde (voir l'entrée précédente) et sa copie sur le Bureau (em
 
 Vérifié après coup : comptes de lignes de RD Recueil identiques avant et après (clients 4, demandes 4, réponses 145, profils 4, tâches 1, questions 187, glossaire 134, événements 15, notifications 5) ; 4 comptes de connexion (ceux de Recueil) ; 33 tables, toutes avec RLS ; plus aucune politique « vrai pour tous » hors la lecture publique voulue du questionnaire et du glossaire ; une insertion de compte de test (annulée) passe sans erreur, le déclencheur de Recueil restant seul. Les 5 fonctions serveur déployées sont toutes celles de Recueil. Alertes de sécurité restantes : fonctions de droits exécutables par les connecteurs (voulu) et protection contre les mots de passe compromis désactivée (réglage du tableau de bord Supabase, à activer).
 
+### 2026-10-05 : notification à l'ajout comme membre d'une tâche (migration 0056, appliquée en production)
+
+Quand quelqu'un est ajouté à une tâche (`tache_membres`), il reçoit une notification « Vous êtes ajouté à la tâche : … » dans la cloche, qui ouvre la liste des tâches. Pas de notification pour soi-même. Le message ne nomme pas le client (un membre peut ne pas voir sa fiche). Même mécanisme que la notification du responsable (`fn_notifier_tache`) ; aucun changement du code de l'application (le lien `/taches` est déjà géré par la cloche). Vérifié en base (transaction annulée, deux comptes) : une notification pour le membre ajouté avec le bon texte, la bonne référence et le bon lien, aucune pour la personne qui s'ajoute elle-même. Non vérifié : l'affichage dans la vraie cloche, l'envoi d'un e-mail (non prévu pour ce type de notification).
+
 ## 5. Points ouverts
 
 - **Journal d'audit et effacement** : une demande d'effacement d'un contact devra aussi purger ses valeurs dans `audit_log` (accès de service, pas de bouton). À prévoir avec la politique de conservation (lot F, étape F2) ; rien d'automatique pour l'instant.
