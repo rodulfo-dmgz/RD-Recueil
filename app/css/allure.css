@@ -489,3 +489,32 @@ body.look-nouveau .champ-saisie { border-radius: 10px; }
 .kanban__types { flex: 1; min-width: 0; overflow: hidden; color: var(--texte-doux); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 a.kanban__titre--bouton { text-decoration: none; }
 a.kanban__titre--bouton:hover { text-decoration: underline; }
+
+/* Téléphone : pages de tâches et de demandes plus compactes */
+.kanban { scrollbar-width: thin; scrollbar-color: var(--bordure) transparent; }
+@media (max-width: 640px) {
+  .taches-page h1 { font-size: 24px; }
+  .taches-onglets { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .taches-onglet { flex: 0 0 auto; white-space: nowrap; }
+  .taches-outils { width: 100%; margin-left: 0; }
+  .taches-separateur { display: none; }
+  .taches-outils .db-btn--primaire { flex: 1 1 100%; justify-content: center; }
+  .taches-recherche { width: 100%; flex: 1 1 100%; }
+  .tl-groupe { padding: 12px; border-radius: 12px; }
+  .tl-ligne { grid-template-columns: 32px minmax(0, 1fr) 36px; gap: 6px 10px; padding: 12px; }
+  .tl-ligne .tl-menu { grid-column: 3; grid-row: 1; }
+  .kanban__plateau { grid-template-columns: repeat(var(--colonnes, 4), minmax(250px, 80vw)); gap: 12px; }
+}
+@media (max-width: 640px) {
+  body.look-nouveau .page-liste .cl-entete__actions { flex: 1 1 100%; flex-wrap: wrap; padding: 10px 16px; }
+  body.look-nouveau .page-liste .cl-entete__actions .db-btn--primaire { flex: 1 1 100%; justify-content: center; }
+  body.look-nouveau .page-liste .cl-filtres { padding: 12px 16px; }
+}
+
+/* Cibles tactiles de 44 px : zone cliquable élargie sans changer l'aspect (rond de validation, menu « ... », boutons « + »). */
+.tl-fait, .tl-menu__bouton, .kanban__ajout, .taches-outil { position: relative; }
+.tl-fait::after, .tl-menu__bouton::after, .kanban__ajout::after { content: ""; position: absolute; inset: -8px; }
+@media (max-width: 640px) {
+  .taches-onglet, .taches-outil, .taches-filtre select, .tl-ajout { min-height: 44px; }
+  .taches-outil { width: 44px; height: 44px; }
+}

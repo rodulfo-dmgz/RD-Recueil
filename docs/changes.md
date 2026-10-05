@@ -226,7 +226,7 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 - [x] 5. Panneau latéral (aperçu d'un client et d'une demande depuis la liste)
 - [x] 6. Filtres avancés et vues enregistrées (migration 0052, vues personnelles, clients et demandes)
 - [x] 7. Kanban des demandes
-- [ ] 8. Responsive, accessibilité, performance, audit final
+- [x] 8. Responsive, accessibilité, performance, audit final (écrans refaits ; audit outillé et lecteur d'écran non faits)
 
 ## 4. Journal des étapes
 
@@ -1104,6 +1104,16 @@ Fait : page « Demandes en Kanban » (menu : groupe **Demandes** avec Liste et K
 `engine/kanban-demandes.js` (pur, +5 tests, vérifie que tous les statuts sont rangés une seule fois), `views/consultant/demandes-kanban.js`, +1 test du fil d'Ariane. Aucune migration.
 
 Vérifié : 262 tests, `check-coherence` 0 erreur ; navigateur (services simulés, supprimés ensuite) : glisser permis (soumise vers à démarrer, abandon avec confirmation), refus expliqués (gagnée, étape dédiée, demande terminée), refus de la base avec retour de la carte, sélecteurs ne proposant que les changements permis, capture de la mise en page (ligne d'infos qui débordait : corrigée). Non vérifié : un vrai compte consultant, l'écran étroit, le thème sombre.
+
+### 2026-10-05 : refonte, phase 8 (téléphone, thème sombre, accessibilité)
+
+Contrôle visuel (captures) des écrans refaits, puis corrections :
+- **Thème sombre** : liste des tâches, Kanban, fenêtre de création (avec la liste des membres) : couleurs correctes, rien à changer ; seule la barre de défilement du Kanban restait claire (maintenant fine et discrète comme celle des tableaux).
+- **Téléphone (375 px)** : aucun défilement horizontal de la page. Corrigés : onglets des tâches sur une seule ligne défilable ; barre d'outils en pleine largeur avec « Ajouter une tâche » sur toute la largeur et sans séparateur orphelin ; cartes de tâche resserrées (marges réduites, menu « ... » en haut à droite) ; liste des clients : les boutons Doublons, Exporter et Nouveau client ne sont plus coupés (retour à la ligne, bouton principal pleine largeur) ; colonnes du Kanban de 250 px qui défilent dans leur propre zone.
+- **Cibles tactiles** : zone cliquable élargie à 44 px pour le rond de validation, le menu « ... » et les boutons « + » (sans changer l'aspect) ; onglets, filtres, recherche et ligne « Ajouter une tâche » à 44 px sur téléphone.
+- **Accessibilité** : déjà en place sur ces écrans (rôles, noms accessibles des boutons et listes, focus visible global, alternative au glisser-déposer par sélecteur, annonces des messages) ; non audité à l'outil automatique ni au lecteur d'écran.
+
+Non fait : audit de performance chiffré (volumes actuels faibles ; pas de pagination), test au lecteur d'écran, essai sur un vrai téléphone, pages hors refonte (fiche client, demande) en thème sombre et sur téléphone.
 
 ## 5. Points ouverts
 
