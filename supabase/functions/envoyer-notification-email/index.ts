@@ -142,7 +142,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: demande } = await clientAdmin
     .from("crm_demandes")
-    .select("id, consultant_id")
+    .select("id, consultant_id, organisation_id")
     .eq("reference", reference)
     .maybeSingle();
   if (!demande) {
@@ -173,19 +173,27 @@ Deno.serve(async (req: Request) => {
 
   let emails: string[] = [];
   if (VERS_STAFF.has(vers)) {
-    // L'admin et le consultant de la demande seulement (lot Accès).
-    const { data } = await clientAdmin.from("crm_profils").select("email, role, user_id").in("role", ["admin", "consultant"]);
-    emails = (data || [])
-      .filter((p) => p.role === "admin" || p.user_id === demande.consultant_id)
-      .map((p) => p.email)
-      .filter(Boolean);
+    // L'administrateur et le consultant de la demande seulement : personnes du noyau (crm_destinataires_staff).
+    const { data: ids } = await clientAdmin.rpc("crm_destinataires_staff", {
+      p_org: demande.organisation_id,
+      p_consultant: demande.consultant_id,
+    });
+    const { data: personnes } = await clientAdmin.from("app_personnes").select("email").in("id", ids || []);
+    emails = (personnes || []).map((p) => p.email).filter(Boolean);
   } else {
-    const { data } = await clientAdmin
-      .from("crm_demande_acces")
-      .select("email")
-      .eq("demande_id", demande.id)
-      .not("user_id", "is", null);
-    emails = (data || []).map((a) => a.email).filter(Boolean);
+    // Clients invités sur la demande qui ont un compte : adresse de l'invitation retrouvée dans app_personnes,
+    // avec le droit crm_client dans l'organisation de la demande.
+    const { data: acces } = await clientAdmin.from("crm_demande_acces").select("email").eq("demande_id", demande.id);
+    const invites = (acces || []).map((a) => String(a.email).toLowerCase());
+    const { data: personnes } = await clientAdmin.from("app_personnes").select("id, email").in("email", invites);
+    const { data: droits } = await clientAdmin
+      .from("app_droits")
+      .select("personne_id")
+      .eq("organisation_id", demande.organisation_id)
+      .eq("role_code", "crm_client")
+      .in("personne_id", (personnes || []).map((p) => p.id));
+    const clients = new Set((droits || []).map((d) => d.personne_id));
+    emails = (personnes || []).filter((p) => clients.has(p.id)).map((p) => p.email).filter(Boolean);
   }
 
   const chemin = VERS_STAFF.has(vers) ? `demandes/${reference}` : `d/${reference}`;

@@ -1,6 +1,6 @@
 // Liste des comptes et suppression définitive - réservé au rôle admin
 // (01_ARCHITECTURE.md section 4.2, #/admin/utilisateurs). La suppression
-// d'un compte client supprime aussi ses demandes (via demande_acces) : la
+// d'un compte retire son accès au CRM (droits et invitations aux demandes) : la
 // confirmation liste donc explicitement ce qui sera perdu avant d'agir.
 import { listerComptes, listerDemandesDuCompte, supprimerUtilisateur } from '../../services/comptes.js';
 import { afficherToast } from '../../components/toast.js';
@@ -61,7 +61,7 @@ export async function vueComptes() {
   }
 
   function boutonSupprimer(compte) {
-    const bouton = el('button', 'btn btn--secondaire', 'Supprimer');
+    const bouton = el('button', 'btn btn--secondaire', 'Retirer l’accès');
     bouton.type = 'button';
     bouton.addEventListener('click', () => confirmerEtSupprimer(compte, bouton));
     return bouton;
@@ -83,17 +83,14 @@ export async function vueComptes() {
       .join('\n');
     const message =
       demandes.length > 0
-        ? `Supprimer définitivement le compte ${compte.email} ?\n\nCela supprimera aussi ${demandes.length} demande(s) et toutes leurs données (réponses, notes de cadrage, propositions, fichiers) :\n${lignesDemandes}\n\nCette action est irréversible.`
-        : `Supprimer définitivement le compte ${compte.email} ?\n\nCette action est irréversible.`;
+        ? `Retirer l’accès de ${compte.email} au CRM ?\n\nLe compte perdra l’accès à ${demandes.length} demande(s) :\n${lignesDemandes}\n\nLes demandes et leurs documents sont conservés. Le compte reste utilisable dans les autres modules.`
+        : `Retirer l’accès de ${compte.email} au CRM ?\n\nLe compte reste utilisable dans les autres modules.`;
     if (!window.confirm(message)) return;
 
     bouton.disabled = true;
     try {
-      const { demandesSupprimees } = await supprimerUtilisateur(compte.user_id);
-      afficherToast(
-        `Compte supprimé${demandesSupprimees ? ` (${demandesSupprimees} demande(s) supprimée(s))` : ''}.`,
-        { type: 'succes' }
-      );
+      await supprimerUtilisateur(compte.user_id);
+      afficherToast('Accès au CRM retiré.', { type: 'succes' });
       rafraichir();
     } catch (err) {
       afficherToast(err.message, { type: 'erreur' });

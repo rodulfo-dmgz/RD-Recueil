@@ -1,12 +1,45 @@
 // Edge Function creer-compte - 01_ARCHITECTURE.md section 8.1.
 // Seul moyen de créer un compte (client, consultant ou admin) : nécessite la
 // clé service_role, jamais exposée côté navigateur (CLAUDE.md).
+// Sur le noyau de l'ERP : le compte est rattaché à une PERSONNE (app_personnes), membre de l'organisation
+// (app_membres) avec le droit crm_consultant ou crm_client (app_droits) ; un administrateur est
+// administrateur d'organisation (app_membres.est_admin). Le rôle de l'appelant vient de crm_rpc_mon_profil.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { genererEmailAcces } from "./mail.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ROLES_VALIDES = ["client", "consultant", "admin"];
+
+// Membre actif de l'organisation + droit du module (administrateur : administrateur d'organisation).
+// Retourne un message d'erreur, ou null si tout est en place. Idempotent.
+async function rattacherPersonne(
+  clientAdmin: ReturnType<typeof createClient>,
+  organisationId: string,
+  personneId: string,
+  role: string
+): Promise<string | null> {
+  // Un membre déjà présent (même suspendu) n'est pas modifié, sauf pour devenir administrateur.
+  const { error: erreurMembre } = await clientAdmin
+    .from("app_membres")
+    .upsert(
+      role === "admin"
+        ? { organisation_id: organisationId, personne_id: personneId, statut: "actif", est_admin: true }
+        : { organisation_id: organisationId, personne_id: personneId, statut: "actif" },
+      role === "admin" ? { onConflict: "organisation_id,personne_id" } : { onConflict: "organisation_id,personne_id", ignoreDuplicates: true }
+    );
+  if (erreurMembre) return erreurMembre.message;
+  if (role !== "admin") {
+    const { error: erreurDroit } = await clientAdmin
+      .from("app_droits")
+      .upsert(
+        { organisation_id: organisationId, personne_id: personneId, role_code: "crm_" + role },
+        { onConflict: "organisation_id,personne_id,role_code", ignoreDuplicates: true }
+      );
+    if (erreurDroit) return erreurDroit.message;
+  }
+  return null;
+}
 
 function genererMotDePasseTemporaire(): string {
   const octets = new Uint8Array(18);
@@ -58,22 +91,28 @@ Deno.serve(async (req: Request) => {
     return reponseJson({ erreur: "Non authentifié." }, 401);
   }
 
-  const { data: profilAppelant } = await clientAppelant
-    .from("crm_profils")
-    .select("role")
-    .eq("user_id", appelant.id)
-    .maybeSingle();
-
-  if (!profilAppelant || !["admin", "consultant"].includes(profilAppelant.role)) {
-    return reponseJson({ erreur: "Rôle insuffisant." }, 403);
-  }
-
   let corps: Record<string, unknown>;
   try {
     corps = await req.json();
   } catch {
     return reponseJson({ erreur: "Corps JSON invalide." }, 400);
   }
+
+  // Profil de l'appelant : une ligne par organisation où il a un rôle du CRM ; l'organisation est précisée
+  // par le corps de la requête quand il en a plusieurs.
+  const { data: profilsAppelant } = await clientAppelant.rpc("crm_rpc_mon_profil");
+  const organisationDemandee = corps.organisationId ? String(corps.organisationId) : null;
+  const candidats = (profilsAppelant || []).filter(
+    (p: { organisation_id: string }) => !organisationDemandee || p.organisation_id === organisationDemandee
+  );
+  if (candidats.length > 1) {
+    return reponseJson({ erreur: "Plusieurs organisations possibles : précisez organisationId." }, 400);
+  }
+  const profilAppelant = candidats[0] as { role: string; organisation_id: string; user_id: string } | undefined;
+  if (!profilAppelant || !["admin", "consultant"].includes(profilAppelant.role)) {
+    return reponseJson({ erreur: "Rôle insuffisant." }, 403);
+  }
+  const organisationId = profilAppelant.organisation_id;
 
   const email = String(corps.email || "").trim().toLowerCase();
   const role = String(corps.role || "client");
@@ -93,6 +132,15 @@ Deno.serve(async (req: Request) => {
 
   // Client "admin" : service_role, contourne le RLS - jamais exposé au navigateur.
   const clientAdmin = createClient(supabaseUrl, cleServiceRole);
+
+  // La demande doit être visible par l'appelant (sécurité par ligne) : le client service_role ci-dessous
+  // contourne cette sécurité, il ne doit jamais toucher une demande d'une autre organisation.
+  if (role === "client" && demandeId) {
+    const { data: demandeVisible } = await clientAppelant.from("crm_demandes").select("id").eq("id", demandeId).maybeSingle();
+    if (!demandeVisible) {
+      return reponseJson({ erreur: "Demande introuvable." }, 404);
+    }
+  }
 
   if (role === "client" && demandeId) {
     const { error: erreurAcces } = await clientAdmin
@@ -121,18 +169,19 @@ Deno.serve(async (req: Request) => {
       (erreurCreation as { code?: string }).code === "email_exists";
 
     if (dejaExistant) {
-      const { data: profilExistant } = await clientAdmin
-        .from("crm_profils")
-        .select("user_id, role")
-        .eq("email", email)
-        .maybeSingle();
-
-      return reponseJson({
-        email,
-        compteExistant: true,
-        role: profilExistant?.role ?? null,
-        userId: profilExistant?.user_id ?? null,
-      });
+      // Compte déjà existant : on lui donne le droit demandé dans cette organisation, sans nouveau mot de passe.
+      const { data: personneExistante } = await clientAdmin.from("app_personnes").select("id").eq("email", email).maybeSingle();
+      if (!personneExistante) {
+        return reponseJson({ erreur: "Ce compte existe sans fiche personne : invitez-le depuis l'ERP." }, 409);
+      }
+      const erreurRattachement = await rattacherPersonne(clientAdmin, organisationId, personneExistante.id, role);
+      if (erreurRattachement) {
+        return reponseJson({ erreur: erreurRattachement }, 400);
+      }
+      if (role === "client" && demandeId) {
+        await clientAdmin.from("crm_demande_acces").update({ user_id: personneExistante.id }).eq("demande_id", demandeId).eq("email", email);
+      }
+      return reponseJson({ email, compteExistant: true, role, userId: personneExistante.id });
     }
 
     return reponseJson({ erreur: erreurCreation.message || "Échec de la création du compte." }, 400);
@@ -142,14 +191,30 @@ Deno.serve(async (req: Request) => {
     return reponseJson({ erreur: "Échec de la création du compte." }, 400);
   }
 
-  // Upsert plutôt qu'un simple insert : le trigger fn_gerer_nouvel_utilisateur
-  // a pu déjà créer la ligne profils (role client rattaché via demande_acces).
-  const { error: erreurProfil } = await clientAdmin.from("crm_profils").upsert(
-    { user_id: nouvelUtilisateur.user.id, role, nom, email, doit_changer_mot_de_passe: true },
-    { onConflict: "user_id" }
-  );
-  if (erreurProfil) {
-    return reponseJson({ erreur: erreurProfil.message }, 400);
+  // Fiche personne (identité du noyau), rattachée au compte d'authentification.
+  // Une fiche existante (créée dans l'ERP) est conservée : on lui rattache seulement le compte, sans toucher à son nom.
+  let { data: personne } = await clientAdmin.from("app_personnes").select("id, auth_user_id").eq("email", email).maybeSingle();
+  if (personne) {
+    if (!personne.auth_user_id) {
+      await clientAdmin.from("app_personnes").update({ auth_user_id: nouvelUtilisateur.user.id }).eq("id", personne.id);
+    }
+  } else {
+    const { data: creee, error: errPersonne } = await clientAdmin
+      .from("app_personnes")
+      .insert({ auth_user_id: nouvelUtilisateur.user.id, email, nom: nom || email.split("@")[0] })
+      .select("id, auth_user_id")
+      .single();
+    if (errPersonne || !creee) {
+      return reponseJson({ erreur: errPersonne?.message || "Échec de la création de la fiche personne." }, 400);
+    }
+    personne = creee;
+  }
+  const erreurRattachement = await rattacherPersonne(clientAdmin, organisationId, personne.id, role);
+  if (erreurRattachement) {
+    return reponseJson({ erreur: erreurRattachement }, 400);
+  }
+  if (role === "client" && demandeId) {
+    await clientAdmin.from("crm_demande_acces").update({ user_id: personne.id }).eq("demande_id", demandeId).eq("email", email);
   }
 
   // Envoi de l'e-mail d'accès - best-effort : un souci du côté de Resend ne
@@ -181,5 +246,5 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return reponseJson({ email, motDePasseTemporaire, userId: nouvelUtilisateur.user.id, compteExistant: false });
+  return reponseJson({ email, motDePasseTemporaire, userId: personne.id, compteExistant: false });
 });

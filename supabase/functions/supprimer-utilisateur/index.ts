@@ -48,16 +48,6 @@ Deno.serve(async (req: Request) => {
     return reponseJson({ erreur: "Non authentifié." }, 401);
   }
 
-  const { data: profilAppelant } = await clientAppelant
-    .from("crm_profils")
-    .select("role")
-    .eq("user_id", appelant.id)
-    .maybeSingle();
-
-  if (!profilAppelant || profilAppelant.role !== "admin") {
-    return reponseJson({ erreur: "Réservé à un administrateur." }, 403);
-  }
-
   let corps: Record<string, unknown>;
   try {
     corps = await req.json();
@@ -65,45 +55,59 @@ Deno.serve(async (req: Request) => {
     return reponseJson({ erreur: "Corps JSON invalide." }, 400);
   }
 
+  // Profil de l'appelant (une ligne par organisation où il a un rôle du CRM).
+  const { data: profilsAppelant } = await clientAppelant.rpc("crm_rpc_mon_profil");
+  const organisationDemandee = corps.organisationId ? String(corps.organisationId) : null;
+  const candidats = (profilsAppelant || []).filter(
+    (p: { organisation_id: string }) => !organisationDemandee || p.organisation_id === organisationDemandee
+  );
+  if (candidats.length > 1) {
+    return reponseJson({ erreur: "Plusieurs organisations possibles : précisez organisationId." }, 400);
+  }
+  const profilAppelant = candidats[0] as { role: string; organisation_id: string; user_id: string } | undefined;
+  if (!profilAppelant || profilAppelant.role !== "admin") {
+    return reponseJson({ erreur: "Réservé à un administrateur." }, 403);
+  }
+  const organisationId = profilAppelant.organisation_id;
+
   const userId = String(corps.userId || "");
   if (!userId) {
     return reponseJson({ erreur: "userId manquant." }, 400);
   }
-  if (userId === appelant.id) {
+  if (userId === profilAppelant.user_id) {
     return reponseJson({ erreur: "Vous ne pouvez pas supprimer votre propre compte." }, 400);
   }
 
   const clientAdmin = createClient(supabaseUrl, cleServiceRole);
 
-  const { data: profilCible } = await clientAdmin
-    .from("crm_profils")
-    .select("user_id, role")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (!profilCible) {
+  // La cible doit être un compte du CRM de CETTE organisation (liste réservée à l'administrateur, soumise à la
+  // sécurité par ligne) : le client service_role ci-dessous ne doit jamais toucher une autre organisation.
+  const { data: comptes } = await clientAppelant.rpc("crm_rpc_comptes");
+  const cible = (comptes || []).find((c: { user_id: string }) => c.user_id === userId) as { user_id: string; email: string } | undefined;
+  if (!cible) {
     return reponseJson({ erreur: "Compte introuvable." }, 404);
   }
 
-  let demandesSupprimees = 0;
-  if (profilCible.role === "client") {
-    const { data: acces } = await clientAdmin.from("crm_demande_acces").select("demande_id").eq("user_id", userId);
-    const idsDemandes = [...new Set((acces || []).map((a) => a.demande_id))];
-    if (idsDemandes.length > 0) {
-      const { error: erreurSuppressionDemandes, count } = await clientAdmin
-        .from("crm_demandes")
-        .delete({ count: "exact" })
-        .in("id", idsDemandes);
-      if (erreurSuppressionDemandes) {
-        return reponseJson({ erreur: erreurSuppressionDemandes.message }, 400);
-      }
-      demandesSupprimees = count || 0;
-    }
+  // Sur le noyau de l'ERP, le compte appartient à la personne et peut servir à d'autres modules : on retire
+  // l'accès au CRM (droits crm_ et invitations aux demandes), sans supprimer le compte, la personne ni les
+  // demandes. L'effacement définitif relève du noyau (droit à l'effacement, documents signés conservés).
+  const { error: erreurDroits } = await clientAdmin
+    .from("app_droits")
+    .delete()
+    .eq("organisation_id", organisationId)
+    .eq("personne_id", userId)
+    .like("role_code", "crm\\_%");
+  if (erreurDroits) {
+    return reponseJson({ erreur: erreurDroits.message }, 400);
+  }
+  const { error: erreurAcces, count } = await clientAdmin
+    .from("crm_demande_acces")
+    .delete({ count: "exact" })
+    .eq("organisation_id", organisationId)
+    .or("user_id.eq." + userId + ",email.eq." + cible.email.toLowerCase());
+  if (erreurAcces) {
+    return reponseJson({ erreur: erreurAcces.message }, 400);
   }
 
-  const { error: erreurSuppressionCompte } = await clientAdmin.auth.admin.deleteUser(userId);
-  if (erreurSuppressionCompte) {
-    return reponseJson({ erreur: erreurSuppressionCompte.message }, 400);
-  }
-
-  return reponseJson({ demandesSupprimees });
+  return reponseJson({ demandesSupprimees: 0, accesRetires: count || 0 });
 });

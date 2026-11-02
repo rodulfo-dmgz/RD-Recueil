@@ -1,8 +1,10 @@
 // Authentification par e-mail + mot de passe - 01_ARCHITECTURE.md section 8.1.
-// Les comptes sont créés par l'Edge Function creer-compte (mot de passe
-// temporaire) ; aucune inscription libre.
+// Les comptes sont ceux du noyau de l'ERP (invitations) ; aucune inscription libre.
+// Le profil et le rôle viennent de crm_rpc_mon_profil (identité app_personnes, droits app_droits).
 
 import { supabase } from './supabase.js';
+import { lireOrganisation, memoriserOrganisation } from './organisation.js';
+import { choisirLigneProfil } from './engine/personnes.js';
 
 export async function connecter(email, motDePasse) {
   const { error } = await supabase.auth.signInWithPassword({ email, password: motDePasse });
@@ -16,17 +18,15 @@ export async function demanderReinitialisationMotDePasse(email) {
   if (error) throw error;
 }
 
-// Utilisé à la fois pour le changement obligatoire (doit_changer_mot_de_passe)
-// et pour le flux "mot de passe oublié" (après clic sur le lien reçu).
+// Changement volontaire et flux "mot de passe oublié" (après clic sur le lien reçu).
+// Plus de mot de passe temporaire : le changement n'est plus imposé à la première connexion.
 export async function definirNouveauMotDePasse(motDePasse) {
   const { error } = await supabase.auth.updateUser({ password: motDePasse });
   if (error) throw error;
-
-  const { error: erreurRpc } = await supabase.rpc('crm_rpc_marquer_mot_de_passe_change');
-  if (erreurRpc) throw erreurRpc;
 }
 
 export async function deconnecter() {
+  memoriserOrganisation(null);
   await supabase.auth.signOut();
 }
 
@@ -35,18 +35,35 @@ export async function obtenirSession() {
   return data.session;
 }
 
+// user_id est l'identifiant de PERSONNE (app_personnes), pas celui du compte d'authentification : c'est lui que
+// portent les colonnes responsable_id, consultant_id, assignee_id, auteur...
 export async function obtenirProfil() {
   const session = await obtenirSession();
   if (!session) return null;
 
-  const { data, error } = await supabase
-    .from('crm_profils')
-    .select('user_id, role, nom, email, doit_changer_mot_de_passe')
-    .eq('user_id', session.user.id)
-    .maybeSingle();
-
+  const { data, error } = await supabase.rpc('crm_rpc_mon_profil');
   if (error) throw error;
-  return data;
+
+  const ligne = choisirLigneProfil(data, lireOrganisation());
+  if (!ligne) {
+    // Organisation mémorisée d'un autre compte ou devenue inaccessible : on l'oublie et on réessaie une fois.
+    if (lireOrganisation()) {
+      memoriserOrganisation(null);
+      return obtenirProfil();
+    }
+    return null;
+  }
+  memoriserOrganisation(ligne.organisation_id);
+  return {
+    user_id: ligne.user_id,
+    role: ligne.role,
+    nom: ligne.nom,
+    email: ligne.email,
+    organisation_id: ligne.organisation_id,
+    organisation_nom: ligne.organisation_nom,
+    organisations: data.map((l) => ({ id: l.organisation_id, nom: l.organisation_nom, role: l.role })),
+    doit_changer_mot_de_passe: false,
+  };
 }
 
 export function surChangementAuth(callback) {

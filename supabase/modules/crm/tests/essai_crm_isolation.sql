@@ -90,7 +90,7 @@ begin
        'crm_rpc_accepter_proposition', 'crm_rpc_archiver_demande', 'crm_rpc_assigner_demande', 'crm_rpc_changer_statut',
        'crm_rpc_confirmer_reservation_calcom', 'crm_rpc_demander_modification', 'crm_rpc_deposer_reclamation', 'crm_rpc_fusionner_clients',
        'crm_rpc_jalons', 'crm_rpc_mes_reclamations', 'crm_rpc_refuser_proposition', 'crm_rpc_repondre_satisfaction', 'crm_rpc_soumettre',
-       'crm_rpc_valider_cadrage']);
+       'crm_rpc_valider_cadrage', 'crm_rpc_mon_profil', 'crm_rpc_equipe', 'crm_rpc_personnes', 'crm_rpc_comptes', 'crm_rpc_emails_avec_compte']);
   res := res || (case when n = 0 then 'OK' else 'ÉCHEC' end || ' R1c seules les aides de politiques et les 14 crm_rpc_* sont appelables par un utilisateur connecté (fonctions en trop : ' || n || ')');
 
   -- Fonctions du schéma privé propres au module (hors noyau) : jamais appelables par anon ni authenticated.
@@ -289,6 +289,31 @@ begin
   res := res || (case when v_statut = 'entretien_planifie' then 'OK' else 'ÉCHEC' end || ' R10g le consultant de la demande peut réserver pour son client');
   perform pg_temp.moi(u_admb);
   res := res || (case when pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() + interval ''2 days'', now() + interval ''2 days 1 hour'')', v_dem4)) then 'OK' else 'ÉCHEC' end || ' R10h l''administrateur d''une autre organisation ne réserve rien');
+
+  -- ---------- R11 : profil, équipe et noms des personnes ----------
+  perform pg_temp.moi(u_c1);
+  res := res || (case when pg_temp.nb(format('select 1 from public.crm_rpc_mon_profil() where role = ''consultant'' and organisation_id = %L and user_id = %L', org_a, p_c1)) = 1 and pg_temp.nb('select 1 from public.crm_rpc_mon_profil()') = 1 then 'OK' else 'ÉCHEC' end || ' R11a le consultant lit son profil : un rôle, une organisation');
+  perform pg_temp.moi(u_cli);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_mon_profil() where role = ''client''') = 1 then 'OK' else 'ÉCHEC' end || ' R11b le client lit son profil');
+  perform pg_temp.moi(u_adm);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_mon_profil() where role = ''admin''') = 1 then 'OK' else 'ÉCHEC' end || ' R11c l''administrateur d''organisation est administrateur du CRM');
+  perform pg_temp.moi(u_out);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_mon_profil()') = 0 then 'OK' else 'ÉCHEC' end || ' R11d un membre sans rôle crm_ n''a pas de profil CRM');
+  perform pg_temp.moi(u_c1);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_equipe()') = 3 and pg_temp.nb('select 1 from public.crm_rpc_equipe() where role = ''consultant''') = 2 then 'OK' else 'ÉCHEC' end || ' R11e l''équipe (administrateur et 2 consultants) est lisible par le personnel');
+  res := res || (case when pg_temp.nb(format('select 1 from public.crm_rpc_personnes(array[%L, %L]::uuid[])', p_c2, p_adm)) = 2 and pg_temp.nb(format('select 1 from public.crm_rpc_personnes(array[%L]::uuid[])', p_admb)) = 0 then 'OK' else 'ÉCHEC' end || ' R11f le personnel lit le nom d''un collègue, pas celui d''une autre organisation');
+  perform pg_temp.moi(u_cli);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_equipe()') = 0 and pg_temp.nb(format('select 1 from public.crm_rpc_personnes(array[%L]::uuid[])', p_c1)) = 0 and pg_temp.nb('select 1 from public.crm_rpc_comptes()') = 0 then 'OK' else 'ÉCHEC' end || ' R11g le client ne lit ni l''équipe ni les comptes');
+  perform pg_temp.moi(u_c2);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_comptes()') = 0 then 'OK' else 'ÉCHEC' end || ' R11h les comptes sont réservés à l''administrateur');
+  perform pg_temp.moi(u_adm);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_comptes()') = 5 and pg_temp.nb('select 1 from public.crm_rpc_comptes() where role = ''client''') = 2 then 'OK' else 'ÉCHEC' end || ' R11i l''administrateur lit les 5 comptes de son organisation (1 administrateur, 2 consultants, 2 clients)');
+  perform pg_temp.moi(u_c1);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_emails_avec_compte(array[''CLI@test.fr'', ''out@test.fr'', ''c2@test.fr'', ''inconnu@test.fr''])') = 1 then 'OK' else 'ÉCHEC' end || ' R11k seules les adresses de comptes clients de l''organisation sont reconnues (insensible à la casse)');
+  perform pg_temp.moi(u_cli);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_emails_avec_compte(array[''cli@test.fr''])') = 0 then 'OK' else 'ÉCHEC' end || ' R11l le client ne sonde pas les comptes');
+  perform pg_temp.moi(u_admb);
+  res := res || (case when pg_temp.nb('select 1 from public.crm_rpc_comptes()') = 2 and pg_temp.nb(format('select 1 from public.crm_rpc_personnes(array[%L]::uuid[])', p_c1)) = 0 then 'OK' else 'ÉCHEC' end || ' R11j l''organisation B ne voit que ses propres comptes');
 
   -- ---------- R8 : module désactivé ----------
   reset role;

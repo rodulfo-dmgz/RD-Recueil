@@ -21,7 +21,7 @@ export async function televerserFichier({ demandeId, reference, questionId, fich
 
   const chemin = `${dossierClient}/${reference}/${questionId}/${Date.now()}-${fichier.name}`;
 
-  const { error: erreurDepot } = await supabase.storage.from('demandes').upload(chemin, fichier);
+  const { error: erreurDepot } = await supabase.storage.from('crm-demandes').upload(chemin, fichier);
   if (erreurDepot) throw erreurDepot;
 
   const {

@@ -84,16 +84,24 @@ Aucune clé étrangère vers un autre module. Le CRM émet, sans aucun montant (
 | Buckets `demandes`, `taches` ; politiques `stockage_*` | Buckets `crm-demandes`, `crm-taches` ; politiques `crm_stockage_*` |
 | Unicité SIRET, numéro de facture | Par organisation |
 
-## 6. Ce qui reste à faire
+## 6. Application et fonctions serveur : état
 
-Le front et les fonctions serveur utilisent encore l'ancien modèle ; ils ne fonctionnent pas sur ce module tant qu'ils ne sont pas adaptés.
+Migrations 6 et 7 : `20261009400006_crm_reservation_calcom.sql` (réservation durcie) et `20261009400007_crm_profil_equipe.sql` (profil, équipe, noms de personnes, comptes, adresses de comptes clients : `crm_rpc_mon_profil`, `crm_rpc_equipe`, `crm_rpc_personnes`, `crm_rpc_comptes`, `crm_rpc_emails_avec_compte`).
 
-1. **Application (`app/js`)** : profil et rôle depuis `app_personnes`, `app_droits` (au lieu de `crm_profils`) ; en-tête `x-organisme` ; jointures `crm_profils!...(nom, email)` à remplacer par des lectures sur `app_v_personnes` ; identifiants de personne au lieu d'identifiants de compte ; suppression du changement de mot de passe obligatoire ; buckets `crm-*`.
-2. **Fonctions serveur** (`supabase/functions`) : `creer-compte` (à remplacer par les invitations du noyau, `app_invitations`), `supprimer-utilisateur`, `envoyer-notification-email` ; noms `crm-*` demandés par l'ERP.
-3. **Valeurs en dur** : émetteur du devis (lire `app_organisations`), lien Cal.com, expéditeur des e-mails, préfixe `RDF-` des références.
-4. **Reprise des données** (`scripts/migrer-donnees.mjs`) : ajouter l'organisation, créer les personnes et les droits.
-5. **Plus tard (optionnel)** : s'appuyer sur `app_audit`, `app_signatures`, `app_fichiers`, `app_notifications` et `app_tiers` du noyau à la place des tables équivalentes du CRM.
-6. Relecture par la session ERP (contrat du noyau, nommage, isolation) avant toute application.
+**Adapté** (branche `crm-prefixe`, vérifié par les tests du dépôt et la syntaxe, **pas encore essayé contre un vrai Supabase avec le noyau**) :
+- `auth.js` : profil et rôle par `crm_rpc_mon_profil` (`user_id` est l'identifiant de personne), choix de l'organisation mémorisé (`organisation.js`), plus de changement de mot de passe imposé.
+- `supabase.js` : en-tête `x-organisme` envoyé à l'API de données seulement.
+- Services : noms des personnes rattachés par `crm_rpc_personnes` (`engine/personnes.js`, `services/personnes.js`) au lieu des jointures sur `crm_profils` ; équipe, comptes et adresses de comptes par RPC ; identifiant de personne pour les tâches ; buckets `crm-demandes` et `crm-taches`.
+- Fonctions serveur `creer-compte`, `supprimer-utilisateur`, `envoyer-notification-email` : rôle de l'appelant par `crm_rpc_mon_profil`, comptes rattachés au noyau (`app_personnes`, `app_membres`, `app_droits`). `supprimer-utilisateur` **retire l'accès au CRM** (droits `crm_` et invitations) sans supprimer le compte ni les demandes ; l'écran « Comptes » le dit.
+
+**Reste à faire**
+1. Renommer les fonctions serveur en `crm-*` au déploiement (noms demandés par l'ERP) et adapter les appels (`services/edge-functions.js`).
+2. Essai bout en bout contre un projet Supabase avec le noyau : connexion, création de compte, parcours complet.
+3. Choix de l'organisation à l'écran quand une personne en a plusieurs (aujourd'hui : la mémorisée ou la première).
+4. Valeurs en dur : émetteur du devis (lire `app_organisations`), lien Cal.com, expéditeur des e-mails, préfixe `RDF-`.
+5. Reprise des données (`scripts/migrer-donnees.mjs`) : ajouter l'organisation, créer les personnes et les droits.
+6. Plus tard (optionnel) : `app_audit`, `app_signatures`, `app_fichiers`, `app_notifications`, `app_tiers` du noyau ; interface refaite dans l'application Next.js de l'ERP (`engine/` et `services/` se reprennent).
+7. Relecture par la session ERP de ces fonctions serveur.
 
 ## 7. Régénérer les fichiers
 

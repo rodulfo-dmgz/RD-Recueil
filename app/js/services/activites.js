@@ -2,8 +2,17 @@
 // notes. Lisibles par tout le staff ; seuls l'auteur ou l'admin peuvent
 // modifier ou supprimer un échange (politiques de 0035).
 import { supabase } from '../supabase.js';
+import { rattacherPersonne } from '../engine/personnes.js';
+import { chargerPersonnes } from './personnes.js';
 
-const SELECTION = '*, contacts:crm_contacts(prenom, nom), demandes:crm_demandes(reference), auteur_profil:crm_profils!auteur(nom, email)';
+const SELECTION = '*, contacts:crm_contacts(prenom, nom), demandes:crm_demandes(reference)';
+
+// L'auteur vient de crm_rpc_personnes (plus de table de profils à joindre) : auteur_profil garde la forme { nom, email }.
+async function avecAuteurs(activites) {
+  const liste = Array.isArray(activites) ? activites : activites ? [activites] : [];
+  rattacherPersonne(liste, 'auteur', 'auteur_profil', await chargerPersonnes(liste.map((a) => a.auteur)));
+  return activites;
+}
 
 export async function listerActivites(clientId, limite = 100) {
   const { data, error } = await supabase
@@ -13,7 +22,7 @@ export async function listerActivites(clientId, limite = 100) {
     .order('date_activite', { ascending: false })
     .limit(limite);
   if (error) throw error;
-  return data;
+  return avecAuteurs(data);
 }
 
 export async function creerActivite(clientId, champs) {
@@ -23,7 +32,7 @@ export async function creerActivite(clientId, champs) {
     .select(SELECTION)
     .single();
   if (error) throw error;
-  return data;
+  return avecAuteurs(data);
 }
 
 export async function supprimerActivite(id) {

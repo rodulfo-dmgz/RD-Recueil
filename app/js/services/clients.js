@@ -107,7 +107,7 @@ export async function lireImportDisponible(clientId) {
 
 // Consultants et administrateurs, pour choisir un responsable de client.
 export async function listerResponsables() {
-  const { data, error } = await supabase.from('crm_profils').select('user_id, nom, email, role').in('role', ['admin', 'consultant']).order('email');
+  const { data, error } = await supabase.rpc('crm_rpc_equipe');
   if (error) throw error;
   return data;
 }
@@ -175,7 +175,7 @@ export async function importerContacts(clientId, plan) {
 export async function emailsAvecCompte(emails) {
   const liste = [...new Set(emails.filter(Boolean).map((e) => e.toLowerCase()))];
   if (liste.length === 0) return new Set();
-  const { data, error } = await supabase.from('crm_profils').select('email').eq('role', 'client').in('email', liste);
+  const { data, error } = await supabase.rpc('crm_rpc_emails_avec_compte', { p_emails: liste });
   if (error) throw error;
-  return new Set(data.map((p) => p.email.toLowerCase()));
+  return new Set((data ?? []).map((email) => email.toLowerCase()));
 }

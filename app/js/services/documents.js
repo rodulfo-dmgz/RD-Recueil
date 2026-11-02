@@ -22,7 +22,7 @@ export async function listerDocumentsClient(demandeIds) {
 
 // Lien de téléchargement temporaire (le bucket n'est pas public).
 export async function urlTelechargement(chemin) {
-  const { data, error } = await supabase.storage.from('demandes').createSignedUrl(chemin, 60);
+  const { data, error } = await supabase.storage.from('crm-demandes').createSignedUrl(chemin, 60);
   if (error) throw error;
   return data.signedUrl;
 }

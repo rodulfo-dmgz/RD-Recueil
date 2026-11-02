@@ -3,6 +3,8 @@ import { creerClient } from './clients.js';
 import { obtenirVersionPublieeCourante } from './questionnaire.js';
 import { posterCommentaire } from './commentaires.js';
 import { creerCompte } from './comptes.js';
+import { rattacherPersonne } from '../engine/personnes.js';
+import { chargerPersonnes } from './personnes.js';
 
 export async function obtenirDemandeParReference(reference) {
   const { data, error } = await supabase.from('crm_demandes').select('*').eq('reference', reference).maybeSingle();
@@ -15,7 +17,7 @@ export async function obtenirDemandeParReference(reference) {
 export async function listerDemandes({ statut, type, consultantId, inclureArchivees = false } = {}) {
   let requete = supabase
     .from('crm_demandes')
-    .select('id, reference, statut, date_limite, types, created_at, archivee, client_id, consultant_id, clients:crm_clients(raison_sociale), consultant:crm_profils!consultant_id(nom, email)')
+    .select('id, reference, statut, date_limite, types, created_at, archivee, client_id, consultant_id, clients:crm_clients(raison_sociale)')
     .order('created_at', { ascending: false });
   if (statut) requete = requete.eq('statut', statut);
   if (type) requete = requete.contains('types', [type]);
@@ -25,6 +27,8 @@ export async function listerDemandes({ statut, type, consultantId, inclureArchiv
 
   const { data, error } = await requete;
   if (error) throw error;
+  // Le consultant vient de crm_rpc_personnes (personnel seulement : un client ne reçoit pas ce nom).
+  rattacherPersonne(data, 'consultant_id', 'consultant', await chargerPersonnes(data.map((x) => x.consultant_id)));
   return data;
 }
 

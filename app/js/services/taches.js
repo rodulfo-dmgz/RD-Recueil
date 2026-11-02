@@ -4,16 +4,28 @@
 import { supabase } from '../supabase.js';
 import { STATUTS_OUVERTS, STATUTS_TACHE, nomFichierSur } from '../engine/taches.js';
 import { validerFichierDepot } from '../engine/validation.js';
+import { rattacherPersonne } from '../engine/personnes.js';
+import { chargerPersonnes } from './personnes.js';
+import { getProfil } from '../store.js';
 
 const SELECTION =
-  '*, clients:crm_clients(raison_sociale), contacts:crm_contacts(prenom, nom), demandes:crm_demandes(reference), assignee:crm_profils!assignee_id(nom, email), membres:crm_tache_membres(user_id, profil:crm_profils(nom, email)), pieces:crm_tache_pieces_jointes(id, nom, chemin, taille)';
+  '*, clients:crm_clients(raison_sociale), contacts:crm_contacts(prenom, nom), demandes:crm_demandes(reference), membres:crm_tache_membres(user_id), pieces:crm_tache_pieces_jointes(id, nom, chemin, taille)';
 
+// Identifiant de PERSONNE de l'utilisateur connecté (pas celui de son compte d'authentification).
 async function idUtilisateur() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) throw new Error('Session expirée : reconnectez-vous.');
-  return session.user.id;
+  const id = getProfil()?.user_id;
+  if (!id) throw new Error('Session expirée : reconnectez-vous.');
+  return id;
+}
+
+// Les noms viennent de crm_rpc_personnes (plus de table de profils à joindre) : assignee et membres[].profil
+// gardent la forme { nom, email } attendue par les écrans.
+async function avecNoms(taches) {
+  const liste = Array.isArray(taches) ? taches : taches ? [taches] : [];
+  const index = await chargerPersonnes(liste.flatMap((t) => [t.assignee_id, ...(t.membres ?? []).map((m) => m.user_id)]));
+  rattacherPersonne(liste, 'assignee_id', 'assignee', index);
+  for (const t of liste) rattacherPersonne(t.membres ?? [], 'user_id', 'profil', index);
+  return taches;
 }
 
 // statut : 'ouvertes' par défaut (à faire, en cours, à réviser), un statut précis ou null pour toutes ;
@@ -32,7 +44,7 @@ export async function listerTaches({ clientId, assigneeId, statut = 'ouvertes' }
   }
   const { data, error } = await requete;
   if (error) throw error;
-  return data;
+  return avecNoms(data);
 }
 
 // Sans `assignee_id`, la tâche est confiée à l'utilisateur connecté. Un
@@ -45,7 +57,7 @@ export async function creerTache(clientId, champs) {
     .select(SELECTION)
     .single();
   if (error) throw error;
-  return data;
+  return avecNoms(data);
 }
 
 // Création complète (formulaire « Créer une nouvelle tâche ») : la tâche, puis ses autres membres, puis
@@ -87,11 +99,11 @@ export async function ajouterPieceJointe(tacheId, fichier) {
   const erreur = validerFichierDepot({ nom: fichier.name, taille: fichier.size });
   if (erreur) throw new Error(erreur);
   const chemin = `${tacheId}/${Date.now()}-${nomFichierSur(fichier.name)}`;
-  const { error: erreurDepot } = await supabase.storage.from('taches').upload(chemin, fichier);
+  const { error: erreurDepot } = await supabase.storage.from('crm-taches').upload(chemin, fichier);
   if (erreurDepot) throw erreurDepot;
   const { data, error } = await supabase.from('crm_tache_pieces_jointes').insert({ tache_id: tacheId, nom: fichier.name, chemin, taille: fichier.size }).select('id, nom, chemin, taille').single();
   if (error) {
-    await supabase.storage.from('taches').remove([chemin]);
+    await supabase.storage.from('crm-taches').remove([chemin]);
     throw error;
   }
   return data;
@@ -100,11 +112,11 @@ export async function ajouterPieceJointe(tacheId, fichier) {
 export async function supprimerPieceJointe(piece) {
   const { error } = await supabase.from('crm_tache_pieces_jointes').delete().eq('id', piece.id);
   if (error) throw error;
-  await supabase.storage.from('taches').remove([piece.chemin]); // le fichier orphelin éventuel est sans conséquence
+  await supabase.storage.from('crm-taches').remove([piece.chemin]); // le fichier orphelin éventuel est sans conséquence
 }
 
 export async function lienPieceJointe(chemin) {
-  const { data, error } = await supabase.storage.from('taches').createSignedUrl(chemin, 60);
+  const { data, error } = await supabase.storage.from('crm-taches').createSignedUrl(chemin, 60);
   if (error) throw error;
   return data.signedUrl;
 }
@@ -112,7 +124,7 @@ export async function lienPieceJointe(chemin) {
 export async function modifierTache(id, champs) {
   const { data, error } = await supabase.from('crm_taches').update(champs).eq('id', id).select(SELECTION).single();
   if (error) throw error;
-  return data;
+  return avecNoms(data);
 }
 
 // Changement de colonne du Kanban (ou du sélecteur de statut d'une ligne).
@@ -142,5 +154,5 @@ export async function supprimerTache(id) {
   const { data: pieces } = await supabase.from('crm_tache_pieces_jointes').select('chemin').eq('tache_id', id);
   const { error } = await supabase.from('crm_taches').delete().eq('id', id);
   if (error) throw error;
-  if (pieces?.length) await supabase.storage.from('taches').remove(pieces.map((p) => p.chemin));
+  if (pieces?.length) await supabase.storage.from('crm-taches').remove(pieces.map((p) => p.chemin));
 }

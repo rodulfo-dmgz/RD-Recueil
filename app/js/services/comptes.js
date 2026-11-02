@@ -1,5 +1,6 @@
 import { supabase } from '../supabase.js';
 import { appelerEdgeFunction } from './edge-functions.js';
+import { getProfil } from '../store.js';
 
 // Seul point de création de compte (client, consultant, admin) : appelle
 // l'Edge Function creer-compte, qui seule détient la clé service_role
@@ -7,7 +8,7 @@ import { appelerEdgeFunction } from './edge-functions.js';
 export async function creerCompte({ email, role, nom, demandeId, droit }) {
   return appelerEdgeFunction('creer-compte', {
     method: 'POST',
-    body: { email, role, nom, demandeId, droit },
+    body: { email, role, nom, demandeId, droit, organisationId: getProfil()?.organisation_id },
     messageErreur: 'Échec de la création du compte.',
   }); // { email, motDePasseTemporaire, userId }
 }
@@ -16,20 +17,16 @@ export async function creerCompte({ email, role, nom, demandeId, droit }) {
 // suppression reste réservée à l'admin côté Edge Function) - 01_ARCHITECTURE.md
 // section 4.2, écran #/admin/utilisateurs.
 export async function listerComptes() {
-  const { data, error } = await supabase
-    .from('crm_profils')
-    .select('user_id, email, nom, role, created_at')
-    .order('role', { ascending: true })
-    .order('email', { ascending: true });
+  const { data, error } = await supabase.rpc('crm_rpc_comptes');
   if (error) throw error;
-  return data;
+  return [...data].sort((a, b) => a.role.localeCompare(b.role) || a.email.localeCompare(b.email));
 }
 
 // Comptes clients avec leur société et leurs demandes (de la plus récente à
 // la plus ancienne) - sélecteur "Aperçu client" de l'en-tête admin.
 export async function listerClientsApercu() {
-  const [{ data: profils, error: erreurProfils }, { data: acces, error: erreurAcces }] = await Promise.all([
-    supabase.from('crm_profils').select('user_id, email, nom').eq('role', 'client'),
+  const [{ data: comptes, error: erreurProfils }, { data: acces, error: erreurAcces }] = await Promise.all([
+    supabase.rpc('crm_rpc_comptes'),
     supabase
       .from('crm_demande_acces')
       .select('user_id, demandes:crm_demandes!inner(reference, created_at, archivee, clients:crm_clients(raison_sociale))')
@@ -39,7 +36,8 @@ export async function listerClientsApercu() {
   if (erreurProfils) throw erreurProfils;
   if (erreurAcces) throw erreurAcces;
 
-  return profils
+  return comptes
+    .filter((p) => p.role === 'client')
     .map((p) => {
       const demandes = acces
         .filter((a) => a.user_id === p.user_id && a.demandes)
@@ -54,9 +52,9 @@ export async function listerClientsApercu() {
 
 // Nom et e-mail d'un compte, pour afficher le client consulté en aperçu.
 export async function obtenirProfilClient(userId) {
-  const { data, error } = await supabase.from('crm_profils').select('user_id, nom, email').eq('user_id', userId).maybeSingle();
+  const { data, error } = await supabase.rpc('crm_rpc_comptes');
   if (error) throw error;
-  return data;
+  return (data ?? []).find((c) => c.user_id === userId) ?? null;
 }
 
 // Demandes accessibles par ce compte (via demande_acces), pour afficher au
@@ -70,16 +68,14 @@ export async function listerDemandesDuCompte(userId) {
   return data.filter((a) => a.demandes).map((a) => a.demandes);
 }
 
-// Suppression définitive et irréversible d'un compte - admin uniquement,
-// nécessite service_role (auth.admin.deleteUser), donc passe par l'Edge
-// Function supprimer-utilisateur, jamais par un accès direct au client
-// (CLAUDE.md, même logique que creer-compte). Si le compte est client, ses
-// demandes (via demande_acces) sont supprimées avec toutes leurs données
-// dépendantes (cascade), pas seulement l'accès.
+// Retrait de l'accès au CRM - admin uniquement. Le compte appartient à la personne et peut servir à d'autres
+// modules de l'ERP : on retire ses droits crm_ et ses invitations aux demandes, sans supprimer le compte,
+// la personne ni les demandes (documents signés conservés). Nécessite service_role, donc passe par l'Edge
+// Function supprimer-utilisateur (CLAUDE.md, même logique que creer-compte).
 export async function supprimerUtilisateur(userId) {
   return appelerEdgeFunction('supprimer-utilisateur', {
     method: 'POST',
-    body: { userId },
+    body: { userId, organisationId: getProfil()?.organisation_id },
     messageErreur: 'Échec de la suppression du compte.',
-  }); // { demandesSupprimees }
+  }); // { demandesSupprimees: 0, accesRetires }
 }
