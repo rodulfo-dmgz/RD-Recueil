@@ -43,7 +43,7 @@ declare
   u_cli uuid := gen_random_uuid(); u_out uuid := gen_random_uuid(); u_admb uuid := gen_random_uuid(); u_clib uuid := gen_random_uuid();
   p_adm uuid; p_c1 uuid; p_c2 uuid; p_cli uuid; p_out uuid; p_admb uuid; p_clib uuid;
   v_cl uuid; v_cl2 uuid; v_dem uuid; v_ref text; v_note uuid; v_prop uuid; v_statut text; v_tot numeric; v_org uuid;
-  v_ok boolean; v_dem2 uuid; v_prop2 uuid;
+  v_ok boolean; v_dem2 uuid; v_prop2 uuid; v_dem3 uuid; v_dem4 uuid;
   u_lec uuid := gen_random_uuid(); p_lec uuid;
 begin
   -- ---------- Mise en place (propriétaire de la base) ----------
@@ -262,6 +262,33 @@ begin
   select count(*) into n from public.crm_propositions where id = v_prop2 and statut = 'acceptee' and signature_credential ~ '^\d{6}-\d{6}$' and decidee_par = p_cli;
   res := res || (case when n = 1 then 'OK' else 'ÉCHEC' end || ' R9n le client invité signe un devis envoyé : signataire et code enregistrés');
   res := res || (case when pg_temp.refuse(format('select public.crm_rpc_accepter_proposition(%L, ''data:image/png;base64,EEEE'')', v_prop2)) then 'OK' else 'ÉCHEC' end || ' R9o et personne ne signe une seconde fois');
+
+  -- ---------- R10 : réservation de l'entretien ----------
+  perform pg_temp.moi(u_adm);
+  insert into public.crm_demandes (client_id, questionnaire_id, types, consultant_id) values (v_cl, 'v1', array['FOR'], p_c1) returning id into v_dem3;
+  insert into public.crm_demandes (client_id, questionnaire_id, types, consultant_id) values (v_cl, 'v1', array['FOR'], p_c1) returning id into v_dem4;
+  insert into public.crm_demande_acces (demande_id, email, droit) values (v_dem3, 'cli@test.fr', 'editeur'), (v_dem3, 'lec@test.fr', 'lecteur');
+  reset role;
+  update public.crm_demandes set statut = 'soumise' where id in (v_dem3, v_dem4);
+  perform pg_temp.moi(u_lec);
+  res := res || (case when pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() + interval ''2 days'', now() + interval ''2 days 1 hour'')', v_dem3)) then 'OK' else 'ÉCHEC' end || ' R10a un invité en lecture seule ne réserve pas l''entretien');
+  perform pg_temp.moi(u_cli);
+  res := res || (case when pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() + interval ''2 days 1 hour'', now() + interval ''2 days'')', v_dem3)) and pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() + interval ''2 days'', now() + interval ''2 days'')', v_dem3)) then 'OK' else 'ÉCHEC' end || ' R10b une plage inversée ou nulle est refusée');
+  res := res || (case when pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() - interval ''3 days'', now() - interval ''3 days'' + interval ''1 hour'')', v_dem3)) then 'OK' else 'ÉCHEC' end || ' R10c un début plus ancien qu''un jour est refusé');
+  res := res || (case when pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() + interval ''2 days'', now() + interval ''2 days 1 hour'')', v_dem2)) then 'OK' else 'ÉCHEC' end || ' R10d et l''état de la demande reste contrôlé (pas de réservation hors état soumise)');
+  perform public.crm_rpc_confirmer_reservation_calcom(v_dem3, now() + interval '2 days', now() + interval '2 days 1 hour');
+  perform pg_temp.moi(u_adm);
+  select statut into v_statut from public.crm_demandes where id = v_dem3;
+  res := res || (case when v_statut = 'entretien_planifie' and pg_temp.nb(format('select 1 from public.crm_entretien_creneaux where demande_id = %L and choisi', v_dem3)) = 1 then 'OK' else 'ÉCHEC' end || ' R10e le client invité (editeur) réserve : créneau enregistré, demande en entretien planifié');
+  perform pg_temp.moi(u_cli);
+  res := res || (case when pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() + interval ''3 days'', now() + interval ''3 days 1 hour'')', v_dem3)) then 'OK' else 'ÉCHEC' end || ' R10f pas de seconde réservation');
+  perform pg_temp.moi(u_c1);
+  perform public.crm_rpc_confirmer_reservation_calcom(v_dem4, now() + interval '1 day', now() + interval '1 day 1 hour');
+  perform pg_temp.moi(u_adm);
+  select statut into v_statut from public.crm_demandes where id = v_dem4;
+  res := res || (case when v_statut = 'entretien_planifie' then 'OK' else 'ÉCHEC' end || ' R10g le consultant de la demande peut réserver pour son client');
+  perform pg_temp.moi(u_admb);
+  res := res || (case when pg_temp.refuse(format('select public.crm_rpc_confirmer_reservation_calcom(%L, now() + interval ''2 days'', now() + interval ''2 days 1 hour'')', v_dem4)) then 'OK' else 'ÉCHEC' end || ' R10h l''administrateur d''une autre organisation ne réserve rien');
 
   -- ---------- R8 : module désactivé ----------
   reset role;
