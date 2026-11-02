@@ -7,7 +7,7 @@ const COLONNES = 'id, demande_id, numero, libelle, montant_ht, date_emission, da
 
 export async function listerFactures(demandeId) {
   const { data, error } = await supabase
-    .from('factures')
+    .from('crm_factures')
     .select(COLONNES)
     .eq('demande_id', demandeId)
     .order('date_emission')
@@ -20,8 +20,8 @@ export async function listerFactures(demandeId) {
 // (ou ne contient que date_paiement pour marquer une facture payée).
 export async function enregistrerFacture(demandeId, id, ligne) {
   const requete = id
-    ? supabase.from('factures').update(ligne).eq('id', id)
-    : supabase.from('factures').insert({ ...ligne, demande_id: demandeId });
+    ? supabase.from('crm_factures').update(ligne).eq('id', id)
+    : supabase.from('crm_factures').insert({ ...ligne, demande_id: demandeId });
   const { data, error } = await requete.select(COLONNES);
   if (error) {
     if (error.code === '23505') throw new Error('Ce numéro de facture existe déjà.');
@@ -32,14 +32,14 @@ export async function enregistrerFacture(demandeId, id, ligne) {
 }
 
 export async function supprimerFacture(id) {
-  const { data, error } = await supabase.from('factures').delete().eq('id', id).select('id');
+  const { data, error } = await supabase.from('crm_factures').delete().eq('id', id).select('id');
   if (error) throw error;
   if (!data?.length) throw new Error('Suppression refusée : les factures sont réservées à l’administrateur.');
 }
 
 // Références déjà saisies, pour comparer avec un fichier d'import (admin).
 export async function listerFacturesImport() {
-  const { data, error } = await supabase.from('factures').select('id, demande_id, numero, date_paiement');
+  const { data, error } = await supabase.from('crm_factures').select('id, demande_id, numero, date_paiement');
   if (error) throw error;
   return data;
 }
@@ -49,7 +49,7 @@ export async function listerFacturesImport() {
 // de paiement déjà présente n'est jamais remplacée, rien n'est supprimé.
 export async function appliquerImportFactures({ creations = [], paiements = [] }) {
   if (creations.length > 0) {
-    const { error } = await supabase.from('factures').insert(creations);
+    const { error } = await supabase.from('crm_factures').insert(creations);
     if (error) {
       if (error.code === '23505') throw new Error('Un numéro de facture existe déjà : relancez l’aperçu pour partir de l’état actuel.');
       throw error;
@@ -57,7 +57,7 @@ export async function appliquerImportFactures({ creations = [], paiements = [] }
   }
   let misesAJour = 0;
   for (const p of paiements) {
-    const { data, error } = await supabase.from('factures').update({ date_paiement: p.date_paiement }).eq('id', p.id).is('date_paiement', null).select('id');
+    const { data, error } = await supabase.from('crm_factures').update({ date_paiement: p.date_paiement }).eq('id', p.id).is('date_paiement', null).select('id');
     if (error) throw error;
     misesAJour += data.length;
   }
@@ -66,7 +66,7 @@ export async function appliquerImportFactures({ creations = [], paiements = [] }
 
 // Toutes les factures (admin), pour les indicateurs : seulement les colonnes utiles.
 export async function listerToutesFactures() {
-  const { data, error } = await supabase.from('factures').select('demande_id, montant_ht, date_emission, date_paiement');
+  const { data, error } = await supabase.from('crm_factures').select('demande_id, montant_ht, date_emission, date_paiement');
   if (error) throw error;
   return data;
 }

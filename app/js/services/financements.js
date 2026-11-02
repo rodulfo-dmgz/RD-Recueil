@@ -5,7 +5,7 @@ import { supabase } from '../supabase.js';
 const COLONNES = 'id, demande_id, type, organisme, reference_dossier, montant, statut, note, created_at';
 
 export async function listerFinancements(demandeId) {
-  const { data, error } = await supabase.from('financements').select(COLONNES).eq('demande_id', demandeId).order('created_at');
+  const { data, error } = await supabase.from('crm_financements').select(COLONNES).eq('demande_id', demandeId).order('created_at');
   if (error) throw error;
   return data;
 }
@@ -13,8 +13,8 @@ export async function listerFinancements(demandeId) {
 // id nul : création ; sinon modification. `ligne` vient de preparerFinancement.
 export async function enregistrerFinancement(demandeId, id, ligne) {
   const requete = id
-    ? supabase.from('financements').update(ligne).eq('id', id)
-    : supabase.from('financements').insert({ ...ligne, demande_id: demandeId });
+    ? supabase.from('crm_financements').update(ligne).eq('id', id)
+    : supabase.from('crm_financements').insert({ ...ligne, demande_id: demandeId });
   const { data, error } = await requete.select(COLONNES);
   if (error) throw error;
   if (!data?.length) throw new Error('Enregistrement refusé : ce financement n’est pas accessible avec votre compte.');
@@ -22,7 +22,7 @@ export async function enregistrerFinancement(demandeId, id, ligne) {
 }
 
 export async function supprimerFinancement(id) {
-  const { data, error } = await supabase.from('financements').delete().eq('id', id).select('id');
+  const { data, error } = await supabase.from('crm_financements').delete().eq('id', id).select('id');
   if (error) throw error;
   if (!data?.length) throw new Error('Suppression refusée : ce financement n’est pas accessible avec votre compte.');
 }

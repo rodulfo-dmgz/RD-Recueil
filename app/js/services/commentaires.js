@@ -2,7 +2,7 @@ import { supabase } from '../supabase.js';
 
 export async function chargerCommentaires(demandeId) {
   const { data, error } = await supabase
-    .from('commentaires')
+    .from('crm_commentaires')
     .select('*')
     .eq('demande_id', demandeId)
     .order('created_at');
@@ -15,7 +15,7 @@ export async function posterCommentaire(demandeId, { cible, texte, interne }) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const { error } = await supabase.from('commentaires').insert({
+  const { error } = await supabase.from('crm_commentaires').insert({
     demande_id: demandeId,
     cible: cible || 'general',
     texte,

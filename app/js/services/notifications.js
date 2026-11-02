@@ -3,7 +3,7 @@ import { appelerEdgeFunction } from './edge-functions.js';
 
 export async function listerNotifications(limite = 20) {
   const { data, error } = await supabase
-    .from('notifications')
+    .from('crm_notifications')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(limite);
@@ -13,7 +13,7 @@ export async function listerNotifications(limite = 20) {
 
 export async function compterNonLues() {
   const { count, error } = await supabase
-    .from('notifications')
+    .from('crm_notifications')
     .select('id', { count: 'exact', head: true })
     .eq('lu', false);
   if (error) throw error;
@@ -21,12 +21,12 @@ export async function compterNonLues() {
 }
 
 export async function marquerLue(id) {
-  const { error } = await supabase.from('notifications').update({ lu: true }).eq('id', id);
+  const { error } = await supabase.from('crm_notifications').update({ lu: true }).eq('id', id);
   if (error) throw error;
 }
 
 export async function marquerToutesLues() {
-  const { error } = await supabase.from('notifications').update({ lu: true }).eq('lu', false);
+  const { error } = await supabase.from('crm_notifications').update({ lu: true }).eq('lu', false);
   if (error) throw error;
 }
 

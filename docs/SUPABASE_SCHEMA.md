@@ -2,6 +2,8 @@
 
 Date : 3 octobre 2026. Projet `kowvfsesbuevylxayinl`. Lecture seule : rien n'a été modifié. Le détail du modèle et des règles est dans `docs/01_ARCHITECTURE.md` (sections 7 et 8) et les 51 migrations dans `supabase/migrations/` (0001 à 0051).
 
+> **Mise à jour du 7 octobre 2026 : préfixe `crm_`.** Les noms de ce document sont ceux de la base d'origine. Dans la nouvelle installation (`supabase/migrations/20261007000000_crm_install.sql`, guide `docs/INSTALLATION_SUPABASE.md`), toutes les tables, vues et fonctions sont préfixées : `clients` devient `crm_clients`, `v_clients` devient `crm_v_clients`, `rpc_changer_statut` devient `crm_rpc_changer_statut`. Les buckets `demandes` et `taches` gardent leur nom. Les anciennes migrations sont archivées dans `supabase/historique/`.
+
 ## 1. En chiffres
 
 39 tables (toutes avec la sécurité par ligne activée), 3 vues, 43 fonctions, 1 bucket de fichiers privé, 4 extensions utiles (`pgcrypto`, `uuid-ossp`, `pg_stat_statements`, `supabase_vault`). Les volumes sont faibles : 4 clients, 4 demandes, 4 comptes, quelques centaines de réponses.

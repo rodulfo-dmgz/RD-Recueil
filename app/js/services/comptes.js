@@ -17,7 +17,7 @@ export async function creerCompte({ email, role, nom, demandeId, droit }) {
 // section 4.2, écran #/admin/utilisateurs.
 export async function listerComptes() {
   const { data, error } = await supabase
-    .from('profils')
+    .from('crm_profils')
     .select('user_id, email, nom, role, created_at')
     .order('role', { ascending: true })
     .order('email', { ascending: true });
@@ -29,10 +29,10 @@ export async function listerComptes() {
 // la plus ancienne) - sélecteur "Aperçu client" de l'en-tête admin.
 export async function listerClientsApercu() {
   const [{ data: profils, error: erreurProfils }, { data: acces, error: erreurAcces }] = await Promise.all([
-    supabase.from('profils').select('user_id, email, nom').eq('role', 'client'),
+    supabase.from('crm_profils').select('user_id, email, nom').eq('role', 'client'),
     supabase
-      .from('demande_acces')
-      .select('user_id, demandes!inner(reference, created_at, archivee, clients(raison_sociale))')
+      .from('crm_demande_acces')
+      .select('user_id, demandes:crm_demandes!inner(reference, created_at, archivee, clients:crm_clients(raison_sociale))')
       .eq('demandes.archivee', false)
       .not('user_id', 'is', null),
   ]);
@@ -54,7 +54,7 @@ export async function listerClientsApercu() {
 
 // Nom et e-mail d'un compte, pour afficher le client consulté en aperçu.
 export async function obtenirProfilClient(userId) {
-  const { data, error } = await supabase.from('profils').select('user_id, nom, email').eq('user_id', userId).maybeSingle();
+  const { data, error } = await supabase.from('crm_profils').select('user_id, nom, email').eq('user_id', userId).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -63,8 +63,8 @@ export async function obtenirProfilClient(userId) {
 // consultant/admin exactement ce qui serait supprimé avant confirmation.
 export async function listerDemandesDuCompte(userId) {
   const { data, error } = await supabase
-    .from('demande_acces')
-    .select('demande_id, demandes(reference, clients(raison_sociale))')
+    .from('crm_demande_acces')
+    .select('demande_id, demandes:crm_demandes(reference, clients:crm_clients(raison_sociale))')
     .eq('user_id', userId);
   if (error) throw error;
   return data.filter((a) => a.demandes).map((a) => a.demandes);

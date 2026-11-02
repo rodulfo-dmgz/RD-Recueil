@@ -1,6 +1,6 @@
 // data/*.json -> supabase/seed/seed_vX.sql
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -25,16 +25,33 @@ function sqlTextArray(values) {
   return `ARRAY[${values.map(sqlString).join(', ')}]::text[]`;
 }
 
-export function buildSeed({ questionnaire, glossaire, version, sourceHash, gabaritCadrageMd }) {
+const PROBABILITES_STATUT = [
+  ['brouillon', 5],
+  ['envoyee', 10],
+  ['en_saisie', 15],
+  ['soumise', 25],
+  ['entretien_planifie', 35],
+  ['en_analyse', 45],
+  ['cadrage_envoye', 55],
+  ['cadrage_a_revoir', 50],
+  ['cadrage_valide', 65],
+  ['proposition_envoyee', 75],
+  ['gagnee', 100],
+  ['perdue', 0],
+  ['reorientee', 0],
+  ['abandonnee', 0],
+];
+
+export function buildSeed({ questionnaire, glossaire, version, sourceHash, gabaritCadrageMd, avecProbabilites = true }) {
   const lines = [];
   lines.push(`-- Généré par scripts/build-seed.mjs -- ne pas modifier à la main.`);
   lines.push('');
 
-  lines.push(`insert into questionnaires (id, statut, source_hash, gabarit_cadrage_md, publie_le) values`);
+  lines.push(`insert into crm_questionnaires (id, statut, source_hash, gabarit_cadrage_md, publie_le) values`);
   lines.push(`  (${sqlString(version)}, 'publie', ${sqlString(sourceHash)}, ${sqlString(gabaritCadrageMd)}, now());`);
   lines.push('');
 
-  lines.push(`insert into sections (questionnaire_id, id, partie, titre, ordre, condition, visible_client) values`);
+  lines.push(`insert into crm_sections (questionnaire_id, id, partie, titre, ordre, condition, visible_client) values`);
   lines.push(
     questionnaire.sections
       .map(
@@ -46,7 +63,7 @@ export function buildSeed({ questionnaire, glossaire, version, sourceHash, gabar
   lines.push('');
 
   lines.push(
-    `insert into questions (questionnaire_id, id, section_id, ordre, libelle, type, options, obligatoire, rempli_par, condition, glossaire, nsp_autorise) values`
+    `insert into crm_questions (questionnaire_id, id, section_id, ordre, libelle, type, options, obligatoire, rempli_par, condition, glossaire, nsp_autorise) values`
   );
   lines.push(
     questionnaire.questions
@@ -58,7 +75,7 @@ export function buildSeed({ questionnaire, glossaire, version, sourceHash, gabar
   );
   lines.push('');
 
-  lines.push(`insert into glossaire (questionnaire_id, id, libelle, categorie, definition, exemple) values`);
+  lines.push(`insert into crm_glossaire (questionnaire_id, id, libelle, categorie, definition, exemple) values`);
   lines.push(
     glossaire.termes
       .map(
@@ -68,6 +85,14 @@ export function buildSeed({ questionnaire, glossaire, version, sourceHash, gabar
       .join(',\n') + ';'
   );
   lines.push('');
+
+  // Probabilité de gain par statut de demande (pipeline pondéré). Dans le module de l'ERP, elle est créée par
+  // organisation à l'activation du module (migration 20261009400001) : le seed du module ne la contient pas.
+  if (avecProbabilites) {
+    lines.push('insert into crm_probabilites_statut (statut, pourcentage) values');
+    lines.push(PROBABILITES_STATUT.map(([statut, pourcentage]) => `  (${sqlString(statut)}, ${pourcentage})`).join(',\n') + ';');
+    lines.push('');
+  }
 
   return lines.join('\n');
 }
@@ -98,7 +123,12 @@ async function main() {
   const outPath = join(ROOT, 'supabase', 'seed', `seed_${version}.sql`);
   await writeFile(outPath, sql, 'utf8');
 
-  console.log(`supabase/seed/seed_${version}.sql écrit (${questionnaire.sections.length} sections, ${questionnaire.questions.length} questions, ${glossaire.termes.length} termes)`);
+  // Seed du module CRM de l'ERP : mêmes données, sans les probabilités (créées par organisation à l'activation).
+  const dossierModule = join(ROOT, 'supabase', 'modules', 'crm', 'seed');
+  await mkdir(dossierModule, { recursive: true });
+  await writeFile(join(dossierModule, `seed_${version}.sql`), buildSeed({ questionnaire, glossaire, version, sourceHash, gabaritCadrageMd, avecProbabilites: false }), 'utf8');
+
+  console.log(`supabase/seed/seed_${version}.sql et supabase/modules/crm/seed/seed_${version}.sql écrits (${questionnaire.sections.length} sections, ${questionnaire.questions.length} questions, ${glossaire.termes.length} termes)`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

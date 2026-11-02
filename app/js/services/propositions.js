@@ -1,14 +1,14 @@
 import { supabase } from '../supabase.js';
 
 export async function obtenirProposition(demandeId) {
-  const { data, error } = await supabase.from('propositions').select('*').eq('demande_id', demandeId).maybeSingle();
+  const { data, error } = await supabase.from('crm_propositions').select('*').eq('demande_id', demandeId).maybeSingle();
   if (error) throw error;
   return data;
 }
 
 export async function listerLignes(propositionId) {
   const { data, error } = await supabase
-    .from('proposition_lignes')
+    .from('crm_proposition_lignes')
     .select('*')
     .eq('proposition_id', propositionId)
     .order('ordre');
@@ -18,7 +18,7 @@ export async function listerLignes(propositionId) {
 
 export async function creerProposition(demandeId) {
   const { data, error } = await supabase
-    .from('propositions')
+    .from('crm_propositions')
     .insert({ demande_id: demandeId })
     .select()
     .single();
@@ -28,7 +28,7 @@ export async function creerProposition(demandeId) {
 
 export async function mettreAJourJustification(propositionId, justificationMd) {
   const { error } = await supabase
-    .from('propositions')
+    .from('crm_propositions')
     .update({ justification_md: justificationMd })
     .eq('id', propositionId);
   if (error) throw error;
@@ -39,14 +39,14 @@ export async function mettreAJourJustification(propositionId, justificationMd) {
 // lignes édité par un seul consultant à la fois).
 export async function remplacerLignes(propositionId, lignes) {
   const { error: erreurSuppression } = await supabase
-    .from('proposition_lignes')
+    .from('crm_proposition_lignes')
     .delete()
     .eq('proposition_id', propositionId);
   if (erreurSuppression) throw erreurSuppression;
 
   if (lignes.length === 0) return;
 
-  const { error: erreurInsertion } = await supabase.from('proposition_lignes').insert(
+  const { error: erreurInsertion } = await supabase.from('crm_proposition_lignes').insert(
     lignes.map((ligne, index) => ({
       proposition_id: propositionId,
       ordre: index,
@@ -62,12 +62,12 @@ export async function remplacerLignes(propositionId, lignes) {
 // proposition_envoyee - action réservée au staff (RLS sur propositions).
 export async function envoyerProposition(propositionId, demandeId) {
   const { error: erreurProposition } = await supabase
-    .from('propositions')
+    .from('crm_propositions')
     .update({ statut: 'envoyee', envoyee_le: new Date().toISOString() })
     .eq('id', propositionId);
   if (erreurProposition) throw erreurProposition;
 
-  const { error: erreurStatut } = await supabase.rpc('rpc_changer_statut', {
+  const { error: erreurStatut } = await supabase.rpc('crm_rpc_changer_statut', {
     p_demande_id: demandeId,
     p_vers: 'proposition_envoyee',
     p_commentaire: null,
@@ -76,7 +76,7 @@ export async function envoyerProposition(propositionId, demandeId) {
 }
 
 export async function accepterProposition(propositionId, signatureImage) {
-  const { error } = await supabase.rpc('rpc_accepter_proposition', {
+  const { error } = await supabase.rpc('crm_rpc_accepter_proposition', {
     p_proposition_id: propositionId,
     p_signature_image: signatureImage,
   });
@@ -84,7 +84,7 @@ export async function accepterProposition(propositionId, signatureImage) {
 }
 
 export async function refuserProposition(propositionId, commentaire) {
-  const { error } = await supabase.rpc('rpc_refuser_proposition', {
+  const { error } = await supabase.rpc('crm_rpc_refuser_proposition', {
     p_proposition_id: propositionId,
     p_commentaire: commentaire,
   });

@@ -9,7 +9,7 @@ export const TAILLE_PAGE_JOURNAL = 50;
 // date de début (ISO), texte dans le nom de la ligne. `avantId` : suite de la
 // liste (les entrées plus anciennes que celle-ci).
 export async function listerJournal({ table, clientId, userId, depuis, recherche, avantId, limite = TAILLE_PAGE_JOURNAL } = {}) {
-  let requete = supabase.from('audit_log').select('*').order('id', { ascending: false }).limit(limite);
+  let requete = supabase.from('crm_audit_log').select('*').order('id', { ascending: false }).limit(limite);
   if (table) requete = requete.eq('table_name', table);
   if (clientId) requete = requete.eq('client_id', clientId);
   if (userId) requete = requete.eq('user_id', userId);

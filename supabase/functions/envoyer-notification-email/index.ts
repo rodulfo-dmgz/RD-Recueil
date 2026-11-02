@@ -141,7 +141,7 @@ Deno.serve(async (req: Request) => {
   );
 
   const { data: demande } = await clientAdmin
-    .from("demandes")
+    .from("crm_demandes")
     .select("id, consultant_id")
     .eq("reference", reference)
     .maybeSingle();
@@ -151,7 +151,7 @@ Deno.serve(async (req: Request) => {
 
   // Accès à la demande : personnel concerné (admin, consultant de la demande)
   // ou compte client invité. Même réponse qu'une demande inexistante.
-  const { data: aAcces } = await clientAppelant.rpc("acces_demande", { p_demande_id: demande.id });
+  const { data: aAcces } = await clientAppelant.rpc("crm_acces_demande", { p_demande_id: demande.id });
   if (!aAcces) {
     return reponseJson({ erreur: "Demande introuvable." }, 404);
   }
@@ -160,7 +160,7 @@ Deno.serve(async (req: Request) => {
   // déclenchée (l'application l'appelle aussitôt après l'action).
   const depuis = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { data: evenement } = await clientAdmin
-    .from("evenements")
+    .from("crm_evenements")
     .select("id")
     .eq("demande_id", demande.id)
     .eq("type", "statut")
@@ -174,14 +174,14 @@ Deno.serve(async (req: Request) => {
   let emails: string[] = [];
   if (VERS_STAFF.has(vers)) {
     // L'admin et le consultant de la demande seulement (lot Accès).
-    const { data } = await clientAdmin.from("profils").select("email, role, user_id").in("role", ["admin", "consultant"]);
+    const { data } = await clientAdmin.from("crm_profils").select("email, role, user_id").in("role", ["admin", "consultant"]);
     emails = (data || [])
       .filter((p) => p.role === "admin" || p.user_id === demande.consultant_id)
       .map((p) => p.email)
       .filter(Boolean);
   } else {
     const { data } = await clientAdmin
-      .from("demande_acces")
+      .from("crm_demande_acces")
       .select("email")
       .eq("demande_id", demande.id)
       .not("user_id", "is", null);

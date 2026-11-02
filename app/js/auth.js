@@ -22,7 +22,7 @@ export async function definirNouveauMotDePasse(motDePasse) {
   const { error } = await supabase.auth.updateUser({ password: motDePasse });
   if (error) throw error;
 
-  const { error: erreurRpc } = await supabase.rpc('rpc_marquer_mot_de_passe_change');
+  const { error: erreurRpc } = await supabase.rpc('crm_rpc_marquer_mot_de_passe_change');
   if (erreurRpc) throw erreurRpc;
 }
 
@@ -40,7 +40,7 @@ export async function obtenirProfil() {
   if (!session) return null;
 
   const { data, error } = await supabase
-    .from('profils')
+    .from('crm_profils')
     .select('user_id, role, nom, email, doit_changer_mot_de_passe')
     .eq('user_id', session.user.id)
     .maybeSingle();

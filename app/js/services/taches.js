@@ -6,7 +6,7 @@ import { STATUTS_OUVERTS, STATUTS_TACHE, nomFichierSur } from '../engine/taches.
 import { validerFichierDepot } from '../engine/validation.js';
 
 const SELECTION =
-  '*, clients(raison_sociale), contacts(prenom, nom), demandes(reference), assignee:profils!assignee_id(nom, email), membres:tache_membres(user_id, profil:profils(nom, email)), pieces:tache_pieces_jointes(id, nom, chemin, taille)';
+  '*, clients:crm_clients(raison_sociale), contacts:crm_contacts(prenom, nom), demandes:crm_demandes(reference), assignee:crm_profils!assignee_id(nom, email), membres:crm_tache_membres(user_id, profil:crm_profils(nom, email)), pieces:crm_tache_pieces_jointes(id, nom, chemin, taille)';
 
 async function idUtilisateur() {
   const {
@@ -19,13 +19,13 @@ async function idUtilisateur() {
 // statut : 'ouvertes' par défaut (à faire, en cours, à réviser), un statut précis ou null pour toutes ;
 // clientId et assigneeId restreignent la liste ; triées par échéance.
 export async function listerTaches({ clientId, assigneeId, statut = 'ouvertes' } = {}) {
-  let requete = supabase.from('taches').select(SELECTION).order('echeance', { ascending: true }).order('created_at', { ascending: true });
+  let requete = supabase.from('crm_taches').select(SELECTION).order('echeance', { ascending: true }).order('created_at', { ascending: true });
   if (statut === 'ouvertes') requete = requete.in('statut', STATUTS_OUVERTS);
   else if (statut) requete = requete.eq('statut', statut);
   if (clientId) requete = requete.eq('client_id', clientId);
   if (assigneeId) {
     // Responsable ou membre : on retrouve d'abord les tâches où la personne est membre.
-    const { data: lignes, error: erreurMembres } = await supabase.from('tache_membres').select('tache_id').eq('user_id', assigneeId);
+    const { data: lignes, error: erreurMembres } = await supabase.from('crm_tache_membres').select('tache_id').eq('user_id', assigneeId);
     if (erreurMembres) throw erreurMembres;
     const idsMembre = lignes.map((l) => l.tache_id);
     requete = idsMembre.length > 0 ? requete.or(`assignee_id.eq.${assigneeId},id.in.(${idsMembre.join(',')})`) : requete.eq('assignee_id', assigneeId);
@@ -40,7 +40,7 @@ export async function listerTaches({ clientId, assigneeId, statut = 'ouvertes' }
 export async function creerTache(clientId, champs) {
   const assigneeId = champs.assignee_id || (await idUtilisateur());
   const { data, error } = await supabase
-    .from('taches')
+    .from('crm_taches')
     .insert({ ...champs, client_id: clientId, assignee_id: assigneeId })
     .select(SELECTION)
     .single();
@@ -57,7 +57,7 @@ export async function creerTacheComplete({ clientId, champs, membres = [], fichi
   const echecs = { membres: [], fichiers: [] };
   const autres = [...new Set(membres)].filter((id) => id && id !== tache.assignee_id);
   if (autres.length > 0) {
-    const { error } = await supabase.from('tache_membres').insert(autres.map((user_id) => ({ tache_id: tache.id, user_id })));
+    const { error } = await supabase.from('crm_tache_membres').insert(autres.map((user_id) => ({ tache_id: tache.id, user_id })));
     if (error) echecs.membres = autres;
   }
   for (const fichier of fichiers) {
@@ -73,12 +73,12 @@ export async function creerTacheComplete({ clientId, champs, membres = [], fichi
 // ─── Membres et pièces jointes ──────────────────────────────────────────────
 
 export async function ajouterMembre(tacheId, userId) {
-  const { error } = await supabase.from('tache_membres').insert({ tache_id: tacheId, user_id: userId });
+  const { error } = await supabase.from('crm_tache_membres').insert({ tache_id: tacheId, user_id: userId });
   if (error) throw error;
 }
 
 export async function retirerMembre(tacheId, userId) {
-  const { error } = await supabase.from('tache_membres').delete().eq('tache_id', tacheId).eq('user_id', userId);
+  const { error } = await supabase.from('crm_tache_membres').delete().eq('tache_id', tacheId).eq('user_id', userId);
   if (error) throw error;
 }
 
@@ -89,7 +89,7 @@ export async function ajouterPieceJointe(tacheId, fichier) {
   const chemin = `${tacheId}/${Date.now()}-${nomFichierSur(fichier.name)}`;
   const { error: erreurDepot } = await supabase.storage.from('taches').upload(chemin, fichier);
   if (erreurDepot) throw erreurDepot;
-  const { data, error } = await supabase.from('tache_pieces_jointes').insert({ tache_id: tacheId, nom: fichier.name, chemin, taille: fichier.size }).select('id, nom, chemin, taille').single();
+  const { data, error } = await supabase.from('crm_tache_pieces_jointes').insert({ tache_id: tacheId, nom: fichier.name, chemin, taille: fichier.size }).select('id, nom, chemin, taille').single();
   if (error) {
     await supabase.storage.from('taches').remove([chemin]);
     throw error;
@@ -98,7 +98,7 @@ export async function ajouterPieceJointe(tacheId, fichier) {
 }
 
 export async function supprimerPieceJointe(piece) {
-  const { error } = await supabase.from('tache_pieces_jointes').delete().eq('id', piece.id);
+  const { error } = await supabase.from('crm_tache_pieces_jointes').delete().eq('id', piece.id);
   if (error) throw error;
   await supabase.storage.from('taches').remove([piece.chemin]); // le fichier orphelin éventuel est sans conséquence
 }
@@ -110,7 +110,7 @@ export async function lienPieceJointe(chemin) {
 }
 
 export async function modifierTache(id, champs) {
-  const { data, error } = await supabase.from('taches').update(champs).eq('id', id).select(SELECTION).single();
+  const { data, error } = await supabase.from('crm_taches').update(champs).eq('id', id).select(SELECTION).single();
   if (error) throw error;
   return data;
 }
@@ -139,8 +139,8 @@ export function reporterTache(id, echeance) {
 
 export async function supprimerTache(id) {
   // Les fichiers joints sont retirés du stockage après la suppression (les lignes partent avec la tâche).
-  const { data: pieces } = await supabase.from('tache_pieces_jointes').select('chemin').eq('tache_id', id);
-  const { error } = await supabase.from('taches').delete().eq('id', id);
+  const { data: pieces } = await supabase.from('crm_tache_pieces_jointes').select('chemin').eq('tache_id', id);
+  const { error } = await supabase.from('crm_taches').delete().eq('id', id);
   if (error) throw error;
   if (pieces?.length) await supabase.storage.from('taches').remove(pieces.map((p) => p.chemin));
 }

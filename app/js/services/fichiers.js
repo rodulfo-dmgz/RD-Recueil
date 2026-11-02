@@ -13,8 +13,8 @@ export async function televerserFichier({ demandeId, reference, questionId, fich
   if (erreur) throw new Error(erreur);
 
   const { data: demande } = await supabase
-    .from('demandes')
-    .select('clients(raison_sociale)')
+    .from('crm_demandes')
+    .select('clients:crm_clients(raison_sociale)')
     .eq('id', demandeId)
     .maybeSingle();
   const dossierClient = slug(demande?.clients?.raison_sociale || '') || 'client';
@@ -28,7 +28,7 @@ export async function televerserFichier({ demandeId, reference, questionId, fich
     data: { session },
   } = await supabase.auth.getSession();
 
-  const { error: erreurTable } = await supabase.from('fichiers').insert({
+  const { error: erreurTable } = await supabase.from('crm_fichiers').insert({
     demande_id: demandeId,
     question_id: questionId,
     chemin,
@@ -44,7 +44,7 @@ export async function televerserFichier({ demandeId, reference, questionId, fich
 
 export async function listerFichiers(demandeId) {
   const { data, error } = await supabase
-    .from('fichiers')
+    .from('crm_fichiers')
     .select('*')
     .eq('demande_id', demandeId)
     .order('created_at');

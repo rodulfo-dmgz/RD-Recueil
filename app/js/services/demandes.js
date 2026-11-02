@@ -5,7 +5,7 @@ import { posterCommentaire } from './commentaires.js';
 import { creerCompte } from './comptes.js';
 
 export async function obtenirDemandeParReference(reference) {
-  const { data, error } = await supabase.from('demandes').select('*').eq('reference', reference).maybeSingle();
+  const { data, error } = await supabase.from('crm_demandes').select('*').eq('reference', reference).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -14,8 +14,8 @@ export async function obtenirDemandeParReference(reference) {
 // (liste de l'admin : un consultant ne voit de toute façon que les siennes).
 export async function listerDemandes({ statut, type, consultantId, inclureArchivees = false } = {}) {
   let requete = supabase
-    .from('demandes')
-    .select('id, reference, statut, date_limite, types, created_at, archivee, client_id, consultant_id, clients(raison_sociale), consultant:profils!consultant_id(nom, email)')
+    .from('crm_demandes')
+    .select('id, reference, statut, date_limite, types, created_at, archivee, client_id, consultant_id, clients:crm_clients(raison_sociale), consultant:crm_profils!consultant_id(nom, email)')
     .order('created_at', { ascending: false });
   if (statut) requete = requete.eq('statut', statut);
   if (type) requete = requete.contains('types', [type]);
@@ -34,13 +34,13 @@ export async function listerDemandes({ statut, type, consultantId, inclureArchiv
 // donnerait toutes les demandes).
 export async function listerMesDemandes({ userId } = {}) {
   let requete = supabase
-    .from('demandes')
+    .from('crm_demandes')
     .select('id, reference, statut, types, questionnaire_id, updated_at')
     .eq('archivee', false)
     .order('updated_at', { ascending: false });
 
   if (userId) {
-    const { data: acces, error: erreurAcces } = await supabase.from('demande_acces').select('demande_id').eq('user_id', userId);
+    const { data: acces, error: erreurAcces } = await supabase.from('crm_demande_acces').select('demande_id').eq('user_id', userId);
     if (erreurAcces) throw erreurAcces;
     requete = requete.in('id', acces.map((a) => a.demande_id));
   }
@@ -54,7 +54,7 @@ export async function listerMesDemandes({ userId } = {}) {
 // evenements sans declencher les notifications de changement de statut
 // (01_ARCHITECTURE.md section 4.2, migration 0025).
 export async function archiverDemande(demandeId, archiver) {
-  const { error } = await supabase.rpc('rpc_archiver_demande', {
+  const { error } = await supabase.rpc('crm_rpc_archiver_demande', {
     p_demande_id: demandeId,
     p_archiver: archiver,
   });
@@ -64,7 +64,7 @@ export async function archiverDemande(demandeId, archiver) {
 // Attribution d'une demande à un consultant : réservée à l'admin (lot Accès,
 // migration 0043) ; journalisée, et le consultant est prévenu.
 export async function assignerDemande(demandeId, consultantId) {
-  const { error } = await supabase.rpc('rpc_assigner_demande', {
+  const { error } = await supabase.rpc('crm_rpc_assigner_demande', {
     p_demande_id: demandeId,
     p_consultant_id: consultantId,
   });
@@ -79,7 +79,7 @@ export async function creerDemande({ clientId, raisonSociale, siret, types, date
   if (!questionnaireId) throw new Error('Aucune version du questionnaire publiée.');
 
   const { data, error } = await supabase
-    .from('demandes')
+    .from('crm_demandes')
     .insert({
       client_id: idClient,
       questionnaire_id: questionnaireId,
@@ -96,7 +96,7 @@ export async function creerDemande({ clientId, raisonSociale, siret, types, date
 // Seul point de passage pour changer demandes.statut (01_ARCHITECTURE.md
 // section 3.2 et CLAUDE.md) : la RPC vérifie la transition et le rôle.
 export async function changerStatut(demandeId, vers, commentaire) {
-  const { error } = await supabase.rpc('rpc_changer_statut', {
+  const { error } = await supabase.rpc('crm_rpc_changer_statut', {
     p_demande_id: demandeId,
     p_vers: vers,
     p_commentaire: commentaire || null,
@@ -110,7 +110,7 @@ export async function changerStatut(demandeId, vers, commentaire) {
 // fait pas confiance à la simple absence d'erreur, seulement à cette liste
 // d'identifiants pour savoir lesquels vérifier.
 export async function soumettre(demandeId, idsObligatoires) {
-  const { error } = await supabase.rpc('rpc_soumettre', {
+  const { error } = await supabase.rpc('crm_rpc_soumettre', {
     p_demande_id: demandeId,
     p_ids_obligatoires: idsObligatoires,
   });
@@ -142,8 +142,8 @@ export async function listerDemandesInactives() {
   const seuil = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: demandes, error } = await supabase
-    .from('demandes')
-    .select('id, reference, statut, created_at, clients(raison_sociale)')
+    .from('crm_demandes')
+    .select('id, reference, statut, created_at, clients:crm_clients(raison_sociale)')
     .in('statut', ['envoyee', 'en_saisie'])
     .eq('archivee', false);
   if (error) throw error;
@@ -151,7 +151,7 @@ export async function listerDemandesInactives() {
 
   const ids = demandes.map((d) => d.id);
   const { data: reponses, error: erreurReponses } = await supabase
-    .from('reponses')
+    .from('crm_reponses')
     .select('demande_id, updated_at')
     .in('demande_id', ids);
   if (erreurReponses) throw erreurReponses;

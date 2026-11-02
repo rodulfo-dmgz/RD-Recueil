@@ -8,13 +8,13 @@ export async function listerDocumentsClient(demandeIds) {
 
   const [notes, propositions, fichiers] = await Promise.all([
     supabase
-      .from('notes_cadrage')
+      .from('crm_notes_cadrage')
       .select('id, demande_id, version, statut, contenu_md, validee_le, signature_image, signature_credential')
       .in('demande_id', demandeIds)
       .neq('statut', 'brouillon')
       .order('version', { ascending: false }),
-    supabase.from('propositions').select('*').in('demande_id', demandeIds).neq('statut', 'brouillon'),
-    supabase.from('fichiers').select('id, demande_id, nom, chemin, taille, created_at').in('demande_id', demandeIds),
+    supabase.from('crm_propositions').select('*').in('demande_id', demandeIds).neq('statut', 'brouillon'),
+    supabase.from('crm_fichiers').select('id, demande_id, nom, chemin, taille, created_at').in('demande_id', demandeIds),
   ]);
   for (const r of [notes, propositions, fichiers]) if (r.error) throw r.error;
   return { notes: notes.data, propositions: propositions.data, fichiers: fichiers.data };

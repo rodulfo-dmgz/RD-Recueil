@@ -2,7 +2,7 @@ import { supabase } from '../supabase.js';
 
 export async function listerCreneaux(demandeId) {
   const { data, error } = await supabase
-    .from('entretien_creneaux')
+    .from('crm_entretien_creneaux')
     .select('*')
     .eq('demande_id', demandeId)
     .order('debut');
@@ -15,7 +15,7 @@ export async function listerCreneaux(demandeId) {
 // entretien_planifie - RLS bloque l'écriture directe du client sur
 // entretien_creneaux, cf. rpc_confirmer_reservation_calcom security definer.
 export async function confirmerReservationCalcom(demandeId, { debut, fin }) {
-  const { error } = await supabase.rpc('rpc_confirmer_reservation_calcom', {
+  const { error } = await supabase.rpc('crm_rpc_confirmer_reservation_calcom', {
     p_demande_id: demandeId,
     p_debut: debut,
     p_fin: fin,

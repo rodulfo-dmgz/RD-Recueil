@@ -59,7 +59,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: profilAppelant } = await clientAppelant
-    .from("profils")
+    .from("crm_profils")
     .select("role")
     .eq("user_id", appelant.id)
     .maybeSingle();
@@ -96,7 +96,7 @@ Deno.serve(async (req: Request) => {
 
   if (role === "client" && demandeId) {
     const { error: erreurAcces } = await clientAdmin
-      .from("demande_acces")
+      .from("crm_demande_acces")
       .upsert({ demande_id: demandeId, email, droit }, { onConflict: "demande_id,email" });
     if (erreurAcces) {
       return reponseJson({ erreur: erreurAcces.message }, 400);
@@ -122,7 +122,7 @@ Deno.serve(async (req: Request) => {
 
     if (dejaExistant) {
       const { data: profilExistant } = await clientAdmin
-        .from("profils")
+        .from("crm_profils")
         .select("user_id, role")
         .eq("email", email)
         .maybeSingle();
@@ -144,7 +144,7 @@ Deno.serve(async (req: Request) => {
 
   // Upsert plutôt qu'un simple insert : le trigger fn_gerer_nouvel_utilisateur
   // a pu déjà créer la ligne profils (role client rattaché via demande_acces).
-  const { error: erreurProfil } = await clientAdmin.from("profils").upsert(
+  const { error: erreurProfil } = await clientAdmin.from("crm_profils").upsert(
     { user_id: nouvelUtilisateur.user.id, role, nom, email, doit_changer_mot_de_passe: true },
     { onConflict: "user_id" }
   );

@@ -21,8 +21,8 @@ function normaliserQuestion(row) {
 
 export async function chargerQuestionnaire(questionnaireId) {
   const [{ data: sections, error: erreurSections }, { data: questions, error: erreurQuestions }] = await Promise.all([
-    supabase.from('sections').select('*').eq('questionnaire_id', questionnaireId).order('ordre'),
-    supabase.from('questions').select('*').eq('questionnaire_id', questionnaireId).order('ordre'),
+    supabase.from('crm_sections').select('*').eq('questionnaire_id', questionnaireId).order('ordre'),
+    supabase.from('crm_questions').select('*').eq('questionnaire_id', questionnaireId).order('ordre'),
   ]);
   if (erreurSections) throw erreurSections;
   if (erreurQuestions) throw erreurQuestions;
@@ -34,7 +34,7 @@ export async function chargerQuestionnaire(questionnaireId) {
 }
 
 export async function chargerGlossaire(questionnaireId) {
-  const { data, error } = await supabase.from('glossaire').select('*').eq('questionnaire_id', questionnaireId);
+  const { data, error } = await supabase.from('crm_glossaire').select('*').eq('questionnaire_id', questionnaireId);
   if (error) throw error;
   return data;
 }
@@ -43,7 +43,7 @@ export async function chargerGlossaire(questionnaireId) {
 // gabarit est stocké dans questionnaires.gabarit_cadrage_md (migration 0009).
 export async function chargerGabaritCadrage(questionnaireId) {
   const { data, error } = await supabase
-    .from('questionnaires')
+    .from('crm_questionnaires')
     .select('gabarit_cadrage_md')
     .eq('id', questionnaireId)
     .single();
@@ -53,7 +53,7 @@ export async function chargerGabaritCadrage(questionnaireId) {
 
 export async function obtenirVersionPublieeCourante() {
   const { data, error } = await supabase
-    .from('questionnaires')
+    .from('crm_questionnaires')
     .select('id')
     .eq('statut', 'publie')
     .order('publie_le', { ascending: false })

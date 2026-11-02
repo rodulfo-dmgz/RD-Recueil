@@ -228,6 +228,30 @@ Source : `docs/new_design.md` (cahier des charges, déplacé de `app/` vers `doc
 - [x] 7. Kanban des demandes
 - [x] 8. Responsive, accessibilité, performance, audit final (écrans refaits ; audit outillé et lecteur d'écran non faits)
 
+## 3i. Migration vers un nouveau projet Supabase, préfixe `crm_` (2026-10-07)
+
+Décision : tous les objets SQL (tables, vues, fonctions, index, contraintes, séquence) portent le préfixe `crm_` pour que le CRM « RD Recueil » cohabite avec d'autres applications dans un même projet. La production d'origine (rd-flow) n'est **pas** modifiée : le site publié reste sur les anciens noms jusqu'au changement de projet. Travail sur la branche `crm-prefixe`, à fusionner dans `main` seulement au moment de basculer.
+
+- `supabase/migrations/20261007000000_crm_install.sql` : installation complète (33 tables, 3 vues, 43 fonctions, 35 déclencheurs, 65 politiques, droits, buckets `demandes` et `taches`, déclencheur sur `auth.users`). Généré depuis le catalogue de la production, renommage sensible aux chaînes et commentaires. `fn_audit` garde les noms logiques (journal inchangé), `rpc_fusionner_clients` et `fn_reference` adaptées.
+- `supabase/historique/` : les 56 anciennes migrations, archivées, à ne plus exécuter.
+- `supabase/seed/seed_v1.sql` régénéré avec les noms `crm_` et les probabilités par statut (`scripts/build-seed.mjs`).
+- Code : 184 appels `.from()`, `.rpc()` et jointures passés en `crm_*` dans `app/js/` et les trois fonctions serveur. Les jointures sont aliasées (`clients:crm_clients(...)`) pour que les clés des résultats restent `clients`, `demandes`, etc. Les buckets de stockage ne changent pas.
+- `tests/crm-prefixe.test.mjs` (6 tests) : chaque nom utilisé par le code et par le seed existe dans le script d'installation.
+- Vérifications : script rejoué sur Postgres 18 (PGlite) avec un Supabase simulé, structure comparée à la production (aux noms près), 48 contrôles fonctionnels verts ; 273 tests verts, `check-coherence` à 0 erreur.
+- Guide d'installation : `docs/INSTALLATION_SUPABASE.md`.
+- Reprise des données : `scripts/migrer-donnees.mjs` (exporter, importer, sql), testé hors ligne par aller-retour (`tests/migrer-donnees.test.mjs` pour les règles). **Reste à lancer** quand le lien du projet source sera donné : l'accès en lecture aux données de production a été refusé pendant la session, l'export est donc à autoriser explicitement. Guide : `docs/INSTALLATION_SUPABASE.md`, section « Reprise des données ».
+
+## 3j. Module `crm` de l'ERP (2026-11-02)
+
+Décision du propriétaire : le CRM est un module de l'ERP, indépendant des autres modules mais bâti sur le noyau commun (option A : le noyau est toujours livré avec le module). Rôle `crm_consultant` ajouté au catalogue. Le CRM reste propriétaire de ses clients, contacts, demandes, devis et signatures. Échange avec la session ERP (noyau dans `C:\Users\Rodul\Desktop\ERP`, lecture seule) : on utilise `app_has_role`, `app_personne_id`, `app_organisme_actif`, `app_private.emettre_evenement` (pas `app_mes_roles` ni `app_a_role`, archivées).
+
+- Livré : `supabase/modules/crm/` (5 migrations `20261009400001` à `400005`, seed, essai SQL de 63 contrôles). Conception, rôles, organisation, événements et correspondance avec l'ancien modèle : `docs/CRM_MODULE_ERP.md`.
+- Vérifié sur PGlite avec les 50 migrations du noyau : 63 contrôles sur 63 (isolation entre deux organisations, parcours complet jusqu'au devis signé, événements `crm.demande.statut_change`, `crm.devis.signe`, `crm.devis.refuse` sans montant, module désactivé). Aucun droit `anon`, aucune table sans sécurité par ligne.
+- Relecture par la session ERP : défaut corrigé (les politiques « personnel » des tables globales ouvraient aussi le questionnaire complet aux clients : `crm_a_acces_staff_module()` ajoutée, essai R4e), `search_path` vide, politiques préfixées `crm_`, aides internes non exposées. Points restants : signatures (`app_signatures`), audit (`app_audit`), fichiers (`app_fichiers`), séquence de références par organisation.
+- Relecture ERP n°2 : intégrité du devis et de la note signés (signature réservée au client invité, état `envoyee` exigé, écriture directe interdite par déclencheur, code de vérification non prévisible, taille bornée), unicité des vues enregistrées par organisation, plus de droit d'exécution sur les fonctions de déclencheur. 15 contrôles ajoutés (R9). Relecture ERP n°3 : `crm_peut_signer` (droit `editeur` exigé, un invité `lecteur` ne signe pas), `envoyee_le` protégé, conservation et effacement documentés.
+- `scripts/build-seed.mjs` écrit aussi `supabase/modules/crm/seed/seed_v1.sql` (sans probabilités, créées par organisation à l'activation du module).
+- **Reste ouvert** : adapter l'application et les fonctions serveur au nouveau modèle (voir `docs/CRM_MODULE_ERP.md` section 6), noms `crm-*` des fonctions serveur, reprise des données avec organisation, relecture par la session ERP. L'ancien script autonome (`supabase/migrations/20261007000000_crm_install.sql`) reste en place tant que l'application n'est pas migrée.
+
 ## 4. Journal des étapes
 
 ### 2026-10-02 : lot A, étape 1 (migration 0030)

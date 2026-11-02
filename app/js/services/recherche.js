@@ -23,10 +23,10 @@ async function toutCharger(requete) {
 
 async function charger({ avecFactures }) {
   const [clients, contacts, demandes, factures] = await Promise.all([
-    toutCharger(() => supabase.from('v_clients').select('id, raison_sociale, nom_commercial, ville, siret, email_general, telephone').order('id')),
-    toutCharger(() => supabase.from('contacts').select('id, client_id, prenom, nom, email, telephone').order('id')),
-    toutCharger(() => supabase.from('demandes').select('id, reference, clients(raison_sociale)').order('id')),
-    avecFactures ? toutCharger(() => supabase.from('factures').select('id, demande_id, numero').order('id')) : Promise.resolve([]),
+    toutCharger(() => supabase.from('crm_v_clients').select('id, raison_sociale, nom_commercial, ville, siret, email_general, telephone').order('id')),
+    toutCharger(() => supabase.from('crm_contacts').select('id, client_id, prenom, nom, email, telephone').order('id')),
+    toutCharger(() => supabase.from('crm_demandes').select('id, reference, clients:crm_clients(raison_sociale)').order('id')),
+    avecFactures ? toutCharger(() => supabase.from('crm_factures').select('id, demande_id, numero').order('id')) : Promise.resolve([]),
   ]);
   return { clients, contacts, demandes, factures };
 }

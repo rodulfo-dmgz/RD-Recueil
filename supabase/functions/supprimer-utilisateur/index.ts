@@ -49,7 +49,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: profilAppelant } = await clientAppelant
-    .from("profils")
+    .from("crm_profils")
     .select("role")
     .eq("user_id", appelant.id)
     .maybeSingle();
@@ -76,7 +76,7 @@ Deno.serve(async (req: Request) => {
   const clientAdmin = createClient(supabaseUrl, cleServiceRole);
 
   const { data: profilCible } = await clientAdmin
-    .from("profils")
+    .from("crm_profils")
     .select("user_id, role")
     .eq("user_id", userId)
     .maybeSingle();
@@ -86,11 +86,11 @@ Deno.serve(async (req: Request) => {
 
   let demandesSupprimees = 0;
   if (profilCible.role === "client") {
-    const { data: acces } = await clientAdmin.from("demande_acces").select("demande_id").eq("user_id", userId);
+    const { data: acces } = await clientAdmin.from("crm_demande_acces").select("demande_id").eq("user_id", userId);
     const idsDemandes = [...new Set((acces || []).map((a) => a.demande_id))];
     if (idsDemandes.length > 0) {
       const { error: erreurSuppressionDemandes, count } = await clientAdmin
-        .from("demandes")
+        .from("crm_demandes")
         .delete({ count: "exact" })
         .in("id", idsDemandes);
       if (erreurSuppressionDemandes) {

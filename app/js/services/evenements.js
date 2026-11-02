@@ -2,7 +2,7 @@ import { supabase } from '../supabase.js';
 
 export async function chargerJournal(demandeId) {
   const { data, error } = await supabase
-    .from('evenements')
+    .from('crm_evenements')
     .select('*')
     .eq('demande_id', demandeId)
     .order('created_at', { ascending: false });

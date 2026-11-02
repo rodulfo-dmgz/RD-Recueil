@@ -3,14 +3,14 @@
 import { supabase } from '../supabase.js';
 
 export async function listerVues(ecran) {
-  const { data, error } = await supabase.from('vues_enregistrees').select('id, nom, filtres, tri, recherche').eq('ecran', ecran).order('nom');
+  const { data, error } = await supabase.from('crm_vues_enregistrees').select('id, nom, filtres, tri, recherche').eq('ecran', ecran).order('nom');
   if (error) throw error;
   return data;
 }
 
 export async function creerVue({ ecran, nom, filtres, tri = null, recherche = null }) {
   const { data, error } = await supabase
-    .from('vues_enregistrees')
+    .from('crm_vues_enregistrees')
     .insert({ ecran, nom: nom.trim(), filtres, tri, recherche: recherche || null })
     .select('id, nom, filtres, tri, recherche')
     .single();
@@ -19,6 +19,6 @@ export async function creerVue({ ecran, nom, filtres, tri = null, recherche = nu
 }
 
 export async function supprimerVue(id) {
-  const { error } = await supabase.from('vues_enregistrees').delete().eq('id', id);
+  const { error } = await supabase.from('crm_vues_enregistrees').delete().eq('id', id);
   if (error) throw error;
 }
